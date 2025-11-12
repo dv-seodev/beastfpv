@@ -1,0 +1,65 @@
+@import '../app/styles/breakpoints.scss';
+@import '../app/styles/mixins.scss';
+
+.why-us {
+
+    &__container {
+        padding-top: 70px;
+        padding-bottom: 70px;
+        background-image: url("/images/why-us_back.png");
+        background-size: cover;
+        max-width: calc(var(--container-max-width));
+        border-radius: 8px;
+        position: relative;
+
+        @include respond-to('laptop-hdpi') {
+            border-radius: 0px;
+        }
+
+        @include respond-to('large') {
+            padding-top: 100px;
+            padding-bottom: 50px;
+            background-position: 95% 100%;
+            background-size: cover;
+        }
+
+
+    }
+
+    &__h2 {
+        margin-bottom: 40px;
+    }
+
+    &__text-element {
+        max-width: 55%;
+
+        @include respond-to('large') {
+            max-width: 100%;
+        }
+
+        p {
+            margin-bottom: 22px;
+            line-height: 125%;
+
+            @include respond-to('ipad') {
+                font-size: 14px;
+            }
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+
+    &__img-mavic {
+        position: absolute;
+        top: 22px;
+        right: -10%;
+
+        @include respond-to('large') {
+            max-width: 320px;
+            top: -12%;
+            left: -2%;
+        }
+    }
+}

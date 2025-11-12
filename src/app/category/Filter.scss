@@ -1,0 +1,140 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.filter {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 388px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    @include respond-to('ipad') {
+        display: none;
+    }
+
+    &__item {
+        padding: 20px;
+        background: var(--filter-menu-gray);
+        border-radius: 10px;
+
+        &-header {
+            font-size: 24px;
+            line-height: 33px;
+            margin-bottom: 18px;
+            font-weight: 400;
+            padding: 10px;
+        }
+    }
+
+    &__categories {
+        position: relative;
+        display: block;
+        margin: 0 auto 10px;
+        border-radius: 8px;
+        transition: 0.4s;
+        overflow: hidden;
+
+        &:before {
+            position: absolute;
+            left: 24px;
+            top: 18px;
+            content: "";
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-right: 1px solid var(--black);
+            border-bottom: 1px solid var(--black);
+            transform: rotate(45deg);
+            transform-origin: center;
+            transition: .3s;
+        }
+
+        &[open]:before {
+            transform: rotate(225deg);
+            top: 24px;
+        }
+
+        &[open] {
+            padding-bottom: 60px;
+        }
+
+        &[open] &-title {
+            margin-bottom: 5px;
+            background: #EBEBEB;
+        }
+
+        &-title {
+            border-radius: 5px;
+            padding: 10px 54px;
+            font-size: 24px;
+            line-height: 30px;
+            cursor: pointer;
+            list-style: none;
+            font-weight: 400;
+            transition: .3s;
+
+            &:-webkit-categories-marker {
+                display: none;
+            }
+
+            @include respond-to('ipad') {
+                font-size: 18px;
+            }
+        }
+
+        &-content {
+            padding: 15px 32px;
+            padding-top: 20px;
+            font-size: 16px;
+            line-height: 125%;
+            margin-bottom: -60px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+
+            p:last-child {
+                margin-bottom: 0;
+            }
+
+            p:first-child {
+                margin-top: 0;
+            }
+
+            @include respond-to('ipad') {
+                font-size: 12px;
+            }
+
+            &-item {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+
+                .characteristics-checkbox {
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                    border: 1px solid var(--gray);
+                    border-radius: 2px;
+                    background-color: var(--background-input);
+
+                    @include respond-to('ipad') {
+                        width: 23px;
+                        height: 15px;
+                    }
+                }
+
+                .characteristics-checkbox:checked {
+                    appearance: none;
+                    background-image: url("/images/checkbox.svg");
+                    background-position: center;
+                    background-repeat: no-repeat;
+                }
+            }
+        }
+
+
+    }
+}

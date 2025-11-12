@@ -1,0 +1,9 @@
+<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="36.000004" height="36.000000" fill="none" clip-path="url(#clipPath_0)" customFrame="url(#clipPath_0)">
+	<defs>
+		<clipPath id="clipPath_0">
+			<rect width="36.000004" height="35.999996" x="0.000000" y="0.000000" rx="8.000000" fill="rgb(255,255,255)" transform="matrix(-1,-8.74228e-08,8.74228e-08,-1,36,36)" />
+		</clipPath>
+	</defs>
+	<rect id="chevron-right" width="35.000004" height="34.999996" x="0.500000" y="0.500000" rx="7.500000" stroke="rgb(255,255,255)" stroke-width="1" transform="matrix(-1,-8.74228e-08,8.74228e-08,-1,36,36)" />
+	<path id="Vector" d="M0 18L9 9L0 0" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" transform="matrix(-1,-8.74228e-08,8.74228e-08,-1,22.5,27)" />
+</svg>

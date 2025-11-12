@@ -1,0 +1,73 @@
+@import '../app/styles/breakpoints.scss';
+@import '../app/styles/mixins.scss';
+
+.brands {
+    &__container {
+        width: 100%;
+        padding-top: 100px;
+        padding-bottom: 100px;
+
+
+        @include respond-to('large') {
+            padding-top: 50px;
+            padding-bottom: 70px;
+        }
+    }
+
+    &__header {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        span {
+            font-size: 16px;
+        }
+
+        span::after {
+            content: url("/images/arrow-line.svg");
+            max-width: 100px;
+            margin-left: 15px;
+        }
+    }
+
+    &__wrapper {
+        display: flex;
+        width: 100%;
+        overflow-x: scroll;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &-inner {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 25px;
+        }
+
+        @include respond-to('small') {
+            // flex-direction: column;
+            gap: 20px;
+        }
+
+    }
+
+
+    &__item {
+        // flex: 0 0 auto;
+
+        img {
+            width: 100%;
+            min-width: 200px
+        }
+    }
+}

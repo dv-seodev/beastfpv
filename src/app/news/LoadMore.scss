@@ -1,0 +1,61 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.newspage {
+    &__more-materials {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 30px;
+
+        @include respond-from('laptop-hdpi') {
+            justify-content: center;
+            position: relative;
+        }
+
+        @include respond-to('medium') {
+            flex-direction: column;
+            gap: 30px;
+        }
+    }
+
+    &__show-more {}
+
+    &__load-more {
+        appearance: none;
+        border: none;
+        padding: 12px 112px;
+        color: var(--white);
+        background-color: var(--black);
+        border-radius: 4px;
+
+        @include respond-to('small') {
+            width: 100%;
+        }
+
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        cursor: pointer;
+
+        @include respond-from('laptop-hdpi') {
+            position: absolute;
+            right: 0;
+        }
+
+        .active {
+            text-decoration: underline;
+        }
+
+        .previous {
+            content: url("/images/previous-arrow.svg")
+        }
+
+        .next {
+            content: url("/images/next-arrow.svg")
+        }
+    }
+}

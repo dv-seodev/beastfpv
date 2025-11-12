@@ -1,0 +1,122 @@
+@import '../app/styles/breakpoints.scss';
+@import '../app/styles/mixins.scss';
+
+.contact-us {
+
+    width: 100%;
+    max-height: 100%;
+    background-image: url("/images/contact_back.jpg");
+    background-position: center center;
+    background-size: cover;
+
+    @include respond-to('ipad') {
+        background-position: 20% 50%;
+    }
+
+    &__header {
+        padding-bottom: 40px;
+
+        h2 {
+            color: var(--white);
+        }
+
+        p {
+            color: var(--white);
+        }
+    }
+
+    &__container {
+        padding-top: 100px;
+        padding-bottom: 100px;
+
+        @include respond-to('ipad') {
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+    }
+
+    &__form {
+        border-radius: 8px;
+        background-color: var(--white);
+        border: none;
+        appearance: none;
+        padding: 100px 140px;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+        max-width: 824px;
+
+        @include respond-to('large') {
+            padding: 30px 20px;
+        }
+
+        p {
+            padding-bottom: 15px;
+
+            @include respond-to('large') {
+                padding-bottom: 12px;
+            }
+        }
+
+    }
+
+    &__form-input {
+        appearance: none;
+        margin-bottom: 40px;
+        border: 1px solid var(--light-gray-input);
+        background-color: var(--background-input);
+        border-radius: 4px;
+        height: 57px;
+        color: var(--black);
+        padding: 10px;
+        font-size: 20px;
+
+        @include respond-to('large') {
+            margin-bottom: 20px;
+            height: 48px;
+        }
+    }
+
+    &__checkbox-wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+
+        @include respond-to('large') {
+            margin-bottom: 20px;
+        }
+    }
+
+    &__form-checkbox {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border: 1px solid var(--gray);
+        border-radius: 2px;
+        background-color: var(--background-input);
+    }
+
+    &__form-checkbox:checked {
+        appearance: none;
+        // border-color: #0d6efd;
+        background-image: url("/images/checkbox.svg");
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    &__form-button-submit {
+        height: 57px;
+        padding: 15px 0px;
+        background-color: var(--basket-button-color);
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        color: white;
+
+        @include respond-to('large') {
+            height: 48px;
+        }
+    }
+}

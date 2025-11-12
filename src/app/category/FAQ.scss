@@ -1,0 +1,119 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.faq {
+    width: 100%;
+    max-height: 100%;
+    background-image: url("/images/contact_back.jpg");
+    background-position: center center;
+    background-size: cover;
+
+    @include respond-to('ipad') {
+        background-position: 20% 50%;
+    }
+
+    &__header {
+
+        h2 {
+            color: var(--white);
+            margin-bottom: 50px;
+
+            @include respond-to('ipad') {
+                margin-bottom: 30px;
+            }
+
+        }
+
+        p {
+            color: var(--white);
+
+        }
+    }
+
+    &__container {
+        max-width: 1100px;
+        padding-top: 50px;
+        padding-bottom: 80px;
+
+        @include respond-to('ipad') {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+    }
+}
+
+.details {
+    position: relative;
+    display: block;
+    margin: 0 auto 20px;
+    background: var(--white);
+    border-radius: 8px;
+    transition: 0.3s;
+    overflow: hidden;
+}
+
+.details::after {
+    position: absolute;
+    right: 24px;
+    top: 30px;
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-right: 1px solid var(--black);
+    border-bottom: 1px solid var(--black);
+    transform: rotate(45deg);
+    transform-origin: center;
+    transition: .2s;
+}
+
+.details[open]::after {
+    transform: rotate(225deg);
+}
+
+.details[open] {
+    padding-bottom: 100px;
+}
+
+.details[open] .details__title {
+    margin-bottom: 5px;
+}
+
+.details__title {
+    background: #fff;
+    border-radius: 5px;
+    padding: 25px 25px;
+    font-size: 24px;
+    line-height: 30px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 400;
+    transition: .3s;
+
+    @include respond-to('ipad') {
+        font-size: 18px;
+    }
+}
+
+.details__title::-webkit-details-marker {
+    display: none;
+}
+
+.details__content {
+    padding: 0 32px;
+    font-size: 16px;
+    line-height: 125%;
+    margin-bottom: -60px;
+
+    @include respond-to('ipad') {
+        font-size: 12px;
+    }
+}
+
+.details__content p:last-child {
+    margin-bottom: 0;
+}
+
+.details__content p:first-child {
+    margin-top: 0;
+}

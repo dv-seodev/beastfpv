@@ -1,0 +1,8 @@
+<svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.000000" height="30.000000" fill="none">
+	<rect id="Frame 4" width="30.000000" height="30.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+	<g id="Group 2">
+		<line id="Line 1" x1="5" x2="25" y1="7" y2="7" stroke="rgb(66.9375,66.9375,66.9375)" stroke-width="2" />
+		<line id="Line 2" x1="5" x2="25" y1="14" y2="14" stroke="rgb(66.9375,66.9375,66.9375)" stroke-width="2" />
+		<line id="Line 3" x1="5" x2="25" y1="21" y2="21" stroke="rgb(66.9375,66.9375,66.9375)" stroke-width="2" />
+	</g>
+</svg>

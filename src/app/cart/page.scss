@@ -1,0 +1,434 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.cart {
+    width: 100%;
+    max-height: 100%;
+
+    &__header {
+        padding-bottom: 40px;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 60px;
+
+        @include respond-to('ipad') {
+            font-size: 24px;
+            line-height: 28px;
+            padding-bottom: 20px;
+        }
+    }
+
+    &__container {
+        padding-top: 50px;
+        padding-bottom: 50px;
+
+        @include respond-to('ipad') {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+    }
+
+    .new-items__container {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    &__wrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+
+        @include respond-to('large') {
+            flex-direction: column;
+        }
+    }
+
+    &__items {
+        display: flex;
+        flex-direction: column;
+        background-color: var(--light-gray-cart);
+        padding: 40px;
+        gap: 18px;
+        border-radius: 8px;
+        flex-grow: 2;
+        width: 100%;
+
+        max-height: fit-content;
+
+        @include respond-to('ipad') {
+            background-color: transparent;
+            padding: 3px;
+            gap: 25px;
+        }
+
+    }
+
+    &__product-item-img {
+        img {
+            border-radius: 34px;
+            max-width: 120px;
+
+            @include respond-to('laptop-mdpi') {
+                width: 85px;
+                height: 85px;
+            }
+        }
+
+    }
+
+    &__product-item-link {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 30px;
+    }
+
+    &__price-info {
+        border: 1px solid var(--light-gray);
+        padding: 40px;
+        border-radius: 8px;
+        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+
+        @include respond-to('medium') {
+            padding: 30px;
+        }
+    }
+
+    &__product-table-title {
+        display: flex;
+        flex-direction: row;
+        // grid-template-columns: auto auto auto auto auto;
+        align-items: center;
+        justify-content: right;
+        gap: 100px;
+
+        @include respond-to('laptop-hdpi') {
+            display: none;
+        }
+    }
+
+    &__product-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 35px;
+
+        @include respond-to('ipad') {
+            gap: 30px;
+        }
+
+        @include respond-to('phone') {
+            gap: 10px;
+        }
+    }
+
+    &__product-item-price {
+        font-size: 24px;
+        font-weight: 700;
+
+        @include respond-to('laptop-hdpi') {
+            font-size: 18px;
+        }
+
+        @include respond-to('laptop-hdpi') {
+            display: none;
+        }
+
+        @include respond-to('ipad') {
+            display: block;
+        }
+
+        @include respond-to('small') {
+            display: none;
+        }
+    }
+
+    &__product-item-final-price {
+        font-size: 24px;
+        font-weight: 700;
+
+        @include respond-to('laptop-hdpi') {
+            font-size: 18px;
+        }
+    }
+
+    &__product-item-name {
+        max-width: 240px;
+        text-align: left;
+        line-height: 130%;
+
+        @include respond-to('laptop-hdpi') {
+            font-size: 14px;
+        }
+    }
+
+    &__product-item-delete {
+        max-width: 18px;
+        max-height: 18px;
+        appearance: none;
+        border: none;
+        background: none;
+        cursor: pointer;
+
+        @include respond-to('phone') {
+            align-self: flex-start;
+            padding-top: 10px;
+        }
+
+    }
+
+    &__items-inscription {
+        display: flex;
+        justify-content: flex-end;
+        gap: 40px;
+    }
+
+    &__product-minus {
+        appearance: none;
+        border: none;
+        border-radius: 4px;
+        color: var(--black);
+        background-color: var(--light-gray-count);
+        max-height: 100%;
+        height: 30px;
+        padding: 5px 10px;
+
+        img {
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    &__product-plus {
+        appearance: none;
+        border: none;
+        border-radius: 4px;
+        color: var(--black);
+        background-color: var(--light-gray-count);
+        max-height: 100%;
+        height: 30px;
+        padding: 5px 10px;
+
+        img {
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    &__product-quantity {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    &__product-count {
+        appearance: none;
+        background-color: transparent;
+        border: 1px solid #CDCDCD;
+        border-radius: 8px;
+        max-width: 45px;
+        max-height: 30px;
+        color: var(--black);
+        padding: 10px;
+        text-align: center;
+    }
+
+    &__price-heading {
+        font-size: 36px;
+        padding-bottom: 45px;
+        line-height: 120%;
+        font-weight: 400;
+
+        @include respond-to('laptop-mdpi') {
+            font-size: 32px;
+        }
+    }
+
+    &__price-numb {
+        font-size: 24px;
+        font-weight: 700;
+
+        @include respond-to('laptop-mdpi') {
+            font-size: 18px;
+        }
+    }
+
+    &__price-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 35px;
+
+        @include respond-to('laptop-mdpi') {
+            gap: 15px;
+        }
+    }
+
+    &__price-underline {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #D9D9D9;
+    }
+
+    &__price-final {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    &__checkbox-wrapper {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    &__price-shipping {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #D9D9D9;
+    }
+
+    &__checkbox-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    &__shipping-checkbox {
+        appearance: none;
+        width: 18px;
+        height: auto;
+        aspect-ratio: 1;
+        border: 1px solid var(--gray);
+        border-radius: 2px;
+        background-color: var(--background-input);
+
+        @include respond-to('ipad') {
+            width: 16px;
+            height: auto;
+            aspect-ratio: 1;
+        }
+    }
+
+    &__shipping-checkbox:checked {
+        appearance: none;
+        background-image: url("/images/checkbox.svg");
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+
+
+    &__right-section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        flex-grow: 1;
+
+        @include respond-from('large') {
+            max-width: 440px;
+        }
+
+        // @include respond-from('laptop-mdpi') {
+        //     max-width: 450px;
+        // }
+    }
+
+    &__coupon-input {
+        appearance: none;
+        width: 100%;
+        border: 1px solid var(--light-gray-input);
+        background-color: var(--background-input);
+        border-radius: 4px;
+        height: 57px;
+        color: var(--black);
+        padding: 10px;
+        font-size: 20px;
+
+        @include respond-to('large') {
+            height: 48px;
+        }
+    }
+
+    &__coupon-submit {
+        appearance: none;
+        border: none;
+        padding: 12px;
+        color: var(--white);
+        background-color: var(--black);
+        border-radius: 4px;
+        width: 100%;
+
+        @include respond-to('small') {
+            width: 100%;
+        }
+
+    }
+
+    &__form-button-submit {
+        height: 57px;
+        padding: 15px 0px;
+        background-color: var(--basket-button-color);
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        color: white;
+
+        @include respond-to('large') {
+            height: 48px;
+        }
+    }
+
+    &__coupon-apply {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        flex-grow: 1;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .action-price {
+        color: var(--red);
+    }
+
+    &__product-item-inner {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+
+        @include respond-to('phone') {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+
+    &__product-item-inner-wrapper {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+
+        @include respond-to('phone') {
+            // justify-content: space-between;
+            gap: 20px;
+        }
+    }
+
+}

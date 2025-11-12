@@ -1,0 +1,98 @@
+@import '../../app/styles/breakpoints.scss';
+@import '../../app/styles/mixins.scss';
+
+
+
+.footer {
+    box-shadow: 0px 0px 60px 0px rgba(0, 0, 0, 0.06);
+
+    &__container {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        justify-content: space-between;
+        padding-top: 60px;
+        padding-bottom: 60px;
+        column-gap: 40px;
+        row-gap: 60px;
+        flex-wrap: wrap;
+
+        // @include respond-to('ipad') {
+        //     padding-top: 140px;
+        // }
+
+        // @include respond-to('small') {
+        //     padding-top: 60px;
+        // }
+
+        @include respond-to('large') {
+            row-gap: 40px;
+        }
+
+
+    }
+
+    &__links-header {
+        color: var(--black);
+        font-size: 36px;
+        font-weight: 400;
+        line-height: 100%;
+
+        @include respond-to('large') {
+            font-size: 18px;
+        }
+    }
+
+    &__links_navy {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 50px;
+
+        @include respond-to('large') {
+            gap: 35px;
+        }
+    }
+
+    &__links-item {
+
+        @include respond-to('large') {
+            font-size: 12px;
+        }
+
+    }
+
+    &__social-links {
+        gap: 35px;
+
+        @include respond-to('large') {
+            gap: 30px;
+        }
+    }
+
+    &__navy {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        justify-content: space-between;
+
+        @include respond-to('large') {
+            gap: 20px;
+        }
+
+    }
+
+    &__image-logo {
+        width: 100%;
+        max-width: 324px;
+    }
+
+    &__adress-contacts p {
+        line-height: 125%;
+
+        @include respond-to('large') {
+            font-size: 12px;
+
+        }
+    }
+}

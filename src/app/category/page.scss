@@ -1,0 +1,62 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.category-page {
+    &__container {
+        padding-bottom: 40px;
+    }
+
+    &__wrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        justify-content: space-between;
+
+        @include respond-to('ipad') {
+            flex-direction: column;
+        }
+    }
+}
+
+.filter-mob {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+
+    @include respond-from('ipad') {
+        display: none;
+    }
+}
+
+.category-page__cat-list {
+    display: flex;
+    width: 100%;
+    overflow-x: scroll;
+
+    @include respond-from('ipad') {
+        display: none;
+    }
+}
+
+.category-page__cat-list::-webkit-scrollbar {
+    display: none;
+}
+
+.category-page__cat-list::-webkit-scrollbar {
+    display: none;
+}
+
+.category-page__cat-list-inner {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 20px;
+    display: flex
+}
+
+.category-page__cat-list-item {
+    background-color: #F6F6F6;
+    padding: 12px;
+    white-space: nowrap;
+    border-radius: 8px;
+}

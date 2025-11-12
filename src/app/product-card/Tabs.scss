@@ -1,0 +1,218 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.product-card__char-tabs {
+    padding: 60px;
+    border-radius: 0px;
+    border: 1px solid var(--gray);
+
+    @include respond-to('ipad') {
+        border: 0px;
+        padding: 0px;
+    }
+}
+
+[role="tablist"] {
+    --tab-label-padding: 8px;
+    --tab-label-next-padding: 2em;
+    --tab-label-radius: 8px;
+    --tab-label-active-background: white;
+    --tab-label-active-color: currentColor;
+    --tab-content-x-padding: 0;
+    --tab-content-y-padding: 1em;
+    --tab-border-color: #CDCDCD;
+    --tab-border-width: 1px;
+    --rotate-deg: 45deg;
+
+
+    --vertical-tab-label-active-background: white;
+    --vertical-tab-label-active-color: currentColor;
+
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+/* hide everything, except the tab labels */
+[role="tablist"]>*:not(label[role="tab"]) {
+    display: none;
+}
+
+/* keep the inputs on the page, but make them invisible to allow for keyboard focus */
+[role="tablist"]>label[role="tab"]>input[type="radio"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+/* when using the tab key on the keyboard to focus into the tablist, indicate the default outline */
+[role="tablist"]>label[role="tab"]:has(:focus-visible) {
+    outline: var(--outline);
+    outline-offset: calc(-1 * var(--tab-label-padding));
+}
+
+/* tab label */
+[role="tablist"]>label[role="tab"] {
+    padding-bottom: var(--tab-label-padding);
+    font-size: 24px;
+    font-weight: 400;
+    cursor: pointer;
+    margin-bottom: calc(-1 * var(--tab-border-width));
+    border-bottom: none;
+    border-left: var(--tab-border-width) solid transparent;
+    border-top: var(--tab-border-width) solid transparent;
+    border-right: var(--tab-border-width) solid transparent;
+
+    @include respond-to('ipad') {
+        font-size: 14px;
+    }
+}
+
+/* selected tab label */
+[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked) {
+    border-bottom: 1px solid black;
+}
+
+[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked)>* {
+    color: var(--tab-label-active-color);
+}
+
+/* tab content */
+[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"] {
+    // border-top: var(--tab-border-width) solid var(--tab-border-color);
+    order: 99;
+    display: block;
+    width: 100%;
+    position: relative;
+    z-index: -1;
+    padding-top: 50px;
+    line-height: 130%;
+}
+
+/* vertical tablist styling */
+
+/* tab label */
+.vertical[role="tablist"]>label[role="tab"] {
+    display: block;
+    width: 100%;
+    border: var(--tab-border-width) solid var(--tab-border-color);
+    border-bottom: none;
+}
+
+.vertical[role="tablist"]>label[role="tab"]:first-of-type {
+    border-radius: var(--tab-label-radius) var(--tab-label-radius) 0 0;
+}
+
+.vertical[role="tablist"]>label[role="tab"]:last-of-type {
+    border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
+    // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
+}
+
+/* selected tab label */
+.vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked) {
+    border-bottom: none;
+    background: var(--vertical-tab-label-active-background);
+}
+
+.vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked)>* {
+    color: var(--vertical-tab-label-active-color);
+}
+
+.vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked):last-of-type {
+    border-radius: 0;
+}
+
+/* tab content */
+.vertical[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"] {
+    order: unset;
+    padding: var(--tab-label-padding) var(--tab-label-padding);
+    border-left: var(--tab-border-width) solid var(--tab-border-color);
+    border-right: var(--tab-border-width) solid var(--tab-border-color);
+}
+
+.vertical[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"]:last-of-type {
+    // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
+    border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
+}
+
+
+@media screen and (max-width: 600px) {
+
+    .product-card__char-tabs>div>label {
+        position: relative;
+    }
+
+    .product-card__char-tabs>div>label>span:after {
+        position: absolute;
+        right: 24px;
+        top: 25px;
+        content: "";
+        display: block;
+        width: 10px;
+        height: 10px;
+        border-right: 1px solid var(--black);
+        border-bottom: 1px solid var(--black);
+        transform: rotate(var(--rotate-deg));
+        transform-origin: center;
+        transition: .2s;
+    }
+
+    // .product-card__char-tabs>div>label>span:after {
+    //     transform: rotate(225deg);
+    // }
+
+    /* tab label */
+    .max-sm\:vertical[role="tablist"]>label[role="tab"] {
+        // border-radius: 8px 8px 0px 0px;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
+        border: var(--tab-border-width) solid var(--tab-border-color);
+        padding: 25px 20px 25px 20px;
+    }
+
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:first-of-type {
+        // border-radius: 8px 8px 0px 0px;
+        border-radius: var(--tab-label-radius) var(--tab-label-radius) 0 0;
+    }
+
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:last-of-type {
+        border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
+        // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
+    }
+
+    /* selected tab label */
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked) {
+        border-bottom: none;
+        background: var(--vertical-tab-label-active-background);
+        --rotate-deg: 225deg;
+        transition: .2s;
+    }
+
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked)>* {
+        color: var(--vertical-tab-label-active-color);
+
+    }
+
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:has(input[type="radio"]:checked):last-of-type {
+        border-radius: 0;
+    }
+
+    /* tab content */
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"] {
+        order: unset;
+        padding: var(--tab-label-padding) var(--tab-label-padding);
+        border-left: var(--tab-border-width) solid var(--tab-border-color);
+        border-right: var(--tab-border-width) solid var(--tab-border-color);
+        border-bottom: var(--tab-border-width) solid var(--tab-border-color);
+        padding: 0px 20px 20px 20px;
+        font-size: 12px;
+    }
+
+    .max-sm\:vertical[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"]:last-of-type {
+        // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
+        border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
+    }
+}

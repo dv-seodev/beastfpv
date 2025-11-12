@@ -1,0 +1,54 @@
+@import '../../app/styles/breakpoints.scss';
+@import '../../app/styles/mixins.scss';
+
+.mobile-menu {
+    background-color: var(--white);
+    position: fixed;
+    visibility: hidden;
+    top: 0px;
+    right: 0px;
+    height: 100;
+    z-index: 1000;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+
+    &__close {
+        text-align: right;
+    }
+
+    &__catalog {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    &__service-links {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    &__links-item {
+        font-size: 14px;
+    }
+}
+
+.mobile-heading {
+    font-size: 18px;
+}
+
+.icon-cross-mobile {
+    text-align: right;
+    width: 28px;
+    height: 28px;
+    stroke: black;
+}
+
+.menu-mobile-icon:focus {
+
+    .mobile-menu {
+        visibility: visible;
+    }
+}

@@ -9,13 +9,21 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@apollo/client": "^4.0.9",
+    "graphql": "^16.12.0",
+    "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "react-tabs": "^6.1.0",
+    "sass-embedded": "^1.93.2",
+    "swiper": "^12.0.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "24.8.0",
+    "@types/react": "19.2.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "sass": "^1.93.2"
   }
 }

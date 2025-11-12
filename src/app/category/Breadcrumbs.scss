@@ -1,0 +1,28 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.breadcrumbs {
+    padding-bottom: 30px;
+    width: 100%;
+    max-width: 100%;
+
+    @include respond-to('ipad') {
+        font-size: 12px;
+        padding-bottom: 25px;
+    }
+
+    &__bread-ul {
+        list-style: none;
+
+        li {
+            display: inline;
+        }
+
+        li+li:before {
+            padding: 8px 16px;
+            color: var(--light-gray);
+            content: "●";
+        }
+    }
+
+}

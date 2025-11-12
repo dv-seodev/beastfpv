@@ -1,0 +1,113 @@
+@import '../styles/breakpoints.scss';
+@import '../styles/mixins.scss';
+
+.account {
+    &__container {
+        padding-top: 10px;
+        width: 100%;
+    }
+
+    &__header {
+        padding-bottom: 40px;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 60px;
+
+        @include respond-to('ipad') {
+            font-size: 24px;
+            line-height: 28px;
+        }
+    }
+
+    &__nav {
+        display: flex;
+        flex-direction: row;
+        gap: 50px;
+    }
+
+    &__links-item {
+        font-size: 24px;
+
+        @include respond-to('ipad') {
+            font-size: 16px;
+        }
+    }
+
+    &__link-active {
+        border-bottom: 1px solid var(--black);
+        padding-bottom: 6px;
+    }
+
+    &__orders-list {
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 30px;
+        padding-top: 50px;
+
+        @include respond-to('ipad') {
+            grid-template-columns: auto;
+            gap: 24px;
+        }
+    }
+
+    .new-items__container {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    &__order-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 60px;
+
+
+        @include respond-to('ipad') {
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+    }
+
+    &__order-item-link {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 32px;
+
+        @include respond-to('ipad') {
+            gap: 12px;
+        }
+    }
+
+    &__order-item-name {
+
+        @include respond-to('ipad') {
+            max-width: 180px;
+            font-size: 12px;
+        }
+
+    }
+
+    &__order-item-img {
+
+        img {
+            max-width: 120px;
+
+            @include respond-to('ipad') {
+                max-width: 60px;
+            }
+        }
+    }
+
+
+
+    &__order-item-price {
+        font-size: 24px;
+        font-weight: 700;
+
+        @include respond-to('ipad') {
+            font-size: 12px;
+        }
+    }
+}
