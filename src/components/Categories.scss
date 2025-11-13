@@ -1,12 +1,11 @@
-@import '../app/styles/breakpoints.scss';
-@import '../app/styles/mixins.scss';
+@use '../app/styles/mixins.scss' as mx;
 
 .categories {
 
     &__container {
         padding-top: 100px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             padding-top: 50px;
         }
     }
@@ -17,11 +16,11 @@
 
 
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             grid-template-columns: auto auto auto;
         }
 
-        @include respond-to('medium') {
+        @include mx.respond-to('medium') {
             grid-template-columns: auto auto;
         }
     }
@@ -32,7 +31,7 @@
         align-items: center;
         gap: 30px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             flex-direction: column;
             gap: 20px;
         }
@@ -46,7 +45,7 @@
         &__name {
             font-size: 24px;
 
-            @include respond-to('ipad') {
+            @include mx.respond-to('ipad') {
                 font-size: 14px;
             }
         }

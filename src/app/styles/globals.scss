@@ -1,5 +1,5 @@
-@import './breakpoints.scss';
-@import './mixins.scss';
+@use './breakpoints.scss' as bp;
+@use './mixins.scss' as mx;
 
 
 :root {
@@ -61,13 +61,9 @@ body {
     min-height: 100vh;
   }
 
-  &_header {}
-
   &_content {
     flex-grow: 1;
   }
-
-  &_footer {}
 }
 
 .container {
@@ -77,7 +73,7 @@ body {
   padding: 0 var(--container-padding);
 }
 
-@include respond-to('large') {
+@include mx.respond-to('large') {
   :root {
     --container-padding: 20px;
   }
@@ -137,13 +133,13 @@ body {
 
 .mobile-show {
 
-  @include respond-from('ipad') {
+  @include mx.respond-from('ipad') {
     display: none;
   }
 }
 
 .desktop-show {
-  @include respond-to('ipad') {
+  @include mx.respond-to('ipad') {
     display: none;
   }
 }

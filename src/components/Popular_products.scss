@@ -1,12 +1,11 @@
-@import '../app/styles/breakpoints.scss';
-@import '../app/styles/mixins.scss';
+@use '../app/styles/mixins.scss' as mx;
 
 .popular-products {
 
     &__container {
         padding-top: 100px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             padding-top: 50px;
         }
 
@@ -35,7 +34,7 @@
         grid-template-columns: auto auto auto auto;
         gap: 32px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             grid-template-columns: auto auto;
             gap: 15px;
         }
@@ -51,7 +50,7 @@
         padding: 25px;
         position: relative;
 
-        @include respond-to('phone') {
+        @include mx.respond-to('phone') {
             padding: 9px;
             gap: 12px;
         }
@@ -63,7 +62,7 @@
             min-height: 280px;
             max-height: 280px;
 
-            @include respond-to('ipad') {
+            @include mx.respond-to('ipad') {
                 min-height: 166px;
                 max-height: 166px;
             }
@@ -75,7 +74,7 @@
         font-size: 16px;
         line-height: 125%;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
@@ -92,7 +91,7 @@
         font-size: 24px;
         font-weight: 700;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 16px;
         }
     }
@@ -110,7 +109,7 @@
         border-radius: 4px;
         border: none;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             min-width: 39px;
             min-height: 33px;
 
@@ -136,7 +135,7 @@
         border-radius: 4px;
         text-align: center;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
