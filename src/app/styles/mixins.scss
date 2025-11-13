@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use './breakpoints.scss' as bp;
 
 @mixin retina {
@@ -15,8 +16,8 @@
 @mixin respond-from($breakpoint) {
     $map: bp.$breakpoints;
 
-    @if map-has-key($map, $breakpoint) {
-        @media (min-width: map-get($map, $breakpoint)) {
+    @if map.has-key($map, $breakpoint) {
+        @media (min-width: map.get($map, $breakpoint)) {
             @content;
         }
     }
@@ -30,8 +31,8 @@
 @mixin respond-to($breakpoint) {
     $map: bp.$breakpoints;
 
-    @if map-has-key($map, $breakpoint) {
-        @media (max-width: map-get($map, $breakpoint)) {
+    @if map.has-key($map, $breakpoint) {
+        @media (max-width: map.get($map, $breakpoint)) {
             @content;
         }
     }
@@ -50,9 +51,9 @@
 @mixin respond-between($min-breakpoint, $max-breakpoint) {
     $map: bp.$breakpoints;
 
-    @if map-has-key($map, $min-breakpoint) and map-has-key($map, $max-breakpoint) {
-        $min-width: map-get($map, $min-breakpoint);
-        $max-width: map-get($map, $max-breakpoint);
+    @if map.has-key($map, $min-breakpoint) and map.has-key($map, $max-breakpoint) {
+        $min-width: map.get($map, $min-breakpoint);
+        $max-width: map.get($map, $max-breakpoint);
 
         @media (min-width: $min-width) and (max-width: $max-width) {
             @content;

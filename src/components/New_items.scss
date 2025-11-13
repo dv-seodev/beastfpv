@@ -1,5 +1,4 @@
-@import '../app/styles/breakpoints.scss';
-@import '../app/styles/mixins.scss';
+@use '../app/styles/mixins.scss' as mx;
 
 .new-items {
 
@@ -7,7 +6,7 @@
         padding-top: 100px;
         padding-bottom: 100px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             padding-top: 50px;
             padding-bottom: 50px;
         }
@@ -37,12 +36,12 @@
         // grid-template-columns: auto auto auto auto;
         gap: 32px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             grid-template-columns: auto auto;
             gap: 15px;
         }
 
-        @include respond-to('phone') {
+        @include mx.respond-to('phone') {
             display: flex;
         }
     }
@@ -57,7 +56,7 @@
         padding: 25px;
         position: relative;
 
-        @include respond-to('phone') {
+        @include mx.respond-to('phone') {
             padding: 9px;
             gap: 12px;
         }
@@ -69,7 +68,7 @@
             min-height: 280px;
             max-height: 280px;
 
-            @include respond-to('ipad') {
+            @include mx.respond-to('ipad') {
                 min-height: 166px;
                 max-height: 166px;
             }
@@ -82,7 +81,7 @@
         line-height: 125%;
         min-height: 50px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
@@ -99,7 +98,7 @@
         font-size: 24px;
         font-weight: 700;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 16px;
         }
     }
@@ -117,7 +116,7 @@
         border-radius: 4px;
         border: none;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             min-width: 39px;
             min-height: 33px;
 
@@ -144,7 +143,7 @@
         border-radius: 4px;
         text-align: center;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
@@ -169,7 +168,7 @@
     .swiper-button-prev {
         margin-left: 15px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             display: none;
         }
     }
@@ -177,7 +176,7 @@
     .swiper-button-next {
         margin-right: 15px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             display: none;
         }
     }
@@ -196,7 +195,7 @@
         display: none;
         margin-bottom: 20px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             display: none;
         }
     }
@@ -207,7 +206,7 @@
         border-radius: 4px;
         background: rgba(255, 255, 255, 0.3);
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             background: #3988AC;
             opacity: 0.3;
         }
