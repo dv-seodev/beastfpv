@@ -1,5 +1,5 @@
-@import 'breakpoints.scss';
-@import 'mixins.scss';
+@use './breakpoints.scss' as bp;
+@use './mixins.scss' as mx;
 
 a {
     color: inherit;
@@ -13,7 +13,7 @@ h2 {
     letter-spacing: 0%;
     margin-bottom: 50px;
 
-    @include respond-to('ipad') {
+    @include mx.respond-to('ipad') {
         font-size: 24px;
         margin-bottom: 22px;
         line-height: 28px;
