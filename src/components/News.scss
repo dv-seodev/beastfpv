@@ -1,5 +1,4 @@
-@import '../app/styles/breakpoints.scss';
-@import '../app/styles/mixins.scss';
+@use '../app/styles/mixins.scss' as mx;
 
 .news {
 
@@ -7,7 +6,7 @@
         padding-top: 100px;
         padding-bottom: 100px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             padding-top: 50px;
             padding-bottom: 80px;
         }
@@ -37,7 +36,7 @@
         flex-grow: 1;
         gap: 32px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             flex-direction: column;
             gap: 14px;
         }
@@ -67,7 +66,7 @@
         flex-direction: column;
         gap: 30px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             max-width: 60%;
             top: 25px;
             left: 40px;
@@ -82,7 +81,7 @@
         font-size: 36px;
         line-height: 130%;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 20px;
             line-height: 120%;
         }
@@ -91,7 +90,7 @@
     &__big-item-date {
         font-size: 16px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
@@ -102,12 +101,12 @@
         gap: 32px;
         max-width: 100%;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             gap: 14px;
             grid-template-columns: auto auto;
         }
 
-        @include respond-to('phone') {
+        @include mx.respond-to('phone') {
             gap: 14px;
             grid-template-columns: auto;
         }
@@ -131,11 +130,11 @@
         max-height: 150px;
         height: auto;
 
-        @include respond-range(950px, 1050px) {
+        @include mx.respond-range(950px, 1050px) {
             max-height: none;
         }
 
-        @include respond-range(450px, 600px) {
+        @include mx.respond-range(450px, 600px) {
             max-height: none;
         }
 
@@ -160,7 +159,7 @@
         border-bottom-right-radius: 8px;
         border: 1px solid var(--news-item-border);
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             padding: 20px;
         }
     }
@@ -168,7 +167,7 @@
     &__card-header {
         font-size: 16px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 14px;
         }
     }
@@ -176,7 +175,7 @@
     &__card-date {
         font-size: 16px;
 
-        @include respond-to('ipad') {
+        @include mx.respond-to('ipad') {
             font-size: 12px;
         }
     }

@@ -1,5 +1,4 @@
-@import '../../app/styles/breakpoints.scss';
-@import '../../app/styles/mixins.scss';
+@use '../../app/styles/mixins.scss' as mx;
 
 
 
@@ -17,15 +16,15 @@
         row-gap: 60px;
         flex-wrap: wrap;
 
-        // @include respond-to('ipad') {
+        // @include mx.respond-to('ipad') {
         //     padding-top: 140px;
         // }
 
-        // @include respond-to('small') {
+        // @include mx.respond-to('small') {
         //     padding-top: 60px;
         // }
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             row-gap: 40px;
         }
 
@@ -38,7 +37,7 @@
         font-weight: 400;
         line-height: 100%;
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             font-size: 18px;
         }
     }
@@ -49,14 +48,14 @@
         width: 100%;
         gap: 50px;
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             gap: 35px;
         }
     }
 
     &__links-item {
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             font-size: 12px;
         }
 
@@ -65,7 +64,7 @@
     &__social-links {
         gap: 35px;
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             gap: 30px;
         }
     }
@@ -76,7 +75,7 @@
         gap: 30px;
         justify-content: space-between;
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             gap: 20px;
         }
 
@@ -90,7 +89,7 @@
     &__adress-contacts p {
         line-height: 125%;
 
-        @include respond-to('large') {
+        @include mx.respond-to('large') {
             font-size: 12px;
 
         }
