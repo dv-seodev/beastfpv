@@ -13,41 +13,18 @@ import Brands from '../components/Brands';
 import Contact_us from '../components/Contact_us';
 import Actions from '../components/Actions';
 import Categories from '../components/Categories';
-import api from '../lib/api';
-
-import { useQuery } from "@apollo/client/react";
-
+import { useHomeData } from '../lib/HomePageDataContoller';
 
 export default function Home() {
 
-  // Оба запроса выполняются параллельно
-  const new_prod = api.fetchProducts(10, '10-inch');
-  const pop_prod = api.fetchProducts(8, 'akkumulyatory');
-  const cats = api.fetchCategories(12, 20);
+  const { data, loading, error } = useHomeData();
 
-  const newResult = useQuery(new_prod);
-  const popResult = useQuery(pop_prod);
-  const catsResult = useQuery(cats);
+  if (loading) return <div>Загрузка...</div>;
+  if (error) return <div>Ошибка: {error.message}</div>;
+  if (!data) return <div>Нет данных</div>;
 
-  if (newResult.loading || popResult.loading || catsResult.loading) {
-    return <div>Загрузка</div>;
-  }
+  const { new_products, pop_products, cats_list } = data;
 
-  if (newResult.error) {
-    return <div>Ошибка загрузки новых продуктов: {newResult.error.message}</div>;
-  }
-
-  if (popResult.error) {
-    return <div>Ошибка загрузки популярных продуктов: {popResult.error.message}</div>;
-  }
-
-  if (catsResult.error) {
-    return <div>Ошибка загрузки категорий: {catsResult.error.message}</div>;
-  }
-
-  const new_products = newResult.data.products.nodes;
-  const pop_products = popResult.data.products.nodes;
-  const cats_list = catsResult.data.productCategories.nodes;
 
   return (
     <div>

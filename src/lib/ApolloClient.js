@@ -1,46 +1,25 @@
-import { ApolloClient, InMemoryCache, HttpLink, from } from "@apollo/client";
-import { ApolloProvider } from "@apollo/client/react";
-import { setContext } from '@apollo/client/link/context';
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { BatchHttpLink } from "@apollo/client/link/batch-http";
 
 const WP_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
-console.log('GraphQL Endpoint:', WP_GRAPHQL_ENDPOINT);
-console.log('Username set:', !!process.env.NEXT_PUBLIC_GRAPHQL_API_USERNAME);
-console.log('Password set:', !!process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET);
-
-const httpLink = new HttpLink({
-    uri: WP_GRAPHQL_ENDPOINT,
-    credentials: 'same-origin',
-});
-
-// Создаем контекст для аутентификации
-const authLink = setContext((_, { headers }) => {
-    // Получаем логин и пароль из переменных окружения
-    const username = process.env.NEXT_PUBLIC_GRAPHQL_API_USERNAME;
-    const password = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET;
-
-    // Если нет учетных данных, пропускаем аутентификацию
-    if (!username || !password) {
-        console.warn('GraphQL API credentials not set - proceeding without authentication');
-        return { headers };
-    }
-
-    // Создаем Basic Auth токен
-    const token = Buffer.from(`${username}:${password}`).toString('base64');
-
-    console.log('Adding Basic Auth header');
-
-    return {
-        headers: {
-            ...headers,
-            authorization: `Basic ${token}`,
-        }
-    };
-});
-
+// Создаем клиент ОДИН РАЗ (не функцию!)
 const client = new ApolloClient({
-    link: from([authLink, httpLink]),
+    connectToDevTools: true,
+    link: new BatchHttpLink({
+        uri: WP_GRAPHQL_ENDPOINT,
+        batchMax: 10,
+        batchInterval: 20, // Уменьшил для быстрого батчинга
+    }),
     cache: new InMemoryCache(),
+    defaultOptions: {
+        watchQuery: {
+            fetchPolicy: 'no-cache',
+        },
+        query: {
+            fetchPolicy: 'no-cache',
+        },
+    }
 });
 
-export default client;
+export default client; // Экспортируем КЛИЕНТ, не функцию
