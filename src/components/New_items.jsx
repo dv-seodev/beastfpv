@@ -11,6 +11,8 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import { useHomeData } from '../lib/HomePageDataContoller';
+
 const NewItems = ({ products }) => {
 
     return (

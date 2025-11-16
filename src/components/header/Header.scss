@@ -176,12 +176,34 @@
         .icon-action {
             width: 25px;
             height: 25px;
+
         }
 
         @include mx.respond-to('large') {
             gap: 30px;
         }
 
+        .cart-icon {
+            position: relative !important;
+            display: inline-block;
+
+            &__badge {
+                position: absolute;
+                top: -15px; // или -0.5rem
+                right: -28px; // или -0.5rem
+                background: var(--red);
+                color: white;
+                border-radius: 8px;
+                width: 24px;
+                height: 20px;
+                padding: 5px 15px;
+                font-size: 10px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
     }
 
     &__mobile-invisible {

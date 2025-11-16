@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import './Header.scss';
+import CartIcon from './CartItem';
 
 const Header = () => {
     return (
@@ -64,8 +65,9 @@ const Header = () => {
                     </div>
                     <div className="header__profile">
                         <Link className='icon-action header__mobile-invisible' href="/favorite/"><img src="/icons-header/heart.svg" alt={"favorite"} /></Link>
-                        <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"basket"} /></Link>
-                        <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link>
+                        <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
+                        <CartIcon />
+                        {/* <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link> */}
                         <Link className='icon-action menu-mobile-icon header__mobile-visible' href=""><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
                         <Link className='icon-action header__mobile-invisible' href=""><img src="/icons-header/account.svg" alt={"account"} /></Link>
 

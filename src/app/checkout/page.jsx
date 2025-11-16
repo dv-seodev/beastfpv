@@ -1,8 +1,20 @@
+'use client'
+
 import Link from "next/link";
 import './page.scss';
 import NewItems from "../../components/New_items";
 
+import { useHomeData } from "../../lib/HomePageDataContoller";
+
 const Checkout = () => {
+    const { data, loading, error } = useHomeData();
+
+    if (loading) return <div>Загрузка...</div>;
+    if (error) return <div>Ошибка: {error.message}</div>;
+    if (!data) return <div>Нет данных</div>;
+
+    const { new_products, pop_products, cats_list } = data;
+
     return (
         <section className="checkout">
             <div className="container checkout__container">
@@ -51,7 +63,7 @@ const Checkout = () => {
                     </div>
                     <button type="submit" className="checkout__form-button-submit">Перейти к оплате</button>
                 </form >
-                <NewItems />
+                <NewItems products={new_products} />
             </div >
         </section >
     );

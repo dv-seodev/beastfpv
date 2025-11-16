@@ -1,8 +1,19 @@
+'use client'
+
 import Link from "next/link";
 import './page.scss';
 import NewItems from "../../components/New_items";
+import { useHomeData } from "../../lib/HomePageDataContoller";
 
 const Cart = () => {
+    const { data, loading, error } = useHomeData();
+
+    if (loading) return <div>Загрузка...</div>;
+    if (error) return <div>Ошибка: {error.message}</div>;
+    if (!data) return <div>Нет данных</div>;
+
+    const { new_products, pop_products, cats_list } = data;
+
     return (
         <section className="cart">
             <div className="container cart__container">
@@ -119,7 +130,7 @@ const Cart = () => {
                         </form>
                     </div>
                 </div>
-                <NewItems />
+                <NewItems products={new_products} />
             </div >
         </section >
     );

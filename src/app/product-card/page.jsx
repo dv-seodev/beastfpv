@@ -14,12 +14,22 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import { useHomeData } from "../../lib/HomePageDataContoller";
+
 // import Swiper core and required modules
 import { Navigation, Thumbs } from "swiper/modules";
 import Tabs from "./Tabs";
 
 const Product_cart = () => {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
+
+    const { data, loading, error } = useHomeData();
+
+    if (loading) return <div>Загрузка...</div>;
+    if (error) return <div>Ошибка: {error.message}</div>;
+    if (!data) return <div>Нет данных</div>;
+
+    const { new_products, pop_products, cats_list } = data;
 
     return (
         <section className="product-card">
@@ -183,7 +193,7 @@ const Product_cart = () => {
                 <Tabs />
 
             </div >
-            <NewItems />
+            <NewItems products={new_products} />
         </section >
     );
 }
