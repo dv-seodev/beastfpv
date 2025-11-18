@@ -1,20 +1,11 @@
 import Link from "next/link";
 import './Popular_products.scss';
 import { useCartStore } from '../stores/cartStore';
+import { useProductsList } from '../lib/ProductsListController';
 
 const PopularProducts = ({ products }) => {
 
-    const addItem = useCartStore((state) => state.addItem);
-
-    // Функция для добавления тестового товара - ТЕПЕРЬ ВНУТРИ КОМПОНЕНТА
-    const addTestProduct = (product) => {
-        addItem({
-            id: product.id, // Используем ID товара из пропсов
-            name: product.name,
-            price: parseFloat(product.price) || 0, // Преобразуем цену в число
-            image: product.image?.sourceUrl
-        });
-    };
+    const { addCartProduct, formatPrice } = useProductsList();
 
     return (
         <section className="popular-products">
@@ -34,8 +25,8 @@ const PopularProducts = ({ products }) => {
                             </Link>
                             <Link href={`/product/${product.slug}`}><span className="popular-products__name">{product.name}</span></Link>
                             <div className="popular-products__price-wrapper">
-                                <span className="popular-products__price">{product.price}</span>
-                                <button className="popular-products__cart-button button" onClick={() => addTestProduct(product)}>
+                                <span className="popular-products__price">{formatPrice(product.price)}</span>
+                                <button className="popular-products__cart-button button" onClick={() => addCartProduct(product)}>
                                 </button>
                             </div>
                             <button className="popular-products__one-click button">Купить в один клик</button>

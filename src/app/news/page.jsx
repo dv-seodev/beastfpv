@@ -1,6 +1,6 @@
 import Link from "next/link";
 import './page.scss';
-import Breadcrumbs from "../category/Breadcrumbs";
+import Breadcrumbs from "../category/[[...slug]]/Breadcrumbs";
 import LoadMore from "./LoadMore";
 
 const newspagePage = () => {

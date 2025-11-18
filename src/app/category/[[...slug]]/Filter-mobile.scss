@@ -1,15 +1,42 @@
-@import '../styles/breakpoints.scss';
-@import '../styles/mixins.scss';
+@import '../../styles/breakpoints.scss';
+@import '../../styles/mixins.scss';
 
-.filter {
-    flex-grow: 1;
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+
+    @include respond-from('ipad') {
+        display: none;
+    }
+}
+
+.filter-mobile {
     width: 100%;
-    max-width: 388px;
+    height: 100%;
+    max-width: 96%;
+    position: fixed;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    z-index: 1000;
+    top: 70px;
+    padding: 20px;
+    background-color: var(--white);
+    border-radius: 8px;
 
-    @include respond-to('ipad') {
+    margin-left: 2%;
+    margin-right: 2%;
+
+    display: none;
+
+    @include respond-from('ipad') {
         display: none;
     }
 
@@ -19,6 +46,7 @@
         border-radius: 10px;
 
         &-header {
+            width: 100%;
             font-size: 24px;
             line-height: 33px;
             margin-bottom: 18px;
@@ -35,9 +63,9 @@
         transition: 0.4s;
         overflow: hidden;
 
-        &:before {
+        &:after {
             position: absolute;
-            left: 24px;
+            right: 24px;
             top: 18px;
             content: "";
             display: block;
@@ -50,7 +78,7 @@
             transition: .3s;
         }
 
-        &[open]:before {
+        &[open]:after {
             transform: rotate(225deg);
             top: 24px;
         }
@@ -137,4 +165,18 @@
 
 
     }
+
+    &__filter-apply {
+        webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        color: var(--white);
+        background-color: var(--black);
+        border: none;
+        border-radius: 4px;
+        padding: 15px 15px;
+        flex-wrap: wrap;
+        font-size: 14px;
+    }
+
 }

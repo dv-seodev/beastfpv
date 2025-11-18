@@ -46,6 +46,25 @@ export const useCartStore = create(
                 }));
             },
 
+            // Обновление количества товара
+            updateQuantity: (id, quantity) => {
+                if (quantity <= 0) {
+                    get().removeItem(id);
+                    return;
+                }
+
+                set((state) => ({
+                    items: state.items.map(item =>
+                        item.id === id ? { ...item, quantity } : item
+                    )
+                }));
+            },
+
+            // Очистка всей корзины
+            clearCart: () => {
+                set({ items: [] });
+            },
+
             // ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ (SELECTORS)
 
             // Общее количество товаров в корзине
@@ -55,6 +74,30 @@ export const useCartStore = create(
                 // Суммируем quantity всех товаров
                 return items.reduce((total, item) => total + item.quantity, 0);
             },
+
+            // Общая стоимость всех товаров в корзине
+            totalPrice: () => {
+                // Получаем текущие товары из store
+                const items = get().items;
+                // Суммируем price * quantity всех товаров
+                return items.reduce((total, item) => {
+                    // Преобразуем цену в число (на случай если price строка)
+                    const price = typeof item.price === 'string'
+                        ? parseFloat(item.price.replace(/[^\d,]/g, '').replace(',', '.'))
+                        : item.price;
+                    return total + (price * item.quantity);
+                }, 0);
+            },
+
+            // Дополнительные полезные методы
+            getItemQuantity: (id) => {
+                const item = get().items.find(item => item.id === id);
+                return item ? item.quantity : 0;
+            },
+
+            isInCart: (id) => {
+                return get().items.some(item => item.id === id);
+            }
         }),
         {
             // Настройки для сохранения в localStorage

@@ -3,8 +3,8 @@
 
 import Link from "next/link";
 import './page.scss';
-import NewItems from "../../components/New_items";
-import Breadcrumbs from "../category/Breadcrumbs";
+import NewItems from "../../../components/New_items";
+import Breadcrumbs from "../../category/[[...slug]]/Breadcrumbs";
 
 import React, { useRef, useState } from "react";
 
@@ -14,7 +14,7 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import { useHomeData } from "../../lib/HomePageDataContoller";
+import { useHomeData } from "../../../lib/HomePageDataContoller";
 
 // import Swiper core and required modules
 import { Navigation, Thumbs } from "swiper/modules";

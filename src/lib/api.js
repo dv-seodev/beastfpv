@@ -7,6 +7,14 @@ const api = {
     fetchProducts: (limit, cat_name) => {
         return gql`
 query GetProducts {
+productCategory(id: "${cat_name}", idType: SLUG) {
+        id
+        name
+        slug
+        description
+        link
+        count
+    }
     products(first: ${limit}, where: {category: "${cat_name}"}) {
       nodes {
         id
@@ -24,6 +32,7 @@ query GetProducts {
   }
 `;
     },
+
 
     fetchCategories: (limit, parentID) => {
         return gql`

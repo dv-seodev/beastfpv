@@ -11,9 +11,11 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import { useHomeData } from '../lib/HomePageDataContoller';
+import { useProductsList } from '../lib/ProductsListController';
 
 const NewItems = ({ products }) => {
+
+    const { addCartProduct, formatPrice } = useProductsList();
 
     return (
 
@@ -59,8 +61,8 @@ const NewItems = ({ products }) => {
                                         </Link>
                                         <Link href={`/product/${product.slug}`}><div className="new-items__name new-slider">{product.name}</div></Link>
                                         <div className="new-items__price-wrapper">
-                                            <span className="new-items__price">{product.price}</span>
-                                            <button className="new-items__cart-button button">
+                                            <span className="new-items__price">{formatPrice(product.price)}</span>
+                                            <button className="new-items__cart-button button" onClick={() => addCartProduct(product)}>
                                             </button>
                                         </div>
                                         <button className="new-items__one-click button">Купить в один клик</button>
