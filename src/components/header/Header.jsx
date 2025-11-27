@@ -6,6 +6,7 @@ import './Header.scss';
 import CartIcon from './CartItem';
 import { useFavoriteStore } from '../../stores/favoriteStore';
 import { useEffect, useState } from 'react';
+import SearchLine from './SearchLine';
 
 const Header = () => {
     const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
@@ -66,12 +67,8 @@ const Header = () => {
                         </div>
                     </div>
 
-                    <div className="header__search">
-                        <input className="header__search-input" type="text" placeholder="Введите запрос"></input>
-                        <button className="header__search-button">
-                            <img src="/icons-header/search.svg" alt={"search"} />
-                        </button>
-                    </div>
+                    <SearchLine />
+
                     <div className="header__contacts-info">
                         <Link className="icon-action" href="mailto:order@beastfpv.ru"><img src="/icons-header/mail-new.png" alt={"mail"} /></Link>
                         <Link className='icon-action' href="tel:+78001231212"><img src="/icons-header/phone.png" alt={"phone"} /></Link>

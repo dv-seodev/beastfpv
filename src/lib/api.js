@@ -161,6 +161,31 @@ query GetCategories {
         `;
     },
 
+    fetchSearchingProducts: () => {
+        return gql`
+query SearchProducts {
+    products(first: 5000) {
+      nodes {
+        id
+        databaseId
+        name
+        slug
+        image {
+          sourceUrl
+          altText
+        }
+        ... on SimpleProduct {
+          price
+        }
+        ... on VariableProduct {
+          price
+        }
+      }
+    }
+  }
+`;
+    },
+
     fetchPaymentMethods: () => {
         return gql`
     query GetPaymentMethods {
