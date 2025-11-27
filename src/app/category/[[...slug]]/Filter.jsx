@@ -1,96 +1,56 @@
-import './Filter.scss'
+'use client';
 
-const Filter = () => {
+import Link from 'next/link';
+import './Filter.scss';
+
+const Filter = ({ categories = [] }) => {
+    // Если категории не передали, показываем loading
+    if (!categories || categories.length === 0) {
+        return (
+            <div className="filter">
+                <div className="filter__item">
+                    <div className="filter__item-header">Категории товаров</div>
+                    <p>Категории загружаются...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="filter">
             <div className="filter__item">
-                <div className='filter__item-header'>Категории товаров</div>
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">FPV</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                    </div>
-                </details>
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">DJI</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                    </div>
-                </details>
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Аксессуары</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                    </div>
-                </details>
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Новинки</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                    </div>
-                </details>
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Распродажа</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item">FPV 13 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 10 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 9 дюймов</div>
-                        <div className="filter__categories-content-item">FPV 7 дюймов</div>
-                    </div>
-                </details>
-            </div>
-            <div className="filter__item">
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Наличие камеры</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>C камерой</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление под камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на жопу</span></div>
-                    </div>
-                </details>
-            </div>
-            <div className="filter__item">
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Цвет</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>C камерой</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление под камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на жопу</span></div>
-                    </div>
-                </details>
-            </div>
-            <div className="filter__item">
-                <details className="filter__categories">
-                    <summary className="filter__categories-title">Производитель</summary>
-                    <div className="filter__categories-content">
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>C камерой</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление под камеру</span></div>
-                        <div className="filter__categories-content-item"><input type="checkbox" className="characteristics-checkbox" /><span>Крепление на жопу</span></div>
-                    </div>
-                </details>
+                <div className="filter__item-header">Категории товаров</div>
+
+                {/* ДИНАМИЧЕСКИЕ КАТЕГОРИИ */}
+                {categories.map((category) => (
+                    <details key={category.id} className="filter__categories">
+                        <summary className="filter__categories-title">
+                            {category.name}
+                        </summary>
+
+                        {/* ПОДКАТЕГОРИИ */}
+                        <div className="filter__categories-content">
+                            {category.subcategories && category.subcategories.length > 0 ? (
+                                category.subcategories.map((subcategory) => (
+                                    <Link
+                                        key={subcategory.id}
+                                        href={`/category/${subcategory.slug}`}
+                                        className="filter__categories-content-item"
+                                    >
+                                        {subcategory.name}
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="filter__categories-content-item">
+                                    Нет подкатегорий
+                                </div>
+                            )}
+                        </div>
+                    </details>
+                ))}
             </div>
         </div>
     );
-}
+};
 
 export default Filter;

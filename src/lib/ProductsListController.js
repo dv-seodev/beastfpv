@@ -6,8 +6,10 @@ export const useProductsList = () => {
 
     // Функция для добавления товара в корзину
     const addCartProduct = (product) => {
+        console.log(product);
         addItem({
             id: product.id,
+            databaseId: product.databaseId,
             name: product.name,
             price: convertPriceToNumber(product.price), // Используем правильную конвертацию
             image: product.image?.sourceUrl

@@ -17,22 +17,21 @@ import { useProductData } from "../../../lib/ProductCartDataController";
 import { useParams } from 'next/navigation';
 import { useHomeData } from "../../../lib/HomePageDataContoller";
 import { useProductsList } from '../../../lib/ProductsListController';
-import { useFavoriteStore } from '../../../stores/favoriteStore';
-import ProductGallery from "./ProductGallery";
 
 const Product_cart = () => {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const { addCartProduct, formatPrice } = useProductsList();
 
-    // Подключаем store избранного
-    const { addItem: addToFavorites, removeItem: removeFromFavorites, isInFavorites } = useFavoriteStore();
-
+    // Получаем slug из URL
     const params = useParams();
     const slug = params.slug;
+
+    // Получаем данные товара через контроллер
 
     const { data: product, loading, error } = useProductData(slug);
     const { data: homeData, loading: homeLoading, error: homeError } = useHomeData();
 
+    // 2. После ВСЕХ хуков можно делать условия
     if (loading || homeLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка товара: {error.message}</div>;
     if (homeError) return <div>Ошибка данных: {homeError.message}</div>;
@@ -41,28 +40,54 @@ const Product_cart = () => {
 
     const { new_products, pop_products, cats_list } = homeData;
 
-    // Проверяем, в избранном ли товар
-    const isFavorite = isInFavorites(product.id);
-
-    const handleToggleFavorite = () => {
-        if (isFavorite) {
-            removeFromFavorites(product.id);
-        } else {
-            addToFavorites(product);
-        }
-    };
-
     return (
         <section className="product-card">
             <div className="container product-card__container">
                 <Breadcrumbs categories={product.categories} productName={product.name} />
                 <div className="product-card__main">
-                    {/* ГАЛЕРЕЯ ТОВАРА */}
-                    <ProductGallery
-                        galleryImages={product.galleryImages}
-                        productName={product.name}
-                        productImage={product.image?.sourceUrl}
-                    />
+                    <div className="product-card__image-wrapper">
+                        <Swiper
+                            style={{ '--swiper-navigation-color': '#fff', '--swiper-pagination-color': '#fff' }}
+                            spaceBetween={10}
+                            navigation={false}
+                            loop={true}
+                            thumbs={{ swiper: thumbsSwiper }}
+                            modules={[Navigation, Thumbs]}
+                            className="mySwiper2"
+                        >
+                            {/* Динамические изображения из данных товара */}
+                            {product.galleryImages.length > 0 ? (
+                                product.galleryImages.map((image, index) => (
+                                    <SwiperSlide key={index}>
+                                        <img src={image.sourceUrl} alt={image.altText || product.name} />
+                                    </SwiperSlide>
+                                ))
+                            ) : (
+                                <SwiperSlide>
+                                    <img src={product.image?.sourceUrl || "/images/product_image.jpg"} alt={product.name} />
+                                </SwiperSlide>
+                            )}
+                        </Swiper>
+
+                        {/* Миниатюры если есть дополнительные изображения */}
+                        {product.galleryImages.length > 1 && (
+                            <Swiper
+                                onSwiper={setThumbsSwiper}
+                                spaceBetween={10}
+                                slidesPerView={Math.min(5, product.galleryImages.length)}
+                                freeMode={true}
+                                watchSlidesProgress={true}
+                                modules={[Navigation, Thumbs]}
+                                className="mySwiper"
+                            >
+                                {product.galleryImages.map((image, index) => (
+                                    <SwiperSlide key={index}>
+                                        <img src={image.sourceUrl} alt={image.altText || product.name} />
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        )}
+                    </div>
                     <div className="product-card__descr">
                         <div className="product-card__descr-art">Артикул: {product.sku || '123124'}</div>
                         <div className="product-card__descr-main">{product.name}</div>
@@ -160,45 +185,7 @@ const Product_cart = () => {
                                 </button>
                             </div>
                         </div>
-
-                        {/* ИЗБРАННОЕ */}
-                        <div className="product-card__descr-favourite">
-                            <button
-                                className="product-card__descr-favourite-icon"
-                                onClick={handleToggleFavorite}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                }}
-                            >
-                                <img
-                                    src="/images/favorites.svg"
-                                    alt="add to favourite"
-                                    style={{
-                                        filter: isFavorite ? 'invert(24%) sepia(79%) saturate(1234%) hue-rotate(343deg) brightness(105%) contrast(97%)' : 'none',
-                                    }}
-                                />
-                            </button>
-                            <button
-                                className="product-card__descr-favourite-name"
-                                onClick={handleToggleFavorite}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: isFavorite ? '#e74c3c' : '#333',
-                                    textDecoration: 'none',
-                                    fontSize: 'inherit',
-                                    fontWeight: 'inherit',
-                                    padding: 0,
-                                }}
-                            >
-                                {isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
-                            </button>
-                        </div>
-
+                        <div className="product-card__descr-favourite"><Link className="product-card__descr-favourite-icon" href="/"><img src="/images/favorites.svg" alt="add to favourite" /></Link><Link className="product-card__descr-favourite-name" href="/">Добавить в избранное</Link></div>
                         <div className="product-card__descr-char">
                             <div className="char-row"><div className="char-name">Рама</div><div className="char-value">Карбон</div></div>
                             <div className="char-row"><div className="char-name">Полетный контроллекр / Стек</div><div className="char-value">BEASTFPV F722 BLS 80A FC&ESC Stack</div></div>

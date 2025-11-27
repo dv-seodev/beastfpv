@@ -4,26 +4,52 @@ import Link from "next/link";
 import './page.scss';
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
+import { useShippingMethods } from "../../lib/useShippingMethods";
+import { usePaymentMethods } from "../../lib/usePaymentMethods";
 import { useCartStore } from "../../stores/cartStore";
+import { useEffect } from "react";
 
 const Cart = () => {
     const { data, loading, error } = useHomeData();
+    const { methods: shippingMethods, loading: shippingLoading } = useShippingMethods();
+    const { methods: paymentMethods, loading: paymentLoading } = usePaymentMethods();
 
-    // Получаем данные из корзины
     const {
         items,
         removeItem,
         updateQuantity,
         totalPrice,
-        clearCart
+        clearCart,
+        selectedShipping,
+        selectedPayment,
+        setSelectedShipping,
+        setSelectedPayment,
     } = useCartStore();
 
-    if (loading) return <div>Загрузка...</div>;
+    // Проверяем, что выбранные методы существуют в списках
+    useEffect(() => {
+        if (shippingMethods && shippingMethods.length > 0) {
+            const methodExists = shippingMethods.some(m => m.id === selectedShipping);
+            if (!methodExists) {
+                setSelectedShipping(shippingMethods[0].id);
+            }
+        }
+    }, [shippingMethods, selectedShipping, setSelectedShipping]);
+
+    useEffect(() => {
+        if (paymentMethods && paymentMethods.length > 0) {
+            const methodExists = paymentMethods.some(m => m.id === selectedPayment);
+            if (!methodExists) {
+                setSelectedPayment(paymentMethods[0].id);
+            }
+        }
+    }, [paymentMethods, selectedPayment, setSelectedPayment]);
+
+    if (loading || shippingLoading || paymentLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка: {error.message}</div>;
     if (!data) return <div>Нет данных</div>;
 
-    const { new_products, pop_products, cats_list } = data;
-
+    const { new_products } = data;
 
     // Если корзина пустая
     if (items.length === 0) {
@@ -32,10 +58,9 @@ const Cart = () => {
                 <div className="container cart__container">
                     <h1 className="cart__header">Корзина</h1>
                     <div className="cart__empty">
-                        <p>Ваша корзина пуста</p>
-                        <Link href="/catalog" className="cart__continue-shopping">
-                            Продолжить покупки
-                        </Link>
+                        <h3 className="checkout__header">Ваша корзина пуста</h3>
+                        <br />
+                        <Link href="/" className="continue-buy">Продолжить покупки</Link>
                     </div>
                     <NewItems products={new_products} />
                 </div>
@@ -43,27 +68,33 @@ const Cart = () => {
         );
     }
 
-    // Функция для изменения количества
     const handleQuantityChange = (id, newQuantity) => {
         if (newQuantity < 1) return;
         updateQuantity(id, newQuantity);
     };
 
-    // Функция для удаления товара
     const handleRemoveItem = (id) => {
         removeItem(id);
+    };
+
+    const handleShippingChange = (methodId) => {
+        setSelectedShipping(methodId);
+    };
+
+    const handlePaymentChange = (methodId) => {
+        setSelectedPayment(methodId);
     };
 
     const formatPriceForDisplay = (price) => {
         return new Intl.NumberFormat('ru-RU').format(price) + ' ₽';
     };
 
-
     return (
         <section className="cart">
             <div className="container cart__container">
                 <h1 className="cart__header">Корзина</h1>
                 <div className="cart__wrapper">
+                    {/* ЛЕВАЯ ЧАСТЬ - ТОВАРЫ */}
                     <div className="cart__items">
                         <div className="cart__items-list">
                             <div className="cart__product-table-title">
@@ -74,7 +105,6 @@ const Cart = () => {
                                 <span></span>
                             </div>
 
-                            {/* ВЫВОДИМ РЕАЛЬНЫЕ ТОВАРЫ ИЗ КОРЗИНЫ */}
                             {items.map((item) => (
                                 <div key={item.id} className="cart__product-item">
                                     <div className="cart__product-item-img">
@@ -124,8 +154,16 @@ const Cart = () => {
                                 </div>
                             ))}
                         </div>
+                        <button
+                            type="button"
+                            className="cart__clear-button cart__coupon-submit"
+                            onClick={clearCart}
+                        >
+                            Очистить корзину
+                        </button>
                     </div>
 
+                    {/* ПРАВАЯ ЧАСТЬ - СУММА И МЕТОДЫ */}
                     <div className="cart__right-section">
                         <div className="cart__price-info">
                             <h3 className="cart__price-heading">Сумма заказа</h3>
@@ -138,43 +176,82 @@ const Cart = () => {
                                     <span className="cart__price-name">Купон:</span>
                                     <span className="cart__price-numb action-price">-0 ₽</span>
                                 </div>
+
+                                {/* МЕТОДЫ ОПЛАТЫ */}
                                 <div className="cart__price-shipping">
-                                    <span className="cart__price-name">Доставка:</span>
+                                    <span className="cart__price-name">Способ оплаты:</span>
                                     <div className="cart__checkbox-wrapper">
-                                        <div className="cart__checkbox-main">
-                                            <input type="checkbox" className="cart__shipping-checkbox" />
-                                            <span>Курьер (+500₽)</span>
-                                        </div>
-                                        <div className="cart__checkbox-main">
-                                            <input type="checkbox" className="cart__shipping-checkbox" />
-                                            <span>Пункт выдачи (+100₽)</span>
-                                        </div>
+                                        {paymentMethods && paymentMethods.length > 0 ? (
+                                            paymentMethods.map((method) => (
+                                                <div key={method.id} className="cart__checkbox-main">
+                                                    <input
+                                                        type="radio"
+                                                        id={`payment-${method.id}`}
+                                                        name="payment"
+                                                        value={method.id}
+                                                        checked={selectedPayment === method.id}
+                                                        onChange={() => handlePaymentChange(method.id)}
+                                                        className="cart__payment-checkbox cart__shipping-checkbox"
+                                                    />
+                                                    <label htmlFor={`payment-${method.id}`}>
+                                                        {method.title}
+                                                    </label>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p>Методы оплаты недоступны</p>
+                                        )}
                                     </div>
                                 </div>
+
+                                {/* МЕТОДЫ ДОСТАВКИ */}
+                                <div className="cart__price-shipping">
+                                    <span className="cart__price-name">Способ доставки:</span>
+                                    <div className="cart__checkbox-wrapper">
+                                        {shippingMethods && shippingMethods.length > 0 ? (
+                                            shippingMethods.map((method) => (
+                                                <div key={method.id} className="cart__checkbox-main">
+                                                    <input
+                                                        type="radio"
+                                                        id={`shipping-${method.id}`}
+                                                        name="shipping"
+                                                        value={method.id}
+                                                        checked={selectedShipping === method.id}
+                                                        onChange={() => handleShippingChange(method.id)}
+                                                        className="cart__shipping-checkbox"
+                                                    />
+                                                    <label htmlFor={`shipping-${method.id}`}>
+                                                        {method.title}
+                                                    </label>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p>Методы доставки недоступны</p>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <div className="cart__price-final">
                                     <span className="cart__price-name price-bold">Итого:</span>
                                     <span className="cart__price-numb">{formatPriceForDisplay(totalPrice())}</span>
                                 </div>
                             </div>
                         </div>
-                        <form className="cart__form" action="">
+
+                        <form className="cart__form" onSubmit={(e) => {
+                            e.preventDefault();
+                        }}>
                             <div className="cart__coupon-apply">
                                 <input className="cart__coupon-input" type="text" placeholder="Введите купон" />
-                                <button className="cart__coupon-submit">Применить</button>
+                                <button type="button" className="cart__coupon-submit">Применить</button>
                             </div>
-                            <button type="submit" className="cart__form-button-submit">
-                                Оформить заказ
-                            </button>
-                            <button
-                                type="button"
-                                className="cart__clear-button"
-                                onClick={clearCart}
-                            >
-                                Очистить корзину
-                            </button>
+                            <Link href="/checkout" className="cart__form-button-submit" style={{ display: 'block', textAlign: 'center' }}>
+                                Перейти к оформлению
+                            </Link>
                         </form>
                     </div>
                 </div>
+
                 <NewItems products={new_products} />
             </div>
         </section>

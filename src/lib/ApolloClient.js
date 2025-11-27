@@ -3,7 +3,6 @@ import { BatchHttpLink } from "@apollo/client/link/batch-http";
 
 const WP_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
-// Создаем клиент ОДИН РАЗ (не функцию!)
 const client = new ApolloClient({
     connectToDevTools: true,
     link: new BatchHttpLink({
@@ -14,12 +13,14 @@ const client = new ApolloClient({
     cache: new InMemoryCache(),
     defaultOptions: {
         watchQuery: {
-            fetchPolicy: 'no-cache',
+            // типично для UI с списками/деталками
+            // fetchPolicy: "cache-and-network",
+            // nextFetchPolicy: "cache-first",
         },
         query: {
-            fetchPolicy: 'no-cache',
+            // fetchPolicy: "network-only", // разовые client.query, если используешь
         },
-    }
+    },
 });
 
 export default client; // Экспортируем КЛИЕНТ, не функцию

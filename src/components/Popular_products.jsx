@@ -2,10 +2,16 @@ import Link from "next/link";
 import './Popular_products.scss';
 import { useCartStore } from '../stores/cartStore';
 import { useProductsList } from '../lib/ProductsListController';
+import ProductListItem from "./ProductListElement";
 
 const PopularProducts = ({ products }) => {
 
     const { addCartProduct, formatPrice } = useProductsList();
+
+    const handleAddCart = (product) => {
+        addCartProduct(product);
+    };
+
 
     return (
         <section className="popular-products">
@@ -18,19 +24,11 @@ const PopularProducts = ({ products }) => {
                 </div>
                 <div className="popular-products__items-grid">
                     {products.map((product) => (
-
-                        <div key={product.id} className="popular-products__item">
-                            <Link href={`/product/${product.slug}`}>
-                                <img src={product.image.sourceUrl} alt={product.name} />
-                            </Link>
-                            <Link href={`/product/${product.slug}`}><span className="popular-products__name">{product.name}</span></Link>
-                            <div className="popular-products__price-wrapper">
-                                <span className="popular-products__price">{formatPrice(product.price)}</span>
-                                <button className="popular-products__cart-button button" onClick={() => addCartProduct(product)}>
-                                </button>
-                            </div>
-                            <button className="popular-products__one-click button">Купить в один клик</button>
-                        </div>
+                        <ProductListItem
+                            product={product}
+                            key={product.id}
+                            onAddCart={handleAddCart}
+                        />
                     ))}
                 </div>
                 <div className="link__show-all mobile-show">

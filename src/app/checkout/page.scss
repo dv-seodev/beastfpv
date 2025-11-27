@@ -173,3 +173,22 @@
         padding-right: 0px;
     }
 }
+
+.checkout__methods-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+    padding-bottom: 20px;
+}
+
+.checkout__method {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 17px;
+    vertical-align: middle;
+}
+
+.continue-buy {
+    text-decoration: underline;
+}

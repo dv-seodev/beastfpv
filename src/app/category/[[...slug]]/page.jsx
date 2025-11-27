@@ -8,31 +8,32 @@ import Products from "./Products";
 import './page.scss';
 import Link from "next/link";
 import { useCategoryData } from "../../../lib/CategoryPageController";
+import { useFilterData } from "../../../lib/useFilterData";
 import { useParams } from 'next/navigation';
 
 const Category_page = () => {
-
     const params = useParams();
-    const slugArray = params.slug || []; // Массив slug'ов для вложенных категорий
+    const slugArray = params.slug || [];
 
-    // Для простых категорий берем первый slug, для вложенных - последний
     const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
 
+    // Получаем данные категории
     const { data, loading, error } = useCategoryData(currentSlug);
+
+    // Получаем данные фильтра
+    const { categories, loading: filterLoading, error: filterError } = useFilterData();
 
     // Формируем путь для хлебных крошек
     const generateBreadcrumbs = () => {
         const breadcrumbs = [
-            { name: 'Главная', href: '/' },
+            { name: 'Главная', href: '/' }
         ];
 
-        // Динамически добавляем категории из пути
         let currentPath = '/category';
         slugArray.forEach((slug, index) => {
             currentPath += `/${slug}`;
             const isLast = index === slugArray.length - 1;
 
-            // Для последнего элемента используем название категории из данных
             const name = isLast && data?.category?.name
                 ? data.category.name
                 : slug;
@@ -47,8 +48,9 @@ const Category_page = () => {
         return breadcrumbs;
     };
 
-    if (loading) return <div>Загрузка категории...</div>;
+    if (loading || filterLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка: {error.message}</div>;
+    if (filterError) return <div>Ошибка при загрузке фильтра: {filterError.message}</div>;
     if (!currentSlug) return <div>Выберите категорию</div>;
     if (!data) return <div>Категория не найдена</div>;
 
@@ -57,9 +59,9 @@ const Category_page = () => {
     return (
         <div className="category-page">
             <div className="overlay"></div>
-            <Filter_mobile />
+            <Filter_mobile categories={categories} />
             <div className="container category-page__container">
-                <Breadcrumbs categoryPath={breadcrumbPath} />
+                <Breadcrumbs />
                 <div className="category-page__wrapper">
                     <div className="category-page__cat-list">
                         <div className="category-page__cat-list-inner">
@@ -77,8 +79,14 @@ const Category_page = () => {
                             </div>
                         </div>
                     </div>
-                    <Link href="/" className="filter-mob"><img src="/images/filter-mobile.svg" /><span>Фильтр</span></Link>
-                    <Filter />
+                    <Link href="/" className="filter-mob">
+                        <img src="/images/filter-mobile.svg" alt="Filter" />
+                        <span>Фильтр</span>
+                    </Link>
+
+                    {/* ПЕРЕДАЁМ КАТЕГОРИИ В ФИЛЬТР */}
+                    <Filter categories={categories} />
+
                     <Products
                         categoryName={data.category?.name}
                         products={data.cat_products}
@@ -86,7 +94,8 @@ const Category_page = () => {
                 </div>
             </div>
             <FAQ />
-        </div>);
+        </div>
+    );
 }
 
 export default Category_page;

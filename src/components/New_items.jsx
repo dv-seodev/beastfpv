@@ -10,12 +10,23 @@ import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import ProductListItem from "./ProductListElement";
 
 import { useProductsList } from '../lib/ProductsListController';
 
 const NewItems = ({ products }) => {
 
     const { addCartProduct, formatPrice } = useProductsList();
+
+    const handleAddCart = (product) => {
+        addCartProduct(product);
+    };
+
+
+    // Добавь логирование
+    console.log('Products:', products);
+    console.log('First product price:', products[0]?.price);
+    console.log('Formatted price:', formatPrice(products[0]?.price));
 
     return (
 
@@ -55,19 +66,10 @@ const NewItems = ({ products }) => {
                         {products.map((product) => (
                             <SwiperSlide key={product.id} className="new-slider">
                                 <div className="new-items__items-grid">
-                                    <div className="new-items__item">
-                                        <Link href={`/product/${product.slug}`}>
-                                            <img src={product.image.sourceUrl} alt={product.name} />
-                                        </Link>
-                                        <Link href={`/product/${product.slug}`}><div className="new-items__name new-slider">{product.name}</div></Link>
-                                        <div className="new-items__price-wrapper">
-                                            <span className="new-items__price">{formatPrice(product.price)}</span>
-                                            <button className="new-items__cart-button button" onClick={() => addCartProduct(product)}>
-                                            </button>
-                                        </div>
-                                        <button className="new-items__one-click button">Купить в один клик</button>
-                                    </div>
-
+                                    <ProductListItem
+                                        product={product}
+                                        onAddCart={handleAddCart}
+                                    />
                                 </div>
                             </SwiperSlide>
                         ))}

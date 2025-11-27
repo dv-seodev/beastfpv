@@ -1,27 +1,30 @@
-// stores/cartStore.js
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Создаем store с помощью Zustand
+/**
+ * Zustand store для управления корзиной
+ * Использует persist middleware для сохранения в localStorage
+ */
 export const useCartStore = create(
-    // Используем persist middleware для сохранения в localStorage
     persist(
-        // Функция, которая определяет состояние и действия
         (set, get) => ({
-            // СОСТОЯНИЕ (STATE)
-            // Массив товаров в корзине - изначально пустой
+            // ============ СОСТОЯНИЕ (STATE) ============
+
             items: [],
+            selectedShipping: '1',
+            selectedPayment: '1',
 
-            // ДЕЙСТВИЯ (ACTIONS)
+            // ============ ДЕЙСТВИЯ (ACTIONS) ============
 
-            // Добавление товара в корзину
+            /**
+             * Добавление товара в корзину
+             */
             addItem: (product) => {
+                console.log('Добавляем товар:', product);
                 set((state) => {
-                    // Ищем, есть ли уже такой товар в корзине
                     const existingItem = state.items.find(item => item.id === product.id);
 
                     if (existingItem) {
-                        // Если товар уже есть - увеличиваем его количество
                         return {
                             items: state.items.map(item =>
                                 item.id === product.id
@@ -31,22 +34,24 @@ export const useCartStore = create(
                         };
                     }
 
-                    // Если товара нет - добавляем новый с количеством 1
                     return {
                         items: [...state.items, { ...product, quantity: 1 }]
                     };
                 });
             },
 
-            // Удаление товара из корзины
+            /**
+             * Удаление товара из корзины
+             */
             removeItem: (id) => {
                 set((state) => ({
-                    // Фильтруем массив, оставляя все товары кроме удаляемого
                     items: state.items.filter(item => item.id !== id)
                 }));
             },
 
-            // Обновление количества товара
+            /**
+             * Обновление количества товара
+             */
             updateQuantity: (id, quantity) => {
                 if (quantity <= 0) {
                     get().removeItem(id);
@@ -60,48 +65,74 @@ export const useCartStore = create(
                 }));
             },
 
-            // Очистка всей корзины
-            clearCart: () => {
-                set({ items: [] });
+            /**
+             * Установка способа доставки
+             */
+            setSelectedShipping: (shippingId) => {
+                set({ selectedShipping: shippingId });
             },
 
-            // ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ (SELECTORS)
+            /**
+             * Установка способа оплаты
+             */
+            setSelectedPayment: (paymentId) => {
+                set({ selectedPayment: paymentId });
+            },
 
-            // Общее количество товаров в корзине
+            /**
+             * Очистка всей корзины
+             */
+            clearCart: () => {
+                set({
+                    items: [],
+                    selectedShipping: '1',
+                    selectedPayment: '1',
+                });
+            },
+
+            // ============ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ (SELECTORS) ============
+
+            /**
+             * Получение общего количества товаров
+             */
             totalItems: () => {
-                // Получаем текущие товары из store
                 const items = get().items;
-                // Суммируем quantity всех товаров
                 return items.reduce((total, item) => total + item.quantity, 0);
             },
 
-            // Общая стоимость всех товаров в корзине
+            /**
+             * Получение общей стоимости товаров
+             */
             totalPrice: () => {
-                // Получаем текущие товары из store
                 const items = get().items;
-                // Суммируем price * quantity всех товаров
                 return items.reduce((total, item) => {
-                    // Преобразуем цену в число (на случай если price строка)
                     const price = typeof item.price === 'string'
-                        ? parseFloat(item.price.replace(/[^\d,]/g, '').replace(',', '.'))
-                        : item.price;
-                    return total + (price * item.quantity);
+                        ? parseFloat(item.price.replace(/[^\d,.-]/g, '').replace(',', '.'))
+                        : Number(item.price) || 0;
+
+                    const quantity = Number(item.quantity) || 0;
+
+                    return total + (price * quantity);
                 }, 0);
             },
 
-            // Дополнительные полезные методы
+            /**
+             * Получение количества конкретного товара
+             */
             getItemQuantity: (id) => {
                 const item = get().items.find(item => item.id === id);
                 return item ? item.quantity : 0;
             },
 
+            /**
+             * Проверка, есть ли товар в корзине
+             */
             isInCart: (id) => {
                 return get().items.some(item => item.id === id);
             }
         }),
         {
-            // Настройки для сохранения в localStorage
-            name: 'cart-storage', // Ключ, под которым будут сохраняться данные
+            name: 'cart-storage',
         }
     )
 );

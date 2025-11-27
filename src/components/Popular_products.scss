@@ -31,11 +31,11 @@
 
     &__items-grid {
         display: grid;
-        grid-template-columns: auto auto auto auto;
+        grid-template-columns: 25% 25% 25% 25%;
         gap: 32px;
 
         @include mx.respond-to('ipad') {
-            grid-template-columns: auto auto;
+            grid-template-columns: 49% 49%;
             gap: 15px;
         }
     }
@@ -148,4 +148,13 @@
         background-color: var(--sticker-hit-background-color);
         color: var(--white);
     }
+}
+
+.favoritepage {
+    padding-bottom: 100px;
+
+    @include mx.respond-to('ipad') {
+        padding-bottom: 50px;
+    }
+
 }

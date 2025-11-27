@@ -44,7 +44,6 @@ productCategory(id: "${cat_name}", idType: SLUG) {
           regularPrice
           salePrice
         }
-
         image {
           sourceUrl
         }
@@ -145,70 +144,7 @@ query GetCategories {
   }
     }
 `;
-    },
-
-    fetchShippingMethods: () => {
-        return gql`
-          query GetShippingMethods {
-            shippingMethods {
-              nodes {
-                id
-                title
-                description
-              }
-            }
-          }
-        `;
-    },
-
-    fetchPaymentMethods: () => {
-        return gql`
-    query GetPaymentMethods {
-      paymentGateways {
-        nodes {
-          id
-          title
-          description
-        }
-      }
     }
-  `;
-    },
-
-    fetchProductCategories: () => {
-        return gql`
-    query GetProductCategories {
-        productCategories(first: 100,  
-        where: { 
-      hideEmpty: false
-      exclude: [19]
-    }) {
-    nodes {
-      id
-      databaseId
-      name
-      slug
-      parent {
-        node {
-          id
-          databaseId
-          name
-          slug
-        }
-      }
-      children(first: 50) {
-        nodes {
-          id
-          databaseId
-          name
-          slug
-        }
-      }
-    }
-  }
-}
-  `;
-    },
 
 }
 

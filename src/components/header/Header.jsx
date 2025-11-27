@@ -1,8 +1,22 @@
+
+'use client';
+
 import Link from 'next/link';
 import './Header.scss';
 import CartIcon from './CartItem';
+import { useFavoriteStore } from '../../stores/favoriteStore';
+import { useEffect, useState } from 'react';
 
 const Header = () => {
+    const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // До монтирования показываем обычную иконку
+    const hasFavorites = isMounted ? favoriteItems.length > 0 : false;
     return (
         <header className="header">
             <div className="header__upper">
@@ -64,7 +78,16 @@ const Header = () => {
                         <Link href="tel:+78001231212">+7 (800)123-12-12</Link>
                     </div>
                     <div className="header__profile">
-                        <Link className='icon-action header__mobile-invisible' href="/favorite/"><img src="/icons-header/heart.svg" alt={"favorite"} /></Link>
+                        {/* <Link className='icon-action header__mobile-invisible' href="/favorite/"><img src="/icons-header/heart.svg" alt={"favorite"} /></Link> */}
+                        <Link
+                            className='icon-action header__mobile-invisible'
+                            href="/favorite/"
+                        >
+                            <img
+                                src={hasFavorites ? "/icons-header/heart-red.svg" : "/icons-header/heart.svg"}
+                                alt="favorite"
+                            />
+                        </Link>
                         <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
                         <CartIcon />
                         {/* <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link> */}

@@ -25,7 +25,6 @@ export default function Home() {
 
   const { new_products, pop_products, cats_list } = data;
 
-
   return (
     <div>
       <SwipeSlider />
