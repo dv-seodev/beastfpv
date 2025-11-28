@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
           <div className="app_wrapper">
             <div className="app_header">
               <Header />
-              <MobileMenu />
+              {/* <MobileMenu /> */}
             </div>
             <div className="app_content">
               {children}

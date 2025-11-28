@@ -11,10 +11,17 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [isMounted, setIsMounted] = useState(false);
 
-    // Проверяем, что компонент смонтирован на клиенте
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    // Комбинируем заглавную фотографию с галереей
+    const allImages = productImage
+        ? [
+            { sourceUrl: productImage, altText: productName },
+            ...(galleryImages || [])
+        ]
+        : galleryImages || [];
 
     if (!isMounted) {
         return (
@@ -44,6 +51,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
 
     return (
         <div className="product-card__image-wrapper">
+            {/* Главный слайдер */}
             <Swiper
                 style={{ '--swiper-navigation-color': '#fff', '--swiper-pagination-color': '#fff' }}
                 spaceBetween={10}
@@ -53,8 +61,8 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                 modules={[Navigation, Thumbs]}
                 className="mySwiper2"
             >
-                {galleryImages && galleryImages.length > 0 ? (
-                    galleryImages.map((image, index) => (
+                {allImages.length > 0 ? (
+                    allImages.map((image, index) => (
                         <SwiperSlide key={index}>
                             <img
                                 src={image.sourceUrl}
@@ -66,7 +74,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                 ) : (
                     <SwiperSlide>
                         <img
-                            src={productImage || "/images/product_image.jpg"}
+                            src="/images/product_image.jpg"
                             alt={productName}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -74,17 +82,18 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                 )}
             </Swiper>
 
-            {galleryImages && galleryImages.length > 1 && (
+            {/* Миниатюры */}
+            {allImages.length > 1 && (
                 <Swiper
                     onSwiper={setThumbsSwiper}
                     spaceBetween={10}
-                    slidesPerView={Math.min(5, galleryImages.length)}
+                    slidesPerView={Math.min(5, allImages.length)}
                     freeMode={true}
                     watchSlidesProgress={true}
                     modules={[Navigation, Thumbs]}
                     className="mySwiper"
                 >
-                    {galleryImages.map((image, index) => (
+                    {allImages.map((image, index) => (
                         <SwiperSlide key={index}>
                             <img
                                 src={image.sourceUrl}

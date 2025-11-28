@@ -7,14 +7,22 @@ import CartIcon from './CartItem';
 import { useFavoriteStore } from '../../stores/favoriteStore';
 import { useEffect, useState } from 'react';
 import SearchLine from './SearchLine';
+import { useProductsList } from '../../lib/ProductsListController';
+import MobileMenu from './MobileMenu';
 
 const Header = () => {
     const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
     const [isMounted, setIsMounted] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // ← State для меню
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    // Закрываем меню при клике на ссылку
+    const handleMenuClose = () => {
+        setMobileMenuOpen(false);
+    };
 
     // До монтирования показываем обычную иконку
     const hasFavorites = isMounted ? favoriteItems.length > 0 : false;
@@ -88,12 +96,15 @@ const Header = () => {
                         <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
                         <CartIcon />
                         {/* <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link> */}
-                        <Link className='icon-action menu-mobile-icon header__mobile-visible' href=""><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
+                        <Link className='icon-action menu-mobile-icon header__mobile-visible' href="" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
                         <Link className='icon-action header__mobile-invisible' href=""><img src="/icons-header/account.svg" alt={"account"} /></Link>
 
                     </div>
                 </div>
             </div >
+
+            <MobileMenu isOpen={mobileMenuOpen}
+                onClose={handleMenuClose} />
         </header >
     );
 }
