@@ -20,12 +20,15 @@ export const useFilterData = () => {
                 id: child.databaseId,
                 name: child.name,
                 slug: child.slug,
+                // Правильный URL: /category/parent-slug/child-slug
+                href: `/category/${category.slug}/${child.slug}`,
             })) || [];
 
             return {
                 id: category.databaseId,
                 name: category.name,
                 slug: category.slug,
+                href: `/category/${category.slug}`,
                 subcategories,
             };
         })

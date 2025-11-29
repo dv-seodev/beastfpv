@@ -4,7 +4,6 @@ import Link from 'next/link';
 import './Filter.scss';
 
 const Filter = ({ categories = [] }) => {
-    // Если категории не передали, показываем loading
     if (!categories || categories.length === 0) {
         return (
             <div className="filter">
@@ -34,7 +33,7 @@ const Filter = ({ categories = [] }) => {
                                 category.subcategories.map((subcategory) => (
                                     <Link
                                         key={subcategory.id}
-                                        href={`/category/${subcategory.slug}`}
+                                        href={subcategory.href}
                                         className="filter__categories-content-item"
                                     >
                                         {subcategory.name}

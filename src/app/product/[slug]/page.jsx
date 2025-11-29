@@ -66,6 +66,14 @@ const Product_cart = () => {
     // Проверяем, в избранном ли товар
     const isFavorite = isMounted ? isInFavorites(product.id) : false;
 
+    // Хлебные крошки для страницы товара
+    const breadcrumbPath = [
+        { name: 'Главная', href: '/' },
+        { name: 'Каталог', href: '/' },
+        { name: product?.categories?.[0]?.name || 'Категория', href: `/category/${product?.categories?.[0]?.slug}` },
+        { name: product?.name, href: null, isCurrent: true }
+    ];
+
     const handleToggleFavorite = () => {
         if (isFavorite) {
             removeFromFavorites(product.id);
@@ -112,7 +120,7 @@ const Product_cart = () => {
     return (
         <section className="product-card">
             <div className="container product-card__container">
-                <Breadcrumbs categories={product.categories} productName={product.name} />
+                <Breadcrumbs categoryPath={breadcrumbPath} />
                 <div className="product-card__main">
                     {/* ГАЛЕРЕЯ ТОВАРА */}
                     <ProductGallery

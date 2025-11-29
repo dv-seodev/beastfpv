@@ -5,6 +5,7 @@ const nextConfig = {
   sassOptions: {
     implementation: 'sass-embedded',
   },
+  trailingSlash: true,
   // basePath: '/out', // для GitHub Pages
   // assetPrefix: '/out', // для GitHub Pages
 };

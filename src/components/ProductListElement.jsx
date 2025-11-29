@@ -1,7 +1,6 @@
-"use client";
+'use client';
 
 import Link from "next/link";
-
 import { useProductsList } from '../lib/ProductsListController';
 import { useCartStore } from '../stores/cartStore';
 import { useState, useEffect } from 'react';
@@ -19,11 +18,14 @@ function ProductListItem({ product, onAddCart }) {
     // Проверяем есть ли товар в корзине
     const inCart = isMounted ? isInCart(product.id) : false;
 
+    // Используем изображение или плейсхолдер
+    const imageUrl = product?.image?.sourceUrl || '/images/placeholder.jpg';
+
     return (
         <div key={product.id} className="new-items__item popular-products__item">
             <Link href={`/product/${product.slug}`}>
                 <img
-                    src={product.image.sourceUrl}
+                    src={imageUrl}
                     alt={product.name}
                 />
             </Link>
@@ -39,7 +41,7 @@ function ProductListItem({ product, onAddCart }) {
                     {formatPrice(product.price)}
                 </span>
                 <button
-                    className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
+                    className={`new-items__cart-button button ${inCart ? 'in-cart' : ''}`}
                     onClick={() => onAddCart(product)}
                     type="button"
                     title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
