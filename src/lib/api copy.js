@@ -4,8 +4,8 @@ import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 
 const api = {
-    fetchProducts: (limit, cat_name) => {
-        return gql`
+  fetchProducts: (limit, cat_name) => {
+    return gql`
 query GetProducts {
 productCategory(id: "${cat_name}", idType: SLUG) {
         id
@@ -44,6 +44,7 @@ productCategory(id: "${cat_name}", idType: SLUG) {
           regularPrice
           salePrice
         }
+
         image {
           sourceUrl
         }
@@ -51,9 +52,9 @@ productCategory(id: "${cat_name}", idType: SLUG) {
     }
   }
 `;
-    },
-    fetchProductBySlug: (slug) => {
-        return gql`
+  },
+  fetchProductBySlug: (slug) => {
+    return gql`
             query GetProductBySlug {
                 product(id: "${slug}", idType: SLUG) {
                     id
@@ -126,10 +127,10 @@ productCategory(id: "${cat_name}", idType: SLUG) {
                 }
             }
         `;
-    },
+  },
 
-    fetchCategories: (limit, parentID) => {
-        return gql`
+  fetchCategories: (limit, parentID) => {
+    return gql`
 query GetCategories {
     productCategories(first: ${limit}, where: {parent: ${parentID}}) {
     nodes {
@@ -144,7 +145,95 @@ query GetCategories {
   }
     }
 `;
+  },
+
+  fetchShippingMethods: () => {
+    return gql`
+          query GetShippingMethods {
+            shippingMethods {
+              nodes {
+                id
+                title
+                description
+              }
+            }
+          }
+        `;
+  },
+
+  fetchSearchingProducts: () => {
+    return gql`
+query SearchProducts {
+    products(first: 5000) {
+      nodes {
+        id
+        databaseId
+        name
+        slug
+        image {
+          sourceUrl
+          altText
+        }
+        ... on SimpleProduct {
+          price
+        }
+        ... on VariableProduct {
+          price
+        }
+      }
     }
+  }
+`;
+  },
+
+  fetchPaymentMethods: () => {
+    return gql`
+    query GetPaymentMethods {
+      paymentGateways {
+        nodes {
+          id
+          title
+          description
+        }
+      }
+    }
+  `;
+  },
+
+  fetchProductCategories: () => {
+    return gql`
+    query GetProductCategories {
+        productCategories(first: 100,  
+        where: { 
+      hideEmpty: false
+      exclude: [19]
+    }) {
+    nodes {
+      id
+      databaseId
+      name
+      slug
+      parent {
+        node {
+          id
+          databaseId
+          name
+          slug
+        }
+      }
+      children(first: 50) {
+        nodes {
+          id
+          databaseId
+          name
+          slug
+        }
+      }
+    }
+  }
+}
+  `;
+  },
 
 }
 

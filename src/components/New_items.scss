@@ -67,6 +67,7 @@
             height: 100%;
             min-height: 280px;
             max-height: 280px;
+            object-fit: contain;
 
             @include mx.respond-to('ipad') {
                 min-height: 166px;
@@ -79,7 +80,7 @@
     &__name {
         font-size: 16px;
         line-height: 125%;
-        min-height: 50px;
+        min-height: 55px;
 
         @include mx.respond-to('ipad') {
             font-size: 14px;

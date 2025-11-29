@@ -22,12 +22,6 @@ const NewItems = ({ products }) => {
         addCartProduct(product);
     };
 
-
-    // Добавь логирование
-    console.log('Products:', products);
-    console.log('First product price:', products[0]?.price);
-    console.log('Formatted price:', formatPrice(products[0]?.price));
-
     return (
 
         <section className="new-items">

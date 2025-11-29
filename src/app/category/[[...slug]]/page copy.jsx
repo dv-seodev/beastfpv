@@ -10,7 +10,6 @@ import Link from "next/link";
 import { useCategoryData } from "../../../lib/CategoryPageController";
 import { useFilterData } from "../../../lib/useFilterData";
 import { useParams } from 'next/navigation';
-import LoadMore from "../../news/LoadMore";
 
 const Category_page = () => {
     const params = useParams();

@@ -15,7 +15,10 @@ const MobileMenu = ({ isOpen, onClose }) => {
             )}
 
             {/* Меню */}
-            <div className={`mobile-menu ${isOpen ? 'mobile-menu--open' : ''}`}>
+            <div
+                className={`mobile-menu ${isOpen ? 'mobile-menu--open' : ''}`}
+                suppressHydrationWarning
+            >
                 <div className="mobile-menu__close">
                     <button
                         className="mobile-menu__close-btn"
@@ -28,6 +31,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         />
                     </button>
                 </div>
+
 
                 <div className="mobile-menu__catalog">
                     <Link
@@ -46,7 +50,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
+                        href="/category/fpv"
                         onClick={onClose}
                     >
                         FPV-дроны
