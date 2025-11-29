@@ -3,9 +3,21 @@
 import Link from "next/link";
 
 import { useProductsList } from '../lib/ProductsListController';
+import { useCartStore } from '../stores/cartStore';
+import { useState, useEffect } from 'react';
 
 function ProductListItem({ product, onAddCart }) {
     const { addCartProduct, formatPrice } = useProductsList();
+    const { isInCart } = useCartStore();
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Проверяем hydration
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // Проверяем есть ли товар в корзине
+    const inCart = isMounted ? isInCart(product.id) : false;
 
     return (
         <div key={product.id} className="new-items__item popular-products__item">
@@ -27,9 +39,10 @@ function ProductListItem({ product, onAddCart }) {
                     {formatPrice(product.price)}
                 </span>
                 <button
-                    className="new-items__cart-button button"
+                    className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
                     onClick={() => onAddCart(product)}
                     type="button"
+                    title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
                 >
                 </button>
             </div>
