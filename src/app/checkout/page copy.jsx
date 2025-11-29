@@ -24,10 +24,10 @@ const Checkout = () => {
         clearCart,
     } = useCartStore();
 
+    // Форма состояние
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
-        email: '',
         city: '',
         street: '',
         house: '',
@@ -43,17 +43,19 @@ const Checkout = () => {
 
     const { new_products } = data;
 
+    // Если корзина пуста
     if (items.length === 0) {
         return (
             <section className="checkout">
                 <div className="container checkout__container">
                     <h3 className="checkout__header">Ваша корзина пуста</h3>
-                    <Link className="continue-buy" href="/cart/">Продолжить покупки</Link>
+                    <Link className="continue-buy" href="/cart">Продолжить покупки</Link>
                 </div>
             </section>
         );
     }
 
+    // Получаем названия выбранных методов
     const selectedShippingMethod = shippingMethods.find(m => m.id === selectedShipping);
     const selectedPaymentMethod = paymentMethods.find(m => m.id === selectedPayment);
 
@@ -74,24 +76,24 @@ const Checkout = () => {
         setIsSubmitting(true);
 
         try {
-            // Подготавливаем данные - используем ПРАВИЛЬНЫЕ КЛЮЧИ
             const orderData = {
-                payment_method: selectedPayment || "bacs",
-                payment_method_title: selectedPaymentMethod?.title || "Bank Transfer",
+                payment_method: selectedPayment || 'bacs',
+                payment_method_title: selectedPaymentMethod?.title || 'Bank Transfer',
+                set_paid: false,
                 billing: {
-                    first_name: formData.name.split(' ')[0] || 'Customer',
+                    first_name: formData.name.split(' ')[0],
                     last_name: formData.name.split(' ')[1] || '',
+                    phone: formData.phone,
+                    email: formData.email || '',
                     address_1: `${formData.street} ${formData.house}`,
                     address_2: formData.flat || '',
                     city: formData.city,
                     postcode: formData.index,
                     country: 'RU',
                     state: 'RU',
-                    email: formData.email || 'guest@example.com',
-                    phone: formData.phone,
                 },
                 shipping: {
-                    first_name: formData.name.split(' ')[0] || 'Customer',
+                    first_name: formData.name.split(' ')[0],
                     last_name: formData.name.split(' ')[1] || '',
                     address_1: `${formData.street} ${formData.house}`,
                     address_2: formData.flat || '',
@@ -106,20 +108,26 @@ const Checkout = () => {
                 })),
                 shipping_lines: [
                     {
-                        method_id: 'flat_rate',
+                        method_id: selectedShipping || 'flat_rate',
                         method_title: selectedShippingMethod?.title || 'Flat Rate',
-                        total: '0',
                     },
                 ],
             };
 
-            console.log('Создаём заказ:', orderData);
+            console.log('Отправляем заказ в WooCommerce:', orderData);
 
-            // Отправляем на API route
-            const response = await fetch('/api/checkout', {
+            // Кодируем credentials для Basic Auth
+            const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_KEY;
+            const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_SECRET;
+            const credentials = btoa(`${consumerKey}:${consumerSecret}`);
+
+            const wooUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
+
+            const response = await fetch(`https://test.beastfpv.ru/wp-json/wc/v3/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Basic ${credentials}`,
                 },
                 body: JSON.stringify(orderData),
             });
@@ -127,12 +135,16 @@ const Checkout = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || 'Ошибка при создании заказа');
+                throw new Error(result.message || 'Ошибка при создании заказа');
             }
 
-            console.log('Заказ успешно создан:', result.orderId);
+            console.log('Заказ создан в WooCommerce:', result.id);
+
+            // Очищаем корзину
             clearCart();
-            router.push(`/order-success/?orderId=${result.orderId}`);
+
+            // Редирект на страницу успеха
+            router.push(`/order-success?orderId=${result.id || ''}`);
         } catch (err) {
             console.error('Ошибка:', err);
             alert(`Ошибка: ${err.message}`);
@@ -163,7 +175,7 @@ const Checkout = () => {
                         </p>
                     </div>
                     <div>
-                        <Link href="/cart/" className="checkout__change-link continue-buy"><b>
+                        <Link href="/cart" className="checkout__change-link continue-buy"><b>
                             Вернуться в корзину
                         </b>
                         </Link>
@@ -171,6 +183,7 @@ const Checkout = () => {
                 </div>
 
                 <form className="checkout__form" onSubmit={handleSubmit}>
+                    {/* ДАННЫЕ ПОКУПАТЕЛЯ */}
                     <div className="checkout__name-phone">
                         <div className="checkout__wrapper">
                             <p>ФИО</p>
@@ -194,18 +207,9 @@ const Checkout = () => {
                                 required
                             />
                         </div>
-                        <div className="checkout__wrapper">
-                            <p>Email</p>
-                            <input
-                                className="checkout__form-input"
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                            />
-                        </div>
                     </div>
 
+                    {/* АДРЕС ДОСТАВКИ */}
                     <div className="checkout__wrapper">
                         <p>Город</p>
                         <input
@@ -266,10 +270,12 @@ const Checkout = () => {
                         </div>
                     </div>
 
+                    {/* СУММА ЗАКАЗА */}
                     <div className="checkout__price">
                         Сумма заказа: <span>{formatPriceForDisplay(totalPrice())}</span>
                     </div>
 
+                    {/* СОГЛАСИЕ НА ОБРАБОТКУ ДАННЫХ */}
                     <div className="checkout__checkbox-wrapper">
                         <input
                             type="checkbox"
@@ -280,6 +286,7 @@ const Checkout = () => {
                         <span>Я даю свое согласие на обработку своих персональных данных</span>
                     </div>
 
+                    {/* КНОПКА ОТПРАВКИ */}
                     <button
                         type="submit"
                         className="checkout__form-button-submit"

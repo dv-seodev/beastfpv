@@ -166,6 +166,30 @@ query GetCategories {
         `;
     },
 
+    createOrderMutation: () => {
+        return gql`
+          mutation CreateOrder($input: CreateOrderInput!) {
+    createOrder(input: $input) {
+      clientMutationId
+      order {
+        id
+        databaseId
+        orderNumber
+        status
+        total
+        lineItems {
+          nodes {
+            productId
+            quantity
+            total
+          }
+        }
+      }
+    }
+  }
+`;
+    },
+
     fetchSearchingProducts: () => {
         return gql`
 query SearchProducts {
