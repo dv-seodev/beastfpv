@@ -50,7 +50,7 @@ body {
 
 @media (prefers-color-scheme: dark) {
   html {
-    color-scheme: dark;
+    // color-scheme: dark;
   }
 }
 
@@ -156,5 +156,5 @@ body {
 }
 
 .cart-added {
-  background: var(--green);
+  background-color: var(--green);
 }

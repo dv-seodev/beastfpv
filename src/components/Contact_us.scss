@@ -119,3 +119,214 @@
         }
     }
 }
+
+.contact-us-modal {
+    // width: 100%;
+    // max-height: 100%;
+    background-position: center center;
+    background-size: cover;
+
+    @include mx.respond-to('ipad') {
+        background-position: 20% 50%;
+    }
+
+    &__header {
+
+        h2 {
+            color: var(--white);
+        }
+
+        p {
+            color: var(--white);
+        }
+    }
+
+    &__container {
+        padding-top: 100px;
+        padding-bottom: 100px;
+
+        @include mx.respond-to('ipad') {
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+    }
+
+    &__form {
+        border-radius: 8px;
+        background-color: var(--white);
+        border: none;
+        appearance: none;
+        padding: 40px 40px;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+        max-width: 824px;
+
+        @include mx.respond-to('large') {
+            padding: 30px 20px;
+        }
+
+        p {
+            padding-bottom: 15px;
+
+            @include mx.respond-to('large') {
+                padding-bottom: 12px;
+            }
+        }
+
+    }
+
+    &__form-input {
+        appearance: none;
+        margin-top: 15px;
+        margin-bottom: 30px;
+        border: 1px solid var(--light-gray-input);
+        background-color: var(--background-input);
+        border-radius: 4px;
+        width: 100%;
+        height: 57px;
+        color: var(--black);
+        padding: 10px;
+        font-size: 20px;
+
+        @include mx.respond-to('large') {
+            margin-bottom: 20px;
+            height: 48px;
+        }
+    }
+
+    &__checkbox-wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+
+        @include mx.respond-to('large') {
+            margin-bottom: 20px;
+        }
+    }
+
+    &__form-checkbox {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border: 1px solid var(--gray);
+        border-radius: 2px;
+        background-color: var(--background-input);
+    }
+
+    &__form-checkbox:checked {
+        appearance: none;
+        // border-color: #0d6efd;
+        background-image: url("/images/checkbox.svg");
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    &__form-button-submit {
+        height: 57px;
+        padding: 15px 0px;
+        background-color: var(--basket-button-color);
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        color: white;
+
+        @include mx.respond-to('large') {
+            height: 48px;
+        }
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    position: relative;
+    animation: slideUp 0.3s ease-out;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 8px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+
+    &:hover {
+        color: #333;
+    }
+}
+
+.contact-us__form-input--disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    color: #666;
+}
+
+body>div.app_wrapper>div.app_content>div>div>div>form>div:nth-child(1)>input {
+    font-size: 14px;
+    overflow-wrap: break-word;
+}
+
+.contact-us-modal__checkbox-group {
+    margin-bottom: 30px;
+
+    .contact-us-modal__checkbox {
+        margin-right: 12px;
+        appearance: none;
+        border: 1px solid var(--gray);
+        background-color: var(--background-input);
+        border-radius: 2px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .contact-us-modal__checkbox:checked {
+        appearance: none;
+        // border-color: #0d6efd;
+        background-image: url("/images/checkbox.svg");
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}

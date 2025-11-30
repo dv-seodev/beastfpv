@@ -17,7 +17,7 @@ const FavoritePage = () => {
     if (favoriteItems.length === 0) {
         return (
             <section className="popular-products favoritepage">
-                <div className="container popular-products__container">
+                <div className="container popular-products__container favoritepage__container">
                     <div className="popular-products__header">
                         <h2>Понравившиеся товары</h2>
                     </div>
@@ -25,13 +25,13 @@ const FavoritePage = () => {
                         <div style={{
                             gridColumn: '1 / -1',
                             textAlign: 'center',
-                            padding: '60px 20px',
+                            padding: '40px 20px',
                             color: '#999'
                         }}>
                             <p style={{ fontSize: '16px', marginBottom: '20px' }}>
                                 Ваше избранное пусто
                             </p>
-                            <Link href="/catalog" className="link__show-all">
+                            <Link href="/" className="link__show-all">
                                 <span>Продолжить покупки</span>
                             </Link>
                         </div>
@@ -43,7 +43,7 @@ const FavoritePage = () => {
 
     return (
         <section className="popular-products favoritepage">
-            <div className="container popular-products__container">
+            <div className="container popular-products__container favoritepage__container">
                 <div className="popular-products__header">
                     <h2>Понравившиеся товары </h2>
                 </div>

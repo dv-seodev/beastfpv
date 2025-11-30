@@ -84,6 +84,7 @@
 
         @include mx.respond-to('ipad') {
             font-size: 14px;
+            min-height: 70px;
         }
     }
 

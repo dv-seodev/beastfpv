@@ -5,7 +5,7 @@ import { useProductsList } from '../lib/ProductsListController';
 import { useCartStore } from '../stores/cartStore';
 import { useState, useEffect } from 'react';
 
-function ProductListItem({ product, onAddCart }) {
+function ProductListItem({ product, onAddCart, onOneClick }) {
     const { addCartProduct, formatPrice } = useProductsList();
     const { isInCart } = useCartStore();
     const [isMounted, setIsMounted] = useState(false);
@@ -41,7 +41,7 @@ function ProductListItem({ product, onAddCart }) {
                     {formatPrice(product.price)}
                 </span>
                 <button
-                    className={`new-items__cart-button button ${inCart ? 'in-cart' : ''}`}
+                    className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
                     onClick={() => onAddCart(product)}
                     type="button"
                     title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
@@ -52,6 +52,7 @@ function ProductListItem({ product, onAddCart }) {
             <button
                 className="new-items__one-click button"
                 type="button"
+                onClick={() => onOneClick(product)}
             >
                 Купить в один клик
             </button>
