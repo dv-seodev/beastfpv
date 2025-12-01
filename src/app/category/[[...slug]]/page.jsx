@@ -42,7 +42,7 @@ const Category_page = () => {
             <div className="container category-page__container">
                 <Breadcrumbs categoryPath={breadcrumbPath} />
                 <div className="category-page__wrapper">
-                    <div className="category-page__cat-list">
+                    {/* <div className="category-page__cat-list">
                         <div className="category-page__cat-list-inner">
                             <div className="category-page__cat-list-item">
                                 <a href="/"><span>Категория 1</span></a>
@@ -57,7 +57,7 @@ const Category_page = () => {
                                 <a href="/"><span>Категория 4</span></a>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                     <Link href="/" className="filter-mob">
                         <img src="/images/filter-mobile.svg" alt="Filter" />
                         <span>Фильтр</span>
