@@ -1,16 +1,31 @@
 import api from './api';
-import { useQuery } from "@apollo/client/react";
+import { useQuery } from '@apollo/client/react';
+
+const PAGE_SIZE = 18;
 
 export const useCategoryData = (slug) => {
-    const catProductsQuery = useQuery(api.fetchProducts(13, slug));
+    const { data, loading, error } = useQuery(
+        api.fetchProducts(200, slug), // берём "много", чтобы хватило
+        {
+            skip: !slug,
+            notifyOnNetworkStatusChange: true,
+        }
+    );
 
-    const isLoading = catProductsQuery.loading;
-    const error = catProductsQuery.error;
+    const category = data?.productCategory || null;
+    const allProducts = data?.products?.nodes || [];
+    const totalCount = category?.count || allProducts.length;
 
-    const data = !isLoading && !error ? {
-        category: catProductsQuery.data?.productCategory || null, // добавляем категорию
-        cat_products: catProductsQuery.data?.products?.nodes || []
-    } : null;
-
-    return { data, loading: isLoading, error };
+    return {
+        data: category
+            ? {
+                category,
+                allProducts,    // ВСЕ товары категории (по данным GraphQL)
+                totalCount,
+            }
+            : null,
+        loading,
+        error,
+        pageSize: PAGE_SIZE,
+    };
 };

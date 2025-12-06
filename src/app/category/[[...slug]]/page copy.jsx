@@ -10,6 +10,9 @@ import Link from "next/link";
 import { useCategoryData } from "../../../lib/CategoryPageController";
 import { useFilterData } from "../../../lib/useFilterData";
 import { useParams } from 'next/navigation';
+import LoadMore from "../../news/LoadMore";
+import { useBreadcrumbs } from "../../../lib/useBreadcrumbs";
+
 
 const Category_page = () => {
     const params = useParams();
@@ -23,30 +26,8 @@ const Category_page = () => {
     // Получаем данные фильтра
     const { categories, loading: filterLoading, error: filterError } = useFilterData();
 
-    // Формируем путь для хлебных крошек
-    const generateBreadcrumbs = () => {
-        const breadcrumbs = [
-            { name: 'Главная', href: '/' }
-        ];
-
-        let currentPath = '/category';
-        slugArray.forEach((slug, index) => {
-            currentPath += `/${slug}`;
-            const isLast = index === slugArray.length - 1;
-
-            const name = isLast && data?.category?.name
-                ? data.category.name
-                : slug;
-
-            breadcrumbs.push({
-                name: name,
-                href: isLast ? null : currentPath,
-                isCurrent: isLast
-            });
-        });
-
-        return breadcrumbs;
-    };
+    // Получаем хлебные крошки
+    const breadcrumbPath = useBreadcrumbs(data?.category, categories);
 
     if (loading || filterLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка: {error.message}</div>;
@@ -54,16 +35,14 @@ const Category_page = () => {
     if (!currentSlug) return <div>Выберите категорию</div>;
     if (!data) return <div>Категория не найдена</div>;
 
-    const breadcrumbPath = generateBreadcrumbs();
-
     return (
         <div className="category-page">
             <div className="overlay"></div>
             <Filter_mobile categories={categories} />
             <div className="container category-page__container">
-                <Breadcrumbs />
+                <Breadcrumbs categoryPath={breadcrumbPath} />
                 <div className="category-page__wrapper">
-                    <div className="category-page__cat-list">
+                    {/* <div className="category-page__cat-list">
                         <div className="category-page__cat-list-inner">
                             <div className="category-page__cat-list-item">
                                 <a href="/"><span>Категория 1</span></a>
@@ -78,7 +57,7 @@ const Category_page = () => {
                                 <a href="/"><span>Категория 4</span></a>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                     <Link href="/" className="filter-mob">
                         <img src="/images/filter-mobile.svg" alt="Filter" />
                         <span>Фильтр</span>
@@ -91,7 +70,9 @@ const Category_page = () => {
                         categoryName={data.category?.name}
                         products={data.cat_products}
                     />
+
                 </div>
+                <LoadMore />
             </div>
             <FAQ />
         </div>

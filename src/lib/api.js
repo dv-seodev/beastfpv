@@ -4,59 +4,57 @@ import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 
 const api = {
-    fetchProducts: (limit, cat_name, after = null) => {
+    fetchProducts: (limit, cat_name) => {
         return gql`
-query GetProducts {
-      productCategory(id: "${cat_name}", idType: SLUG) {
-        id
-        name
-        slug
-        description
-        link
-        count
-      }
-      products(first: ${limit}, after: ${after ? `"${after}"` : 'null'}, where: {category: "${cat_name}"}) {
-        pageInfo {
-          hasNextPage
-          endCursor
-          hasPreviousPage
-          startCursor
-        }
-        nodes {
+      query GetProducts {
+        productCategory(id: "${cat_name}", idType: SLUG) {
           id
-          databaseId
           name
-          description
           slug
-          ... on SimpleProduct {
-            price
-            regularPrice
-            salePrice
-            stockQuantity
-            stockStatus
-          }
-          ... on VariableProduct {
-            price
-            regularPrice
-            salePrice
-          }
-          ... on ExternalProduct {
-            price
-            regularPrice
-            salePrice
-          }
-          ... on GroupProduct {
-            price
-            regularPrice
-            salePrice
-          }
-          image {
-            sourceUrl
+          description
+          link
+          count          # всего товаров в категории
+        }
+        products(
+          first: ${limit}        # берем "много", чтобы хватило на все страницы
+          where: { category: "${cat_name}" }
+          includeChildren: true
+        ) {
+          nodes {
+            id
+            databaseId
+            name
+            description
+            slug
+            ... on SimpleProduct {
+              price
+              regularPrice
+              salePrice
+              stockQuantity
+              stockStatus
+            }
+            ... on VariableProduct {
+              price
+              regularPrice
+              salePrice
+            }
+            ... on ExternalProduct {
+              price
+              regularPrice
+              salePrice
+            }
+            ... on GroupProduct {
+              price
+              regularPrice
+              salePrice
+            }
+            image {
+              sourceUrl
+            }
           }
         }
       }
-    }
-  `;
+    `;
     },
     fetchProductBySlug: (slug) => {
         return gql`

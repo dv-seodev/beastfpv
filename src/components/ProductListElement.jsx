@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useProductsList } from '../lib/ProductsListController';
 import { useCartStore } from '../stores/cartStore';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 function ProductListItem({ product, onAddCart, onOneClick }) {
+    const router = useRouter();
     const { addCartProduct, formatPrice } = useProductsList();
     const { isInCart } = useCartStore();
     const [isMounted, setIsMounted] = useState(false);
@@ -17,6 +19,16 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
 
     // Проверяем есть ли товар в корзине
     const inCart = isMounted ? isInCart(product.id) : false;
+
+    const handleCartButtonClick = () => {
+        if (inCart) {
+            // Если товар в корзине - переходим на страницу корзины
+            router.push('/cart/');
+        } else {
+            // Если товара нет - добавляем его
+            onAddCart(product);
+        }
+    };
 
     // Используем изображение или плейсхолдер
     const imageUrl = product?.image?.sourceUrl || '/images/placeholder.jpg';
@@ -42,7 +54,7 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
                 </span>
                 <button
                     className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
-                    onClick={() => onAddCart(product)}
+                    onClick={handleCartButtonClick}
                     type="button"
                     title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
                 >

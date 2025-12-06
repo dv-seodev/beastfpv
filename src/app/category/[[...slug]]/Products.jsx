@@ -24,16 +24,16 @@ const Products = ({ categoryName, products, slug }) => {
         <div className="products">
             <h1>{categoryName || "Название категории"}</h1>
             <div className="products__items-grid">
-                {products.map((product) => (
+                {products.map((product, index) => (
                     <ProductListItem
+                        key={`${product.databaseId || product.id}-${index}`}
                         product={product}
-                        key={product.id}
                         onAddCart={handleAddCart}
                         onOneClick={handleOneClick}
                     />
                 ))}
             </div>
-            <LoadMore />
+            {/* <LoadMore /> */}
             {selectedProduct && (
                 <OneClickModal
                     product={selectedProduct}
