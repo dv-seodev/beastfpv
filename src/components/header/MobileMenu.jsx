@@ -43,28 +43,21 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
-                        onClick={onClose}
-                    >
-                        DJI
-                    </Link>
-                    <Link
-                        className="mobile-menu__links-item"
-                        href="/category/fpv"
+                        href="/category/fpv/"
                         onClick={onClose}
                     >
                         FPV-дроны
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
+                        href="/category/accessory/"
                         onClick={onClose}
                     >
-                        Аксессуары
+                        DJI
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
+                        href="/category/dji/"
                         onClick={onClose}
                     >
                         Комплектующие
@@ -109,7 +102,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item mobile-heading"
-                        href="/"
+                        href="/contacts/"
                         onClick={onClose}
                     >
                         Контакты
