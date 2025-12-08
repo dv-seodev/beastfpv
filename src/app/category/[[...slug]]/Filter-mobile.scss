@@ -1,7 +1,6 @@
 @import '../../styles/breakpoints.scss';
 @import '../../styles/mixins.scss';
 
-
 .overlay {
     position: fixed;
     top: 0;
@@ -20,24 +19,39 @@
 .filter-mobile {
     width: 100%;
     height: 100%;
-    max-width: 96%;
+    max-width: 100%;
     position: fixed;
     display: flex;
     flex-direction: column;
     gap: 20px;
     z-index: 1000;
     top: 70px;
-    padding: 20px;
-    background-color: var(--white);
-    border-radius: 8px;
+    padding: 8px;
+    // background-color: var(--white);
+    border-radius: 12px;
+    // margin-left: 2%;
+    // margin-right: 2%;
 
-    margin-left: 2%;
-    margin-right: 2%;
-
+    // ✅ ИЗМЕНЕНО: по умолчанию скрыт
     display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 
     @include respond-from('ipad') {
         display: none;
+    }
+
+    // ✅ ДОБАВЛЕНО: когда класс --open, фильтр показывается
+    &--open {
+        display: flex;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    &__wrapper {
+        display: flex;
+        flex-direction: row;
     }
 
     &__item {
@@ -49,9 +63,39 @@
             width: 100%;
             font-size: 24px;
             line-height: 33px;
-            margin-bottom: 18px;
+            margin-bottom: 8px;
             font-weight: 400;
             padding: 10px;
+        }
+    }
+
+    &__overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 999; // чуть ниже фильтра
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    &__content {
+        position: relative;
+        z-index: 1001;
+    }
+
+    &__close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 20px;
+            height: 20px;
         }
     }
 
@@ -87,14 +131,14 @@
             padding-bottom: 60px;
         }
 
-        &[open] &-title {
+        &-title {
             margin-bottom: 5px;
             background: #EBEBEB;
         }
 
         &-title {
             border-radius: 5px;
-            padding: 10px 54px;
+            padding: 10px 28px;
             font-size: 24px;
             line-height: 30px;
             cursor: pointer;
@@ -102,7 +146,7 @@
             font-weight: 400;
             transition: .3s;
 
-            &:-webkit-categories-marker {
+            &:-webkit-details-marker {
                 display: none;
             }
 
@@ -139,6 +183,8 @@
                 align-items: center;
                 gap: 12px;
                 font-size: 16px;
+                color: var(--black);
+                text-decoration: none;
 
                 .characteristics-checkbox {
                     appearance: none;
@@ -162,12 +208,10 @@
                 }
             }
         }
-
-
     }
 
     &__filter-apply {
-        webkit-appearance: none;
+        -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
         color: var(--white);
@@ -177,6 +221,6 @@
         padding: 15px 15px;
         flex-wrap: wrap;
         font-size: 14px;
+        cursor: pointer;
     }
-
 }

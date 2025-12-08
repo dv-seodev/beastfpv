@@ -44,6 +44,7 @@ const Category_page = () => {
 
     // локальный флаг "показать все товары"
     const [showAll, setShowAll] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(false); // состояние мобильного фильтра
 
     if (loading || filterLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка: {error.message}</div>;
@@ -85,17 +86,32 @@ const Category_page = () => {
         setShowAll(true);
     };
 
+    const handleOpenFilter = () => {
+        setIsFilterOpen(true);
+    };
+
+    const handleCloseFilter = () => {
+        setIsFilterOpen(false);
+    };
+
     return (
         <div className="category-page">
-            <div className="overlay"></div>
-            <Filter_mobile categories={categories} />
+            <Filter_mobile
+                categories={categories}
+                isOpen={isFilterOpen}
+                onClose={handleCloseFilter}
+            />
             <div className="container category-page__container">
                 <Breadcrumbs categoryPath={breadcrumbPath} />
                 <div className="category-page__wrapper">
-                    <Link href="/" className="filter-mob">
+                    <button
+                        type="button"
+                        className="filter-mob"
+                        onClick={handleOpenFilter}
+                    >
                         <img src="/images/filter-mobile.svg" alt="Filter" />
                         <span>Фильтр</span>
-                    </Link>
+                    </button>
 
                     {/* ПЕРЕДАЁМ КАТЕГОРИИ В ФИЛЬТР */}
                     <Filter categories={categories} />

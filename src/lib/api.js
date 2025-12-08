@@ -18,7 +18,6 @@ const api = {
         products(
           first: ${limit}        # берем "много", чтобы хватило на все страницы
           where: { category: "${cat_name}" }
-          includeChildren: true
         ) {
           nodes {
             id

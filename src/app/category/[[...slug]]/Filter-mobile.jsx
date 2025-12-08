@@ -16,26 +16,40 @@ const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
     }
 
     const handleCategoryClick = () => {
-        onClose();
+        if (onClose) onClose();
     };
+
 
     return (
         <div className={`filter-mobile ${isOpen ? 'filter-mobile--open' : ''}`}>
-            <div className="filter-mobile__overlay" onClick={onClose} />
+            <div
+                className="filter-mobile__overlay"
+                onClick={onClose}
+            />
 
             <div className="filter-mobile__content">
-                <div className='filter-mobile__item-header'>
+                {/* <div className='filter-mobile__item-header'>
                     <span>Фильтр</span>
                     <button
+                        type="button"
                         className="filter-mobile__close-btn"
                         onClick={onClose}
                     >
                         <img src="/icons-header/cross-black.svg" alt="close" />
                     </button>
-                </div>
+                </div> */}
 
                 <div className="filter-mobile__item">
-                    <div className="filter-mobile__categories-header">Категории товаров</div>
+                    <div className='filter-mobile__wrapper'>
+                        <div className="filter-mobile__item-header">Категории товаров</div>
+                        <button
+                            type="button"
+                            className="filter-mobile__close-btn"
+                            onClick={onClose}
+                        >
+                            <img src="/icons-header/cross-black.svg" alt="close" />
+                        </button>
+                    </div>
 
                     {/* ДИНАМИЧЕСКИЕ КАТЕГОРИИ */}
                     {categories.map((category) => {
