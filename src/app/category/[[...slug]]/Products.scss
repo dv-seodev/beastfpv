@@ -40,11 +40,11 @@
 
     &__items-grid {
         display: grid;
-        grid-template-columns: 33% 33% 33%;
+        grid-template-columns: auto auto auto;
         gap: 32px;
 
         @include respond-to('large') {
-            grid-template-columns: 48% 48%;
+            grid-template-columns: auto auto;
             gap: 15px;
         }
     }
