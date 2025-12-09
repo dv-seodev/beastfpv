@@ -108,7 +108,7 @@
         // grid-template-columns: auto auto auto auto auto;
         align-items: center;
         justify-content: right;
-        gap: 100px;
+        gap: 99px;
 
         @include respond-to('laptop-hdpi') {
             display: none;
@@ -157,7 +157,7 @@
         font-weight: 700;
 
         @include respond-to('laptop-hdpi') {
-            font-size: 18px;
+            font-size: 15px;
         }
     }
 

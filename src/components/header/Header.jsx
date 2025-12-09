@@ -58,7 +58,7 @@ const Header = () => {
                             </button>
                             <nav className="header__main-menu-nav">
                                 <div className="header__links-item-nav rel-menu">
-                                    <Link href="">FPV-дроны</Link>
+                                    <Link href={`/category/fpv/`}>FPV-дроны</Link>
                                     <div className="header__links-submenu">
                                         <Link className="header__links-item-submenu" href="/category/fpv/7-inch/">7 дюймов</Link>
                                         <Link className="header__links-item-submenu" href="/category/fpv/9-inch/">9 дюймов</Link>
@@ -68,9 +68,9 @@ const Header = () => {
                                         <Link className="header__links-item-submenu" href="/category/fpv/15-inch/">13 дюймов</Link>
                                     </div>
                                 </div>
-                                <Link className="header__links-item-nav" href="/">DJI</Link>
+                                <Link className="header__links-item-nav" href="/category/dji/">DJI</Link>
                                 <div className="header__links-item-nav rel-menu">
-                                    <Link href="">Комплектующие</Link>
+                                    <Link href="/category/accessory/">Комплектующие</Link>
                                     <div className="header__links-submenu" style={{ right: -240 }}>
                                         <Link className="header__links-item-submenu" href="/category/accessory/akkumulyatory/">Аккумуляторы</Link>
                                         <Link className="header__links-item-submenu" href="/category/accessory/antenny-dlya-fpv-dronov/">Антенны</Link>

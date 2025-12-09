@@ -41,6 +41,25 @@
         }
     }
 
+    &__out-of-stock {
+        display: flex;
+        max-width: 440px;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 20px;
+        background-color: var(--light-gray-menu);
+        border: 1px solid (var(--gray));
+        border-radius: 4px;
+        margin-top: 20px;
+    }
+
+    &__out-of-stock-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: #666;
+        text-align: center;
+    }
+
     &__descr-favourite-name {
         background: none;
         border: none;

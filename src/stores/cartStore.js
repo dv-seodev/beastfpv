@@ -24,6 +24,16 @@ export const useCartStore = create(
                 set((state) => {
                     const existingItem = state.items.find(item => item.id === product.id);
 
+                    // ✨ НОВАЯ ЛОГИКА: конвертируем цену в число
+                    const normalizedProduct = {
+                        ...product,
+                        // Если price уже число - используем, если строка - парсим, если ничего - берём regularPriceNum
+                        price: typeof product.price === 'number'
+                            ? product.price
+                            : product.priceNum || product.regularPriceNum || 0,
+                        quantity: 1
+                    };
+
                     if (existingItem) {
                         return {
                             items: state.items.map(item =>

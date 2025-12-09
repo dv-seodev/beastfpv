@@ -41,7 +41,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                             left: 0,
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover'
+                            objectFit: 'contain'
                         }}
                     />
                 </div>
@@ -67,7 +67,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                             <img
                                 src={image.sourceUrl}
                                 alt={image.altText || productName}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />
                         </SwiperSlide>
                     ))
@@ -76,7 +76,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                         <img
                             src="/images/product_image.jpg"
                             alt={productName}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                         />
                     </SwiperSlide>
                 )}
@@ -98,7 +98,7 @@ const ProductGallery = ({ galleryImages, productName, productImage }) => {
                             <img
                                 src={image.sourceUrl}
                                 alt={image.altText || productName}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                                style={{ width: '100%', objectFit: 'contain', cursor: 'pointer' }}
                             />
                         </SwiperSlide>
                     ))}

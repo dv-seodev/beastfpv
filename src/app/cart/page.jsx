@@ -89,6 +89,15 @@ const Cart = () => {
         return new Intl.NumberFormat('ru-RU').format(price) + ' ₽';
     };
 
+    const getProductUrl = (item) => {
+        console.log('Item в корзине:', item); // ✨ ДОБАВИЛИ ЛОГИРОВАНИЕ
+        // Приоритет: slug > id > '#'
+        if (item.slug) {
+            return `/product/${item.slug}`;
+        }
+        return '/'; // Если ничего нет, на главную
+    };
+
     return (
         <section className="cart">
             <div className="container cart__container">
@@ -99,9 +108,10 @@ const Cart = () => {
                         <div className="cart__items-list">
                             <div className="cart__product-table-title">
                                 <span></span>
-                                <span>цена</span>
-                                <span>количество</span>
-                                <span>итого</span>
+                                <span className="title-price">цена</span>
+                                <span className="title-quantity">количество</span>
+                                <span className="title-total">итого</span>
+                                <span></span>
                                 <span></span>
                             </div>
 
@@ -114,7 +124,7 @@ const Cart = () => {
                                         />
                                     </div>
                                     <div className="cart__product-item-inner">
-                                        <Link className="cart__product-item-link" href={`/product/${item.slug || '#'}`}>
+                                        <Link className="cart__product-item-link" href={getProductUrl(item)}>
                                             <div className="cart__product-item-name">{item.name}</div>
                                         </Link>
                                         <div className="cart__product-item-inner-wrapper">

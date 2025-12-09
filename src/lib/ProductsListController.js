@@ -11,6 +11,9 @@ export const useProductsList = () => {
             id: product.id,
             databaseId: product.databaseId,
             name: product.name,
+            slug: product.slug,
+            priceNum: product.priceNum, // ✨ Передаём явно priceNum
+            regularPriceNum: product.regularPriceNum,
             price: convertPriceToNumber(product.price), // Используем правильную конвертацию
             image: product.image?.sourceUrl
         });

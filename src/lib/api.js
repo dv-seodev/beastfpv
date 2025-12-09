@@ -91,6 +91,11 @@ const api = {
                             slug
                         }
                     }
+
+                metaData {
+                    key
+                    value
+                }
                     ... on ProductWithPricing {
                         price
                         regularPrice

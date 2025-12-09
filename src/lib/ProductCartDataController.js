@@ -9,19 +9,45 @@ export const useProductData = (slug) => {
     const isLoading = productQuery.loading;
     const error = productQuery.error;
 
-    // Функция для преобразования цены в число
     const parsePriceToNumber = (priceString) => {
         if (!priceString) return 0;
         if (typeof priceString === 'number') return priceString;
 
-        // Убираем HTML entities, пробелы, валюту и заменяем запятую на точку
         const cleanPrice = priceString
-            .replace(/&nbsp;/g, '')      // Убираем &nbsp;
-            .replace(/\s/g, '')          // Убираем все пробелы
-            .replace(/[^\d,]/g, '')      // Убираем всё кроме цифр и запятых
-            .replace(',', '.');          // Заменяем запятую на точку
+            .replace(/&nbsp;/g, '')
+            .replace(/\s/g, '')
+            .replace(/[^\d,]/g, '')
+            .replace(',', '.');
 
         return parseFloat(cleanPrice) || 0;
+    };
+
+    // ✅ ДОБАВЛЕНО: функция для парсинга HTML характеристик
+    const parseCharacteristics = (htmlString) => {
+        if (!htmlString) return [];
+
+        // Удаляем все переводы строк и лишние пробелы
+        const cleanHtml = htmlString.replace(/\r\n/g, '\n').trim();
+
+        // Разбиваем по <span class="atr">
+        const parts = cleanHtml.split(/<span class="atr">|<\/span>/);
+
+        const characteristics = [];
+
+        // Проходим по частям: [название, значение, название, значение, ...]
+        for (let i = 0; i < parts.length - 1; i += 2) {
+            const name = parts[i].trim();
+            const value = parts[i + 1].trim();
+
+            if (name && value) {
+                characteristics.push({
+                    naimenovanie: name,
+                    znachenie: value
+                });
+            }
+        }
+
+        return characteristics;
     };
 
     const formatProductData = (rawData) => {
@@ -29,16 +55,27 @@ export const useProductData = (slug) => {
 
         const product = rawData.product;
 
-        // Преобразуем цены в числа
+        // ✅ ДОБАВЛЕНО: извлекаем ACF данные из metaData
+        const metaData = {};
+        if (product.metaData && Array.isArray(product.metaData)) {
+            product.metaData.forEach(meta => {
+                metaData[meta.key] = meta.value;
+            });
+        }
+
+        // ✅ ДОБАВЛЕНО: парсим характеристики из описания товара
+        const opisanieTovara = metaData['opisanie_tovara'] || '';
+        const characteristics = parseCharacteristics(opisanieTovara);
+
+        console.log('Parsed characteristics:', characteristics); // для отладки
+
         const priceNum = parsePriceToNumber(product.price);
         const regularPriceNum = parsePriceToNumber(product.regularPrice);
         const salePriceNum = parsePriceToNumber(product.salePrice);
 
-        // Правильно определяем есть ли скидка
         const hasDiscount = salePriceNum > 0 && regularPriceNum > 0 &&
             salePriceNum < regularPriceNum;
 
-        // Вычисляем процент скидки
         let discountPercent = 0;
         if (hasDiscount) {
             discountPercent = Math.round(((regularPriceNum - salePriceNum) / regularPriceNum) * 100);
@@ -51,12 +88,12 @@ export const useProductData = (slug) => {
             description: product.description,
             shortDescription: product.shortDescription,
             sku: product.sku,
-            price: product.price,           // Оригинальная строка
-            regularPrice: product.regularPrice, // Оригинальная строка
-            salePrice: product.salePrice,   // Оригинальная строка
-            priceNum: priceNum,             // Число для вычислений
-            regularPriceNum: regularPriceNum, // Число для вычислений
-            salePriceNum: salePriceNum,     // Число для вычислений
+            price: product.price,
+            regularPrice: product.regularPrice,
+            salePrice: product.salePrice,
+            priceNum: priceNum,
+            regularPriceNum: regularPriceNum,
+            salePriceNum: salePriceNum,
             stockStatus: product.stockStatus,
             stockQuantity: product.stockQuantity,
             averageRating: product.averageRating,
@@ -66,6 +103,9 @@ export const useProductData = (slug) => {
             attributes: product.attributes?.nodes || [],
             categories: product.productCategories?.nodes || [],
             variations: product.variations?.nodes || [],
+            // ✅ ДОБАВЛЕНО: характеристики из ACF
+            characteristics: characteristics,
+            metaData: metaData,
             hasDiscount: hasDiscount,
             discountPercent: discountPercent,
         };

@@ -20,6 +20,9 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
     // Проверяем есть ли товар в корзине
     const inCart = isMounted ? isInCart(product.id) : false;
 
+    // ✨ НОВАЯ ПРОВЕРКА: товар в наличии или нет
+    const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK' || product.stockQuantity === 0;
+
     const handleCartButtonClick = () => {
         if (inCart) {
             // Если товар в корзине - переходим на страницу корзины
@@ -28,6 +31,11 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
             // Если товара нет - добавляем его
             onAddCart(product);
         }
+    };
+
+    // ✨ НОВАЯ ФУНКЦИЯ: обработчик для предзаказа
+    const handlePreOrder = () => {
+        onOneClick(product);
     };
 
     // Используем изображение или плейсхолдер
@@ -52,21 +60,30 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
                 <span className="new-items__price">
                     {formatPrice(product.price)}
                 </span>
-                <button
-                    className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
-                    onClick={handleCartButtonClick}
-                    type="button"
-                    title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
-                >
-                </button>
+
+                {/* ✨ УСЛОВНЫЙ РЕНДЕРИНГ: КНОПКА КОРЗИНЫ или НАДПИСЬ */}
+                {isOutOfStock ? (
+                    <div className="new-items__out-of-stock-text">
+                        Нет в наличии
+                    </div>
+                ) : (
+                    <button
+                        className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
+                        onClick={handleCartButtonClick}
+                        type="button"
+                        title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
+                    >
+                    </button>
+                )}
             </div>
 
+            {/* ✨ УСЛОВНЫЙ ТЕКСТ И ОБРАБОТЧИК */}
             <button
                 className="new-items__one-click button"
                 type="button"
-                onClick={() => onOneClick(product)}
+                onClick={handlePreOrder}
             >
-                Купить в один клик
+                {isOutOfStock ? 'Оформить предзаказ' : 'Купить в один клик'}
             </button>
         </div>
     );
