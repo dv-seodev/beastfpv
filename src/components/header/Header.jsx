@@ -120,7 +120,7 @@ const Header = () => {
                         <CartIcon />
                         {/* <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link> */}
                         <Link className='icon-action menu-mobile-icon header__mobile-visible' href="" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
-                        <Link className='icon-action header__mobile-invisible' href=""><img src="/icons-header/account.svg" alt={"account"} /></Link>
+                        <Link className='icon-action header__mobile-invisible' href="/account/"><img src="/icons-header/account.svg" alt={"account"} /></Link>
 
                     </div>
                 </div>

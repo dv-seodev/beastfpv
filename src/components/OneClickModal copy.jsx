@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { formatPhoneNumber } from '../lib/phoneMask'; // ✨ ДОБАВЛЯЕМ ИМПОРТ
 
 export default function OneClickModal({ product, isOpen, onClose }) {
     const [formData, setFormData] = useState({
@@ -14,19 +13,11 @@ export default function OneClickModal({ product, isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    // ✨ ОБНОВЛЁННЫЙ ОБРАБОТЧИК: с маской для телефона
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        let newValue = value;
-
-        // ✨ Применяем маску для телефона
-        if (name === 'phone') {
-            newValue = formatPhoneNumber(value);
-        }
-
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : newValue,
+            [name]: type === 'checkbox' ? checked : value,
         }));
     };
 
@@ -101,9 +92,7 @@ export default function OneClickModal({ product, isOpen, onClose }) {
 
                     {/* Имя */}
                     <div className="contact-us-modal__form-group">
-                        <label className="contact-us-modal__label" htmlFor="name">
-                            Ваше имя <span className="contact-us-modal__required">*</span>
-                        </label>
+                        <label className="contact-us-modal__label" htmlFor="name">Ваше имя *</label>
                         <input
                             type="text"
                             id="name"
@@ -115,11 +104,9 @@ export default function OneClickModal({ product, isOpen, onClose }) {
                         />
                     </div>
 
-                    {/* ✨ ТЕЛЕФОН С МАСКОЙ */}
+                    {/* Телефон */}
                     <div className="contact-us-modal__form-group">
-                        <label className="contact-us-modal__label" htmlFor="phone">
-                            Телефон <span className="contact-us-modal__required">*</span>
-                        </label>
+                        <label className="contact-us-modal__label" htmlFor="phone">Телефон *</label>
                         <input
                             type="tel"
                             id="phone"
@@ -141,7 +128,7 @@ export default function OneClickModal({ product, isOpen, onClose }) {
                                 onChange={handleInputChange}
                                 className="contact-us-modal__checkbox"
                             />
-                            <span>Я даю согласие на обработку персональных данных <span className="contact-us-modal__required">*</span></span>
+                            <span>Я даю согласие на обработку персональных данных</span>
                         </label>
                     </div>
 
