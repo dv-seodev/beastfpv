@@ -26,18 +26,24 @@ export const useProductData = (slug) => {
     const parseCharacteristics = (htmlString) => {
         if (!htmlString) return [];
 
-        // Удаляем все переводы строк и лишние пробелы
-        const cleanHtml = htmlString.replace(/\r\n/g, '\n').trim();
+        // ✅ ДОБАВЛЕНО: удаляем все HTML теги
+        let cleanText = htmlString
+            .replace(/<span[^>]*>/g, '') // удаляем открывающие <span>
+            .replace(/<\/span>/g, '')     // удаляем закрывающие </span>
+            .replace(/<[^>]*>/g, '')      // удаляем все остальные теги
+            .replace(/&nbsp;/g, ' ')      // заменяем &nbsp; на пробелы
+            .replace(/\r\n/g, '\n')       // нормализуем переводы строк
+            .trim();
 
-        // Разбиваем по <span class="atr">
-        const parts = cleanHtml.split(/<span class="atr">|<\/span>/);
+        // Разбиваем по переводам строк
+        const lines = cleanText.split('\n').filter(line => line.trim().length > 0);
 
         const characteristics = [];
 
-        // Проходим по частям: [название, значение, название, значение, ...]
-        for (let i = 0; i < parts.length - 1; i += 2) {
-            const name = parts[i].trim();
-            const value = parts[i + 1].trim();
+        // Проходим по линиям парами (название, значение)
+        for (let i = 0; i < lines.length - 1; i += 2) {
+            const name = lines[i].trim();
+            const value = lines[i + 1].trim();
 
             if (name && value) {
                 characteristics.push({

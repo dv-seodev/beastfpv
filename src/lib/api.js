@@ -156,16 +156,23 @@ query GetCategories {
 
     fetchShippingMethods: () => {
         return gql`
-          query GetShippingMethods {
-            shippingMethods {
-              nodes {
-                id
-                title
-                description
-              }
+        query GetShippingMethods {
+            cart {
+                availableShippingMethods {
+                    packageDetails
+                    supportsShippingCalculator
+                    rates {
+                        id
+                        instanceId
+                        methodId
+                        label
+                        cost
+                    }
+                }
+                needsShippingAddress
             }
-          }
-        `;
+        }
+    `;
     },
 
     createOrderMutation: () => {
@@ -264,6 +271,46 @@ query SearchProducts {
   }
 }
   `;
+    },
+
+    // ✅ ПОЛУЧИТЬ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ
+    getCurrentCustomer: () => {
+        return gql`
+            query GetCurrentCustomer {
+                viewer {
+                    id
+                    email
+                    name
+                }
+            }
+        `;
+    },
+
+    // ✅ ПОЛУЧИТЬ ЗАКАЗЫ ПОЛЬЗОВАТЕЛЯ
+    getCustomerOrders: () => {
+        return gql`
+            query GetCustomerOrders($first: Int!) {
+                orders(first: $first) {
+                    nodes {
+                        id
+                        databaseId
+                        orderNumber
+                        date
+                        status
+                        total
+                        lineItems(first: 10) {
+                            nodes {
+                                id
+                                product {
+                                    name
+                                }
+                                quantity
+                            }
+                        }
+                    }
+                }
+            }
+        `;
     },
 
 }

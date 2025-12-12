@@ -9,8 +9,10 @@ import { useEffect, useState } from 'react';
 import SearchLine from './SearchLine';
 import { useProductsList } from '../../lib/ProductsListController';
 import MobileMenu from './MobileMenu';
+import { useAuth } from '../../lib/useAuth';
 
 const Header = () => {
+    const { isAuthenticated, user, logout } = useAuth(); // ✅ ПОЛУЧИ ИЗ ХУКА
     const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
     const [isMounted, setIsMounted] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // ← State для меню
@@ -99,6 +101,16 @@ const Header = () => {
                     </div>
 
                     <SearchLine />
+
+                    {isAuthenticated ? (
+                        <>
+                            <button onClick={logout}>Выход</button>
+                        </>
+                    ) : (
+                        <>
+                            <Link href="/login">Вход</Link>
+                        </>
+                    )}
 
                     <div className="header__contacts-info">
                         <Link className="icon-action" href="mailto:order@beastfpv.ru"><img src="/icons-header/mail-new.png" alt={"mail"} /></Link>
