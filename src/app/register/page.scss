@@ -1,10 +1,10 @@
 @import '../styles/breakpoints.scss';
 @import '../styles/mixins.scss';
 
-.login {
+.register {
     width: 100%;
     min-height: 75vh;
-    background-image: url("/images/contact_back.jpg"); // или используй тот же contact_back.jpg
+    background-image: url("/images/contact_back.jpg"); // Тот же фон что и у логина
     background-position: center center;
     background-size: cover;
     display: flex;
@@ -149,7 +149,7 @@
         }
     }
 
-    &__signup {
+    &__login {
         text-align: center;
         color: #666;
         font-size: 14px;
@@ -166,28 +166,4 @@
             }
         }
     }
-
-    &__success {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 6px;
-        margin-bottom: 30px;
-        border: 1px solid #c3e6cb;
-        font-weight: normal;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
 }

@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../lib/useAuth';
 import './page.scss';
 
 const Login = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user, token, loading: authLoading, login } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
     });
     const [localError, setLocalError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 🔐 Проверяем если уже авторизован
@@ -23,6 +25,15 @@ const Login = () => {
             router.push('/account/');
         }
     }, [token, user, router]);
+
+    // ✅ Проверка успешной регистрации
+    useEffect(() => {
+        const registered = searchParams.get('registered');
+        if (registered === 'true') {
+            setSuccessMessage('✅ Регистрация прошла успешно! Теперь вы можете войти в систему.');
+            console.log('✅ Показываем сообщение об успешной регистрации');
+        }
+    }, [searchParams]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,17 +46,14 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLocalError('');
+        setSuccessMessage(''); // Очищаем success при попытке входа
         setIsSubmitting(true);
 
         try {
             console.log('📝 Попытка входа:', formData.username);
-
-            // ✨ Вызываем функцию login из useAuth
             await login(formData.username, formData.password);
-
             console.log('✅ Вход успешен, токен получен');
 
-            // 🚀 Редирект на /account/ после успешного входа
             setTimeout(() => {
                 console.log('🔄 Перенаправляем на /account/');
                 router.push('/account/');
@@ -63,9 +71,9 @@ const Login = () => {
         return (
             <section className="login">
                 <div className="container login__container">
-                    <div className="login__card">
+                    <form className="login__form">
                         <p style={{ textAlign: 'center' }}>⏳ Загрузка...</p>
-                    </div>
+                    </form>
                 </div>
             </section>
         );
@@ -74,58 +82,61 @@ const Login = () => {
     return (
         <section className="login">
             <div className="container login__container">
-                <div className="login__card">
-                    <h1>Вход в аккаунт</h1>
+                <div className="login__header">
+                    <h2>Вход в аккаунт</h2>
+                    <p>Войдите в свой личный кабинет</p>
+                </div>
 
+                <form className="login__form" onSubmit={handleSubmit}>
+                    {/* ✅ Сообщение об успешной регистрации */}
+                    {successMessage && (
+                        <div className="login__success">{successMessage}</div>
+                    )}
+
+                    {/* ❌ Сообщение об ошибке */}
                     {localError && (
                         <div className="login__error">⚠️ {localError}</div>
                     )}
 
-                    <form className="login__form" onSubmit={handleSubmit}>
-                        <div className="login__field">
-                            <label htmlFor="username">Имя пользователя или Email</label>
-                            <input
-                                id="username"
-                                type="text"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleChange}
-                                placeholder="Введите имя пользователя или email"
-                                autoComplete="username"
-                                required
-                                disabled={isSubmitting}
-                            />
-                        </div>
+                    <p>Имя пользователя или Email</p>
+                    <input
+                        className="login__form-input"
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Введите имя пользователя или email"
+                        autoComplete="username"
+                        required
+                        disabled={isSubmitting}
+                    />
 
-                        <div className="login__field">
-                            <label htmlFor="password">Пароль</label>
-                            <input
-                                id="password"
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="Введите пароль"
-                                autoComplete="current-password"
-                                required
-                                disabled={isSubmitting}
-                            />
-                        </div>
+                    <p>Пароль</p>
+                    <input
+                        className="login__form-input"
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Введите пароль"
+                        autoComplete="current-password"
+                        required
+                        disabled={isSubmitting}
+                    />
 
-                        <button
-                            type="submit"
-                            className="login__submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? '⏳ Загрузка...' : '🔐 Войти'}
-                        </button>
-                    </form>
+                    <button
+                        type="submit"
+                        className="login__form-button-submit"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? '⏳ Загрузка...' : 'Войти'}
+                    </button>
 
                     <p className="login__signup">
                         Нет аккаунта?{' '}
                         <Link href="/register/">Зарегистрироваться</Link>
                     </p>
-                </div>
+                </form>
             </div>
         </section>
     );

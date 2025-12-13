@@ -166,7 +166,7 @@ const OrdersPage = () => {
                 </div>
 
                 <div style={{ marginTop: '30px' }}>
-                    <h2>📦 Мои заказы ({orders.length})</h2>
+                    <h3>Всего заказов ({orders.length})</h3>
 
                     {error && (
                         <div style={{
