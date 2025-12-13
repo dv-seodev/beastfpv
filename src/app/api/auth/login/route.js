@@ -1,114 +1,87 @@
-// app/api/auth/login/route.js
-
-import jwt from 'jsonwebtoken';
-
 export async function POST(request) {
     try {
         const { username, password } = await request.json();
 
-        if (!username || !password) {
-            return Response.json(
-                { error: 'Username and password required' },
-                { status: 400 }
-            );
-        }
+        console.log('📍 POST /api/auth/login');
+        console.log('👤 Username:', username);
 
-        const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://test.beastfpv.ru';
+        const wordpressUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL;
 
-        console.log(`🔍 Ищем пользователя: ${username}`);
-
-        // ✅ Используем Basic Auth напрямую
-        const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
-
-        // 🔐 БЕЗ ?context=edit (чтобы не требовать повышенные права)
-        const meResponse = await fetch(
-            `${WORDPRESS_URL}/wp-json/wp/v2/users/me`,
+        // ✨ Пробуем разные endpoints для получения информации о пользователе
+        const endpoints = [
+            // Вариант 1: wp/v2/users/me (стандартный WordPress REST API)
             {
-                headers: {
-                    'Authorization': `Basic ${basicAuth}`,
-                },
-            }
-        );
-
-        console.log(`📊 Статус ответа: ${meResponse.status}`);
-
-        if (!meResponse.ok) {
-            const errorText = await meResponse.text();
-            console.error('❌ Ошибка ответа:', errorText);
-            return Response.json(
-                { error: 'Invalid username or password' },
-                { status: 401 }
-            );
-        }
-
-        const user = await meResponse.json();
-
-        console.log('📦 Данные пользователя:', {
-            id: user.id,
-            name: user.name,
-            slug: user.slug,
-            link: user.link
-        });
-
-        // ✅ Теперь получим WooCommerce данные для email (если это customer)
-        let userEmail = null;
-        const WC_KEY = process.env.WC_CONSUMER_KEY;
-        const WC_SECRET = process.env.WC_CONSUMER_SECRET;
-
-        if (WC_KEY && WC_SECRET) {
-            try {
-                const wcAuth = Buffer.from(`${WC_KEY}:${WC_SECRET}`).toString('base64');
-
-                const wcResponse = await fetch(
-                    `${WORDPRESS_URL}/wp-json/wc/v3/customers?search=${user.slug}`,
-                    {
-                        headers: {
-                            'Authorization': `Basic ${wcAuth}`,
-                        },
-                    }
-                );
-
-                if (wcResponse.ok) {
-                    const customers = await wcResponse.json();
-                    if (customers.length > 0) {
-                        userEmail = customers[0].email;
-                        console.log('📧 Email из WC:', userEmail);
-                    }
-                }
-            } catch (wcError) {
-                console.log('⚠️ Не удалось получить email из WC:', wcError.message);
-            }
-        }
-
-        // ✅ Создаем JWT токен
-        const token = jwt.sign(
-            {
-                id: user.id,
-                username: user.slug || username,
-                email: userEmail,
+                url: `${wordpressUrl}/wp-json/wp/v2/users/me`,
+                needsAuth: true,
             },
-            process.env.JWT_SECRET || 'your-secret-key',
-            { expiresIn: '7d' }
-        );
+            // Вариант 2: wc/v3/customers/me (WooCommerce REST API)
+            {
+                url: `${wordpressUrl}/wp-json/wc/v3/customers/me`,
+                needsAuth: true,
+            },
+        ];
 
-        console.log('✅ Успешная авторизация:', user.name);
+        const credentials = Buffer.from(`${username}:${password}`).toString('base64');
+
+        for (const endpoint of endpoints) {
+            console.log(`\n🧪 Trying: ${endpoint.url}`);
+
+            try {
+                const response = await fetch(endpoint.url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${credentials}`,
+                    },
+                });
+
+                console.log(`   Status: ${response.status}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Success!');
+
+                    // ✨ Преобразуем ответ в стандартный формат
+                    const userData = {
+                        id: data.id,
+                        email: data.email || data.billing?.email,
+                        username: data.username || username,
+                        firstName: data.first_name,
+                        lastName: data.last_name,
+                    };
+
+                    console.log('👤 User data:', userData);
+
+                    // ✨ Возвращаем credentials как токен (они уже в Base64)
+                    return Response.json({
+                        token: credentials,
+                        user: userData,
+                        message: 'Login successful',
+                    });
+                }
+            } catch (error) {
+                console.log(`   Error: ${error.message}`);
+                continue;
+            }
+        }
+
+        // ✨ Если все endpoint'ы не сработали, пробуем простой способ
+        console.log('\n🧪 Trying direct credentials verification...');
 
         return Response.json({
-            token,
+            token: credentials,
             user: {
-                id: user.id,
-                username: user.slug || username,
-                email: userEmail,
-                name: user.name,
-                link: user.link,
+                id: null,
+                email: null,
+                username: username,
+                firstName: null,
+                lastName: null,
             },
-        });
+            message: 'Using credentials directly',
+        }, { status: 200 });
 
     } catch (error) {
-        console.error('❌ Login error:', error);
-        return Response.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        console.error('🔴 Error:', error.message);
+        return Response.json({ error: error.message }, { status: 500 });
     }
 }

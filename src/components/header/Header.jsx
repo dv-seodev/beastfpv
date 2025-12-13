@@ -102,16 +102,6 @@ const Header = () => {
 
                     <SearchLine />
 
-                    {isAuthenticated ? (
-                        <>
-                            <button onClick={logout}>Выход</button>
-                        </>
-                    ) : (
-                        <>
-                            <Link href="/login">Вход</Link>
-                        </>
-                    )}
-
                     <div className="header__contacts-info">
                         <Link className="icon-action" href="mailto:order@beastfpv.ru"><img src="/icons-header/mail-new.png" alt={"mail"} /></Link>
                         <Link className='icon-action' href="tel:+74954878782"><img src="/icons-header/phone.png" alt={"phone"} /></Link>
@@ -130,9 +120,10 @@ const Header = () => {
                         </Link>
                         <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
                         <CartIcon />
-                        {/* <Link className='icon-action' href=""><img src="/icons-header/basket.svg" alt={"mail"} /></Link> */}
                         <Link className='icon-action menu-mobile-icon header__mobile-visible' href="" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
-                        <Link className='icon-action header__mobile-invisible' href="/account/"><img src="/icons-header/account.svg" alt={"account"} /></Link>
+                        <Link className='icon-action account-auth header__mobile-invisible' href="/account/">
+                            <img src={isMounted && isAuthenticated ? "/icons-header/account-red.svg" : "/icons-header/account.svg"} alt={"account"} />
+                        </Link>
 
                     </div>
                 </div>

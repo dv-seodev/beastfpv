@@ -1,24 +1,25 @@
-// lib/useAuth.js
-
 'use client';
 
-import { useAuthStore } from "../stores/authStore";
 import { useState, useEffect, useCallback } from 'react';
 
 export function useAuth() {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
+    const [refreshToken, setRefreshToken] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ✅ Проверяем токен при загрузке
+    const isAuthenticated = !!token;
+
     useEffect(() => {
         try {
-            const savedToken = localStorage.getItem('token');
-            const savedUser = localStorage.getItem('user');
+            const savedToken = localStorage.getItem('wp_token');
+            const savedRefreshToken = localStorage.getItem('wp_refresh_token');
+            const savedUser = localStorage.getItem('wp_user');
 
-            if (savedToken) {
+            if (savedToken && savedUser) {
                 setToken(savedToken);
+                setRefreshToken(savedRefreshToken);
                 setUser(JSON.parse(savedUser));
                 console.log('✅ Токен загружен из localStorage');
             }
@@ -29,39 +30,67 @@ export function useAuth() {
         }
     }, []);
 
-    // ✅ Функция входа
     const login = useCallback(async (username, password) => {
         setError(null);
         setLoading(true);
 
         try {
-            console.log('📝 Попытка входа:', username);
+            console.log('🔐 Логинимся через GraphQL JWT...');
 
-            const response = await fetch('/api/auth/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/graphql`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            mutation Login($username: String!, $password: String!) {
+                                login(input: { username: $username, password: $password }) {
+                                    authToken
+                                    refreshToken
+                                    user {
+                                        id
+                                        databaseId
+                                        name
+                                        email
+                                    }
+                                }
+                            }
+                        `,
+                        variables: { username, password },
+                    }),
+                }
+            );
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Ошибка входа');
+            if (data.errors) {
+                console.error('❌ GraphQL error:', data.errors);
+                throw new Error(data.errors[0].message || 'Ошибка входа');
             }
 
-            console.log('✅ Успешный вход:', data.user);
+            const loginData = data.data?.login;
 
-            // ✅ Сохраняем в localStorage
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            if (!loginData?.authToken) {
+                throw new Error('authToken не получен');
+            }
 
-            // ✅ Обновляем состояние
-            setToken(data.token);
-            setUser(data.user);
+            console.log('✅ Успешный вход:', {
+                id: loginData.user.databaseId,
+                email: loginData.user.email,
+            });
 
-            return data;
+            localStorage.setItem('wp_token', loginData.authToken);
+            localStorage.setItem('wp_refresh_token', loginData.refreshToken);
+            localStorage.setItem('wp_user', JSON.stringify(loginData.user));
+
+            setToken(loginData.authToken);
+            setRefreshToken(loginData.refreshToken);
+            setUser(loginData.user);
+
+            return loginData;
         } catch (err) {
             console.error('❌ Ошибка входа:', err.message);
             setError(err.message);
@@ -71,21 +100,16 @@ export function useAuth() {
         }
     }, []);
 
-    // ✅ Функция выхода
     const logout = useCallback(() => {
         console.log('🚪 Выход');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('wp_token');
+        localStorage.removeItem('wp_refresh_token');
+        localStorage.removeItem('wp_user');
         setToken(null);
+        setRefreshToken(null);
         setUser(null);
         setError(null);
     }, []);
-
-    // ✅ Функция обновления профиля
-    const updateProfile = useCallback(async (userData) => {
-        setUser(prev => ({ ...prev, ...userData }));
-        localStorage.setItem('user', JSON.stringify({ ...user, ...userData }));
-    }, [user]);
 
     return {
         user,
@@ -94,7 +118,6 @@ export function useAuth() {
         error,
         login,
         logout,
-        updateProfile,
-        isAuthenticated: !!token,
+        isAuthenticated,
     };
 }

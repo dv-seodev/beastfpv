@@ -8,20 +8,21 @@ import './page.scss';
 
 const Login = () => {
     const router = useRouter();
-    const { login, loading, error, isAuthenticated, token } = useAuth();
+    const { user, token, loading: authLoading, login } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
     });
     const [localError, setLocalError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 🔐 Проверяем если уже авторизован
     useEffect(() => {
-        if (token) {
+        if (token && user) {
             console.log('✅ Пользователь уже авторизован, редирект на /account/');
             router.push('/account/');
         }
-    }, [token, router]);
+    }, [token, user, router]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -34,11 +35,15 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLocalError('');
+        setIsSubmitting(true);
 
         try {
             console.log('📝 Попытка входа:', formData.username);
+
+            // ✨ Вызываем функцию login из useAuth
             await login(formData.username, formData.password);
-            console.log('✅ Вход успешен');
+
+            console.log('✅ Вход успешен, токен получен');
 
             // 🚀 Редирект на /account/ после успешного входа
             setTimeout(() => {
@@ -47,9 +52,24 @@ const Login = () => {
             }, 500);
         } catch (err) {
             console.error('❌ Ошибка входа:', err);
-            setLocalError(err.message || 'Ошибка входа');
+            setLocalError(err.message || 'Ошибка входа. Проверьте учётные данные.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    // ⏳ Пока проверяется авторизация
+    if (authLoading) {
+        return (
+            <section className="login">
+                <div className="container login__container">
+                    <div className="login__card">
+                        <p style={{ textAlign: 'center' }}>⏳ Загрузка...</p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="login">
@@ -57,8 +77,8 @@ const Login = () => {
                 <div className="login__card">
                     <h1>Вход в аккаунт</h1>
 
-                    {(error || localError) && (
-                        <div className="login__error">{error || localError}</div>
+                    {localError && (
+                        <div className="login__error">⚠️ {localError}</div>
                     )}
 
                     <form className="login__form" onSubmit={handleSubmit}>
@@ -70,10 +90,10 @@ const Login = () => {
                                 name="username"
                                 value={formData.username}
                                 onChange={handleChange}
-                                placeholder="Введите имя пользователя"
+                                placeholder="Введите имя пользователя или email"
                                 autoComplete="username"
                                 required
-                                disabled={loading}
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -88,22 +108,22 @@ const Login = () => {
                                 placeholder="Введите пароль"
                                 autoComplete="current-password"
                                 required
-                                disabled={loading}
+                                disabled={isSubmitting}
                             />
                         </div>
 
                         <button
                             type="submit"
                             className="login__submit"
-                            disabled={loading}
+                            disabled={isSubmitting}
                         >
-                            {loading ? '⏳ Загрузка...' : '🔐 Войти'}
+                            {isSubmitting ? '⏳ Загрузка...' : '🔐 Войти'}
                         </button>
                     </form>
 
                     <p className="login__signup">
                         Нет аккаунта?{' '}
-                        <Link href="/register">Зарегистрироваться</Link>
+                        <Link href="/register/">Зарегистрироваться</Link>
                     </p>
                 </div>
             </div>

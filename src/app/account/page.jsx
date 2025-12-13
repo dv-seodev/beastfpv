@@ -7,41 +7,43 @@ import './page.scss';
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
 import { useAuth } from "../../lib/useAuth";
+import { useAccountController } from "../../lib/AccountController";
 
 const Account = () => {
     const router = useRouter();
-    const { user, token, loading: authLoading } = useAuth();
-    const { data, loading: dataLoading, error } = useHomeData();
+    const { token, loading: authLoading, logout } = useAuth();
+    const { data, loading: dataLoading } = useHomeData();
 
-    // 🔐 Проверяем авторизацию
+    const {
+        profileData,
+        profileLoading,
+        isEditing,
+        saving,
+        formData,
+        handleSaveProfile,
+        handleStartEdit,
+        handleCancelEdit,
+        handleFieldChange,
+        handleNestedFieldChange,
+    } = useAccountController(token);
+
     useEffect(() => {
         if (!authLoading && !token) {
-            console.log('❌ Пользователь не авторизован, редирект на /login/');
             router.push('/login/');
         }
     }, [token, authLoading, router]);
 
-    // ⏳ Пока проверяется авторизация
     if (authLoading) {
         return <div className="container" style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка...</div>;
     }
 
-    // ❌ Если не авторизован - ничего не показываем
-    if (!token) {
-        return null;
-    }
-
-    // ⏳ Пока загружаются данные
+    if (!token) return null;
     if (dataLoading) return <div className="container" style={{ padding: '20px' }}>Загрузка данных...</div>;
-    if (error) return <div className="container" style={{ padding: '20px' }}>Ошибка: {error.message}</div>;
-    if (!data) return <div className="container" style={{ padding: '20px' }}>Нет данных</div>;
 
-    const { new_products, pop_products, cats_list } = data;
+    const { new_products } = data || {};
 
-    // ✅ Функция для выхода
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        logout();
         router.push('/login/');
     };
 
@@ -50,126 +52,175 @@ const Account = () => {
             <div className="container account__container">
                 <h1 className="account__header">Личный кабинет</h1>
 
-                {/* 👤 Информация о пользователе */}
-                {user && (
-                    <div style={{
-                        padding: '15px',
-                        marginBottom: '20px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '8px',
-                        borderLeft: '4px solid #2180a0'
-                    }}>
-                        <p style={{ margin: '5px 0' }}>
-                            <strong>📧 Пользователь:</strong> {user.username}
-                        </p>
-                        {user.email && (
-                            <p style={{ margin: '5px 0' }}>
-                                <strong>✉️ Email:</strong> {user.email}
-                            </p>
-                        )}
-                    </div>
-                )}
-
                 <div className="account__nav">
-                    <Link className="account__links-item account__link-active" href="/account/">Заказы</Link>
-                    <Link className="account__links-item" href="/account/profile/">Профиль</Link>
-                    <button
-                        className="account__links-item"
-                        onClick={handleLogout}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 'inherit',
-                            font: 'inherit',
-                            color: 'inherit',
-                            textDecoration: 'none'
-                        }}
-                    >
-                        🚪 Выйти
+                    <Link className="account__links-item account__link-active" href="/account/">
+                        Профиль
+                    </Link>
+                    <Link className="account__links-item" href="/account/orders/">
+                        Заказы
+                    </Link>
+                    <button className="account__links-item" onClick={handleLogout}>
+                        Выйти
                     </button>
                 </div>
 
-                <div className="account__orders-list">
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
+                <div className="account__profile-section">
+                    {profileLoading ? (
+                        <div className="account__profile-loading">⏳ Загрузка профиля...</div>
+                    ) : (
+                        <form onSubmit={handleSaveProfile}>
+                            {/* Основная информация */}
+                            <div className="account__profile-card">
+                                <h2 className="account__profile-title">
+                                    <span>👤</span> Основная информация
+                                </h2>
+                                <div className="account__profile-grid">
+                                    <div>
+                                        <label className="account__profile-label">Имя:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.firstName}
+                                            onChange={(e) => handleFieldChange('firstName', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Фамилия:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.lastName}
+                                            onChange={(e) => handleFieldChange('lastName', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Email:</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => handleFieldChange('email', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Телефон:</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.billing.phone}
+                                            onChange={(e) => handleNestedFieldChange('billing', 'phone', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
+                            {/* Адрес доставки */}
+                            <div className="account__profile-card">
+                                <h2 className="account__profile-title">
+                                    <span>🏠</span> Адрес доставки
+                                </h2>
+                                <div className="account__profile-grid">
+                                    <div>
+                                        <label className="account__profile-label">Страна:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.country}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'country', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Город:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.city}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'city', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Область/Регион:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.state}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'state', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Улица:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.address1}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'address1', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Дом/Квартира:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.address2}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'address2', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="account__profile-label">Почтовый индекс:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.shipping.postcode}
+                                            onChange={(e) => handleNestedFieldChange('shipping', 'postcode', e.target.value)}
+                                            className="account__profile-input"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
+                            {/* Кнопки */}
+                            {/* Кнопки */}
+                            <div className="account__profile-actions">
+                                {!isEditing ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleStartEdit}
+                                        className="account__profile-edit-btn"
+                                    >
+                                        ✏️ Редактировать профиль
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="submit"
+                                            disabled={saving}
+                                            className="account__profile-save-btn"
+                                        >
+                                            {saving ? '💾 Сохранение...' : '💾 Сохранить'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            disabled={saving}
+                                            className="account__profile-cancel-btn"
+                                        >
+                                            ❌ Отмена
+                                        </button>
+                                    </>
+                                )}
+                            </div>
 
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
-
-                    <div className="account__order-item">
-                        <Link className="account__order-item-link" href="/">
-                            <div className="account__order-item-img"><img src="/images/product_image.jpg" alt="Товар" /></div>
-                            <div className="account__order-item-name">FPV дрон Зверобой 13 дюймов 720MHz 4.9-5.8GHz</div>
-                        </Link>
-                        <div className="account__order-item-price">85 000 ₽</div>
-                    </div>
+                        </form>
+                    )}
                 </div>
 
                 <NewItems products={new_products} />

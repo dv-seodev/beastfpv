@@ -1,0 +1,351 @@
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.header {
+    margin-bottom: 40px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 24px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+// ==================== Загрузка ====================
+.loadingContainer,
+.loadingBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top-color: #2196F3;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ==================== Ошибка ====================
+.errorBox {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #856404;
+    font-size: 15px;
+}
+
+.retryBtn {
+    background: #ffc107;
+    border: none;
+    color: #333;
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: #ffb300;
+    }
+}
+
+// ==================== Пусто ====================
+.emptyBox {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    border: 2px dashed #ddd;
+}
+
+.emptyIcon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.emptyBox h3 {
+    font-size: 20px;
+    color: #333;
+    margin: 0 0 8px 0;
+}
+
+.emptyBox p {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px 0;
+}
+
+.shopBtn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+}
+
+// ==================== Список заказов ====================
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orderCard {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        border-color: #2196F3;
+    }
+}
+
+// ==================== Заголовок заказа ====================
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.orderInfo {
+    flex: 1;
+}
+
+.orderNumber {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: #333;
+}
+
+.orderDate {
+    font-size: 13px;
+    color: #999;
+    margin: 6px 0 0 0;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.status_completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    &.status_processing {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    &.status_pending {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    &.status_cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    &.status_refunded {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    &.status_on-hold {
+        background: #fff3cd;
+        color: #856404;
+    }
+}
+
+.statusIcon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.statusText {
+    display: inline;
+}
+
+// ==================== Товары ====================
+.itemsSection {
+    margin-bottom: 20px;
+}
+
+.itemsTitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+    letter-spacing: 0.5px;
+}
+
+.items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    font-size: 14px;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.itemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.itemName {
+    color: #333;
+    font-weight: 500;
+}
+
+.itemQty {
+    font-size: 12px;
+    color: #999;
+}
+
+.itemPrice {
+    font-weight: 600;
+    color: #2196F3;
+    white-space: nowrap;
+    margin-left: 12px;
+
+    @media (max-width: 640px) {
+        margin-left: 0;
+    }
+}
+
+.noItems {
+    color: #999;
+    text-align: center;
+    padding: 12px;
+    margin: 0;
+    font-size: 14px;
+}
+
+// ==================== Подвал ===================
+.orderFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+}
+
+.totalBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.totalLabel {
+    font-size: 14px;
+    color: #666;
+}
+
+.totalPrice {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.detailsBtn {
+    padding: 10px 20px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+
+    &:hover {
+        background: #e0e0e0;
+    }
+
+    @media (max-width: 640px) {
+        text-align: center;
+        width: 100%;
+    }
+}

@@ -10,79 +10,71 @@ const OrdersPage = () => {
     const router = useRouter();
     const { user, token, loading: authLoading, logout } = useAuth();
     const [orders, setOrders] = useState([]);
-    const [ordersLoading, setOrdersLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 🔐 Проверяем авторизацию
     useEffect(() => {
+        console.log('🔐 Проверка авторизации');
+        console.log('👤 User:', user);
+        console.log('🔑 Token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+
         if (!authLoading && !token) {
-            console.log('❌ Пользователь не авторизован, редирект на /login/');
+            console.log('❌ Не авторизован, редирект');
             router.push('/login/');
         }
     }, [token, authLoading, router]);
 
-    // 📦 Загружаем заказы
     useEffect(() => {
-        if (token && user) {
+        if (!authLoading && token) {
+            console.log('📦 Загружаем заказы');
             fetchOrders();
         }
-    }, [token, user]);
+    }, [authLoading, token]);
 
     const fetchOrders = async () => {
         try {
-            setOrdersLoading(true);
-            setError(null);
+            console.log('🔑 Отправляем запрос с токеном');
 
-            console.log(`📦 Загружаем заказы через GraphQL`);
+            const response = await fetch('/api/auth/orders', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
-            // ✅ Используем /api/auth/orders (переделан на GraphQL)
-            const response = await fetch(
-                `/api/auth/orders?customer=${user.id}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            console.log(`📊 Статус ответа: ${response.status}`);
+            console.log('📊 Статус ответа:', response.status);
 
             if (!response.ok) {
-                throw new Error(`Ошибка загрузки заказов: ${response.status}`);
+                throw new Error(`Ошибка: ${response.status}`);
             }
 
-            const data = await response.json();
-            console.log('📦 Заказы загружены:', data);
-            setOrders(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('❌ Ошибка при загрузке заказов:', err);
-            setError(err.message);
-            setOrders([]);
+            const result = await response.json();
+            console.log('✅ Данные получены:', result);
+            console.log('📦 Количество заказов:', result.orders?.length || 0);
+
+            setOrders(result.orders || []);
+        } catch (error) {
+            console.error('❌ Ошибка загрузки заказов:', error);
+            setError(error.message);
         } finally {
-            setOrdersLoading(false);
+            setLoading(false);
         }
     };
 
-
-
-    // ⏳ Пока проверяется авторизация
     if (authLoading) {
         return <div className="container" style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка...</div>;
     }
 
-    // ❌ Если не авторизован - ничего не показываем
     if (!token) {
         return null;
     }
 
-    // ✅ Функция для выхода
     const handleLogout = () => {
         logout();
         router.push('/login/');
     };
 
-    // 📅 Форматируем дату
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('ru-RU', {
@@ -94,16 +86,21 @@ const OrdersPage = () => {
         });
     };
 
-    // 🎨 Статус заказа
     const getStatusBadge = (status) => {
+        // ✨ Нормализуем статус (ON_HOLD → on-hold)
+        const normalizedStatus = status?.toLowerCase().replace(/_/g, '-');
+
         const statusMap = {
             'completed': { text: '✅ Завершён', color: '#4caf50' },
             'processing': { text: '⏳ Обработка', color: '#ff9800' },
             'pending': { text: '⏱️ Ожидание', color: '#2196f3' },
+            'on-hold': { text: '⏸️ На удержании', color: '#ff9800' },
             'cancelled': { text: '❌ Отменён', color: '#f44336' },
+            'refunded': { text: '💸 Возврат', color: '#9c27b0' },
+            'failed': { text: '❌ Ошибка', color: '#f44336' },
         };
 
-        const statusInfo = statusMap[status] || { text: status, color: '#999' };
+        const statusInfo = statusMap[normalizedStatus] || { text: status, color: '#999' };
 
         return (
             <span style={{
@@ -120,6 +117,39 @@ const OrdersPage = () => {
         );
     };
 
+    // ✨ Улучшенная функция formatPrice
+    const formatPrice = (price) => {
+        if (!price) return '0 ₽';
+
+        // Если это строка с HTML entities (как "1 040,00&nbsp;₽")
+        if (typeof price === 'string') {
+            // Убираем HTML entities и извлекаем число
+            const cleanPrice = price
+                .replace(/&nbsp;/g, '')
+                .replace(/₽/g, '')
+                .replace(/\s/g, '')
+                .replace(',', '.');
+
+            const numPrice = parseFloat(cleanPrice);
+
+            if (!isNaN(numPrice)) {
+                return numPrice.toLocaleString('ru-RU', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) + ' ₽';
+            }
+
+            // Если не смогли распарсить, возвращаем как есть
+            return price;
+        }
+
+        // Если это число
+        return parseFloat(price).toLocaleString('ru-RU', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + ' ₽';
+    };
+
     return (
         <section className="account">
             <div className="container account__container">
@@ -130,22 +160,11 @@ const OrdersPage = () => {
                     <Link className="account__links-item account__link-active" href="/account/orders/">Заказы</Link>
                     <button
                         className="account__links-item"
-                        onClick={handleLogout}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 'inherit',
-                            font: 'inherit',
-                            color: 'inherit',
-                            textDecoration: 'none'
-                        }}
-                    >
-                        🚪 Выйти
+                        onClick={handleLogout}>
+                        Выйти
                     </button>
                 </div>
 
-                {/* 📦 Список заказов */}
                 <div style={{ marginTop: '30px' }}>
                     <h2>📦 Мои заказы ({orders.length})</h2>
 
@@ -162,7 +181,7 @@ const OrdersPage = () => {
                         </div>
                     )}
 
-                    {ordersLoading ? (
+                    {loading ? (
                         <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка заказов...</div>
                     ) : orders.length === 0 ? (
                         <div style={{
@@ -177,87 +196,94 @@ const OrdersPage = () => {
                         </div>
                     ) : (
                         <div className="account__orders-list" style={{ marginTop: '20px' }}>
-                            {orders.map((order) => (
-                                <div
-                                    key={order.id}
-                                    className="account__order-item"
-                                    style={{
-                                        padding: '15px',
-                                        marginBottom: '15px',
-                                        backgroundColor: '#f9f9f9',
-                                        borderRadius: '8px',
-                                        border: '1px solid #eee'
-                                    }}
-                                >
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: '10px'
-                                    }}>
-                                        <h3 style={{ margin: 0 }}>Заказ {order.order_number || `#${order.id}`}</h3>
-                                        {getStatusBadge(order.status)}
-                                    </div>
+                            {orders.map((order) => {
+                                // ✨ Правильная структура GraphQL: lineItems.nodes
+                                const lineItems = order.lineItems?.nodes || [];
 
-                                    <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                        📅 {formatDate(order.date_created)}
-                                    </p>
+                                console.log('📦 Order:', order.orderNumber, 'Items:', lineItems.length);
 
-                                    <div style={{
-                                        marginTop: '10px',
-                                        paddingTop: '10px',
-                                        borderTop: '1px solid #ddd'
-                                    }}>
-                                        <h4 style={{ margin: '5px 0' }}>Товары:</h4>
-                                        {order.line_items && order.line_items.map((item, idx) => (
-                                            <div key={idx} style={{
-                                                padding: '8px 0',
-                                                fontSize: '14px'
-                                            }}>
-                                                <p style={{ margin: '3px 0' }}>
-                                                    • {item.name} x{item.quantity}
-                                                </p>
-                                                <p style={{ margin: '3px 0', color: '#2180a0', fontWeight: 'bold' }}>
-                                                    {parseFloat(item.price).toLocaleString('ru-RU')} ₽
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div style={{
-                                        marginTop: '10px',
-                                        paddingTop: '10px',
-                                        borderTop: '1px solid #ddd',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <span style={{ fontSize: '14px', color: '#666' }}>
-                                            💰 Итого:
-                                        </span>
-                                        <span style={{
-                                            fontSize: '18px',
-                                            fontWeight: 'bold',
-                                            color: '#2180a0'
+                                return (
+                                    <div
+                                        key={order.id}
+                                        className="account__order-item"
+                                        style={{
+                                            padding: '15px',
+                                            marginBottom: '15px',
+                                            backgroundColor: '#f9f9f9',
+                                            borderRadius: '8px',
+                                            border: '1px solid #eee'
+                                        }}
+                                    >
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '10px',
+                                            flexWrap: 'wrap',
+                                            gap: '10px'
                                         }}>
-                                            {parseFloat(order.total).toLocaleString('ru-RU')} ₽
-                                        </span>
-                                    </div>
+                                            <h3 style={{ margin: 0 }}>
+                                                Заказ {order.orderNumber || `#${order.databaseId}`}
+                                            </h3>
+                                            {getStatusBadge(order.status)}
+                                        </div>
 
-                                    <button style={{
-                                        marginTop: '10px',
-                                        padding: '8px 16px',
-                                        backgroundColor: '#2180a0',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '14px'
-                                    }}>
-                                        📋 Подробнее
-                                    </button>
-                                </div>
-                            ))}
+                                        <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+                                            📅 {formatDate(order.date)}
+                                        </p>
+
+                                        <div style={{
+                                            marginTop: '10px',
+                                            paddingTop: '10px',
+                                            borderTop: '1px solid #ddd'
+                                        }}>
+                                            <h4 style={{ margin: '5px 0' }}>Товары:</h4>
+                                            {lineItems.length > 0 ? (
+                                                lineItems.map((item, idx) => {
+                                                    // ✨ Правильная структура: item.product.node
+                                                    const productName = item.product?.node?.name || 'Товар';
+
+                                                    return (
+                                                        <div key={idx} style={{
+                                                            padding: '8px 0',
+                                                            fontSize: '14px'
+                                                        }}>
+                                                            <p style={{ margin: '3px 0' }}>
+                                                                • {productName} × {item.quantity}
+                                                            </p>
+                                                            <p style={{ margin: '3px 0', color: '#2180a0', fontWeight: 'bold' }}>
+                                                                {formatPrice(item.total)}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <p style={{ color: '#999' }}>Товары не найдены</p>
+                                            )}
+                                        </div>
+
+                                        <div style={{
+                                            marginTop: '10px',
+                                            paddingTop: '10px',
+                                            borderTop: '1px solid #ddd',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <span style={{ fontSize: '14px', color: '#666' }}>
+                                                💰 Итого:
+                                            </span>
+                                            <span style={{
+                                                fontSize: '18px',
+                                                fontWeight: 'bold',
+                                                color: '#2180a0'
+                                            }}>
+                                                {formatPrice(order.total)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
