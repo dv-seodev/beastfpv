@@ -84,6 +84,7 @@
             min-height: 280px;
             max-height: 280px;
             object-fit: contain;
+            border: none !important;
 
             @include mx.respond-to('ipad') {
                 min-height: 166px;

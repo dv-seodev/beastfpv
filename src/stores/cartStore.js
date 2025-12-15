@@ -20,19 +20,27 @@ export const useCartStore = create(
              * Добавление товара в корзину
              */
             addItem: (product) => {
-                console.log('Добавляем товар:', product);
+                console.log('📦 Добавляем товар:', product);
                 set((state) => {
                     const existingItem = state.items.find(item => item.id === product.id);
 
-                    // ✨ НОВАЯ ЛОГИКА: конвертируем цену в число
+                    // ✅ НОРМАЛИЗАЦИЯ: приводим все поля к правильному формату
                     const normalizedProduct = {
-                        ...product,
-                        // Если price уже число - используем, если строка - парсим, если ничего - берём regularPriceNum
+                        id: product.id,
+                        name: product.name,
+                        slug: product.slug,
+                        // ✅ ЦЕНА: всегда число
                         price: typeof product.price === 'number'
                             ? product.price
-                            : product.priceNum || product.regularPriceNum || 0,
-                        quantity: 1
+                            : product.priceNum || product.salePriceNum || product.regularPriceNum || 0,
+                        // ✅ ИЗОБРАЖЕНИЕ: всегда строка URL
+                        image: typeof product.image === 'string'
+                            ? product.image
+                            : product.image?.sourceUrl || null,
+                        quantity: existingItem ? existingItem.quantity + 1 : 1,
                     };
+
+                    console.log('✅ Нормализованный товар:', normalizedProduct);
 
                     if (existingItem) {
                         return {
@@ -45,7 +53,7 @@ export const useCartStore = create(
                     }
 
                     return {
-                        items: [...state.items, { ...product, quantity: 1 }]
+                        items: [...state.items, normalizedProduct]
                     };
                 });
             },
@@ -116,9 +124,10 @@ export const useCartStore = create(
             totalPrice: () => {
                 const items = get().items;
                 return items.reduce((total, item) => {
-                    const price = typeof item.price === 'string'
-                        ? parseFloat(item.price.replace(/[^\d,.-]/g, '').replace(',', '.'))
-                        : Number(item.price) || 0;
+                    // После нормализации цена всегда число
+                    const price = typeof item.price === 'number'
+                        ? item.price
+                        : parseFloat(String(item.price).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
 
                     const quantity = Number(item.quantity) || 0;
 

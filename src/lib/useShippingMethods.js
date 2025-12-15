@@ -3,30 +3,59 @@
 import api from './api';
 import { useQuery } from "@apollo/client/react";
 
-/**
- * Хук для получения методов доставки
- * @returns {Object} { methods, loading, error }
- */
 export const useShippingMethods = () => {
-    const shippingParams = api.fetchShippingMethods();
+    const allMethodsQuery = api.fetchShippingMethods();
+    const { data: allMethodsData, loading, error } = useQuery(allMethodsQuery, {
+        errorPolicy: 'all',
+        fetchPolicy: 'network-only',
+        notifyOnNetworkStatusChange: true,
+    });
 
-    const { data, loading, error } = useQuery(
-        shippingParams,
-        {
-            // fetchPolicy: 'cache-first',
-        }
-    );
-
-    // Дефолтные методы доставки (если GraphQL не вернул)
     const defaultMethods = [
-        { id: '1', title: 'Самовывоз', description: '+500₽' },
-        { id: '2', title: 'Доставка до ПВЗ СДЭК', description: '+100₽' },
+        {
+            id: "c2hpcHBpbmdfbWV0aG9kOmxvY2FsX3BpY2t1cA==",
+            databaseId: "local_pickup",
+            label: "Самовывоз",
+            title: "Самовывоз",
+            cost: "0",
+            description: "Позволить клиентам забирать заказы самостоятельно. По умолчанию, при использовании самовывоза, базовые налоги будут рассчитаны независимо от адреса пользователя."
+        },
+        {
+            id: "c2hpcHBpbmdfbWV0aG9kOm9mZmljaWFsX2NkZWs=",
+            databaseId: "official_cdek",
+            label: "Доставка СДЭК",
+            title: "Доставка до ПВЗ СДЭК",
+            cost: "0",
+            description: "Официальный метод доставки компанией СДЭК"
+        }
     ];
 
-    // Получаем методы из GraphQL, если пусто — используем дефолты
-    const methods = data?.shippingMethods?.nodes?.length > 0
-        ? data.shippingMethods.nodes
-        : defaultMethods;
+    let methods = [];
+
+    // Методы которые НЕ показываем
+    const excludedMethods = ['flat_rate', 'free_shipping'];
+
+    if (allMethodsData?.shippingMethods?.nodes) {
+        methods = allMethodsData.shippingMethods.nodes
+            .filter(method => {
+                const hasTitle = method.title && method.title.trim().length > 0;
+                const isNotExcluded = !excludedMethods.includes(method.databaseId);
+                return hasTitle && isNotExcluded;
+            })
+            .map(method => ({
+                id: method.id,
+                databaseId: method.databaseId,
+                label: method.title,
+                title: method.title,
+                cost: '0',
+                description: method.description || 'Выберите способ доставки',
+            }));
+    }
+
+    // Если нет методов с сервера - используем дефолты
+    if (methods.length === 0) {
+        methods = defaultMethods;
+    }
 
     return {
         methods,

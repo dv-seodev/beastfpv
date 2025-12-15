@@ -17,17 +17,52 @@ export const usePaymentMethods = () => {
         }
     );
 
-    // Дефолтные методы оплаты (если GraphQL не вернул)
+    // COD метод оплаты (наличные)
+    const codMethod = {
+        id: 'cod',
+        title: 'Оплата наличными',
+        description: 'Оплата наличными при самовывозе',
+        __typename: 'PaymentGateway'
+    };
+
+    // Дефолтные методы оплаты
     const defaultMethods = [
-        { id: '1', title: 'Наличными', description: 'Наличный расчет' },
-        // { id: '2', title: 'Онлайн-оплата', description: 'Быстрая оплата через интернет-банк' },
-        // { id: '3', title: 'Выставить счет', description: 'Выставить счет' },
+        codMethod,
+        { id: 'bacs', title: 'Оплата на расчетный счет', description: 'Оплата на расчетный счет' },
+        { id: 'yookassa_widget', title: 'Онлайн-оплата Юкасса', description: 'Онлайн-оплата Юкасса' },
     ];
 
-    // Получаем методы из GraphQL, если пусто — используем дефолты
-    const methods = data?.paymentGateways?.nodes?.length > 0
-        ? data.paymentGateways.nodes
-        : defaultMethods;
+    let methods = [];
+
+    if (data && data.paymentGateways && data.paymentGateways.nodes) {
+        const nodes = data.paymentGateways.nodes;
+
+        if (Array.isArray(nodes) && nodes.length > 0) {
+            methods = [...nodes];
+            const hasCod = methods.some(m => m.id === 'cod');
+
+            if (!hasCod) {
+                methods.unshift(codMethod);
+            }
+        } else if (!Array.isArray(nodes)) {
+            const nodesArray = Array.from(nodes || []);
+            if (nodesArray.length > 0) {
+                methods = [...nodesArray];
+                const hasCod = methods.some(m => m.id === 'cod');
+                if (!hasCod) {
+                    methods.unshift(codMethod);
+                }
+            } else {
+                methods = defaultMethods;
+            }
+        } else {
+            methods = defaultMethods;
+        }
+    } else if (error) {
+        methods = defaultMethods;
+    } else if (!loading) {
+        methods = [];
+    }
 
     return {
         methods,

@@ -156,22 +156,16 @@ query GetCategories {
 
     fetchShippingMethods: () => {
         return gql`
-        query GetShippingMethods {
-            cart {
-                availableShippingMethods {
-                    packageDetails
-                    supportsShippingCalculator
-                    rates {
-                        id
-                        instanceId
-                        methodId
-                        label
-                        cost
-                    }
-                }
-                needsShippingAddress
+        query GetAllShippingMethods {
+        shippingMethods(first: 100) {
+            nodes {
+                id
+                databaseId
+                title
+                description
             }
         }
+    }
     `;
     },
 
@@ -227,15 +221,29 @@ query SearchProducts {
     fetchPaymentMethods: () => {
         return gql`
     query GetPaymentMethods {
-      paymentGateways {
-        nodes {
-          id
-          title
-          description
+            paymentGateways(first: 100) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
         }
-      }
-    }
   `;
+    },
+
+    applyCoupon: (couponCode) => {
+        return gql`
+    query ApplyCoupon($code: String!) {
+        coupon(code: $code) {
+            id
+            code
+            discountType
+            amount
+            description
+        }
+    }
+    `;
     },
 
     fetchProductCategories: () => {

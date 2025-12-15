@@ -1,45 +1,117 @@
-// app/api/orders/[orderId]/route.js
+import { gql } from '@apollo/client';
 
 export async function GET(request, { params }) {
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+
+    // ✅ AWAITED PARAMS
+    const { orderId } = await params;
+
+    console.log(`📍 GET /api/auth/orders/${orderId}`);
+    console.log(`🔑 Token: ${token ? 'present' : 'missing'}`);
+
+    if (!token) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
-        // ✅ AWAITED PARAMS
-        const { orderId } = await params;
+        const graphqlUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/graphql`;
 
-        const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://test.beastfpv.ru';
-        const WC_KEY = process.env.WC_CONSUMER_KEY;
-        const WC_SECRET = process.env.WC_CONSUMER_SECRET;
-
-        if (!WC_KEY || !WC_SECRET) {
-            return Response.json(
-                { error: 'WooCommerce credentials not configured' },
-                { status: 500 }
-            );
-        }
-
-        const auth = Buffer.from(`${WC_KEY}:${WC_SECRET}`).toString('base64');
-
-        const response = await fetch(
-            `${WORDPRESS_URL}/wp-json/wc/v3/orders/${orderId}`,
-            {
-                headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Content-Type': 'application/json',
-                },
+        // ✅ Упрощённый GraphQL запрос (только поддерживаемые поля)
+        const query = `
+            query GetOrder($id: ID!) {
+                order(id: $id, idType: DATABASE_ID) {
+                    id
+                    databaseId
+                    orderNumber
+                    status
+                    date
+                    total
+                    subtotal
+                    shippingTotal
+                    discountTotal
+                    paymentMethod
+                    paymentMethodTitle
+                    billing {
+                        firstName
+                        lastName
+                        company
+                        address1
+                        address2
+                        city
+                        state
+                        postcode
+                        country
+                        email
+                        phone
+                    }
+                    shipping {
+                        firstName
+                        lastName
+                        company
+                        address1
+                        address2
+                        city
+                        state
+                        postcode
+                        country
+                    }
+                    lineItems {
+                        nodes {
+                            productId
+                            variationId
+                            quantity
+                            subtotal
+                            total
+                            product {
+                                node {
+                                    id
+                                    databaseId
+                                    name
+                                    slug
+                                    image {
+                                        sourceUrl
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        );
+        `;
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch order: ${response.statusText}`);
+        const response = await fetch(graphqlUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                query,
+                variables: { id: orderId },
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.errors) {
+            console.error('❌ GraphQL errors:', data.errors);
+            return Response.json({ error: data.errors[0]?.message }, { status: 400 });
         }
 
-        const order = await response.json();
-        return Response.json(order);
+        const order = data.data?.order;
+
+        if (!order) {
+            console.error('🔴 Order not found');
+            return Response.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        console.log(`✅ Order #${order.orderNumber} found`);
+
+        return Response.json({ order });
 
     } catch (error) {
-        console.error('Error fetching order:', error);
-        return Response.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        console.error('🔴 Error:', error.message);
+        return Response.json({ error: error.message }, { status: 500 });
     }
 }
