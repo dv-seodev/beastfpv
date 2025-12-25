@@ -2,22 +2,22 @@ import { useCartStore } from '../stores/cartStore';
 
 // Хук для работы с товарами
 export const useProductsList = () => {
-    const addItem = useCartStore((state) => state.addItem);
+    // const addItem = useCartStore((state) => state.addItem);
 
-    // Функция для добавления товара в корзину
-    const addCartProduct = (product) => {
-        console.log(product);
-        addItem({
-            id: product.id,
-            databaseId: product.databaseId,
-            name: product.name,
-            slug: product.slug,
-            priceNum: product.priceNum, // ✨ Передаём явно priceNum
-            regularPriceNum: product.regularPriceNum,
-            price: convertPriceToNumber(product.price), // Используем правильную конвертацию
-            image: product.image?.sourceUrl
-        });
-    };
+    // // Функция для добавления товара в корзину
+    // const addCartProduct = (product) => {
+    //     console.log(product);
+    //     addItem({
+    //         id: product.id,
+    //         databaseId: product.databaseId,
+    //         name: product.name,
+    //         slug: product.slug,
+    //         priceNum: product.priceNum, // ✨ Передаём явно priceNum
+    //         regularPriceNum: product.regularPriceNum,
+    //         price: convertPriceToNumber(product.price), // Используем правильную конвертацию
+    //         image: product.image?.sourceUrl
+    //     });
+    // };
 
     // Функция для преобразования цены в число
     const convertPriceToNumber = (price) => {
@@ -44,7 +44,7 @@ export const useProductsList = () => {
     };
 
     return {
-        addCartProduct,
+        // addCartProduct,
         formatPrice
     };
 };

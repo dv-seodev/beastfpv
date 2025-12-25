@@ -20,6 +20,9 @@ import { useProductsList } from '../../../lib/ProductsListController';
 import { useFavoriteStore } from '../../../stores/favoriteStore';
 import { useCartStore } from '../../../stores/cartStore';
 import ProductGallery from "./ProductGallery";
+import api from "../../../lib/api";
+import { useQuery, useMutation } from "@apollo/client";
+import client from "../../../lib/ApolloClient";
 
 const Product_cart = () => {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
@@ -33,7 +36,7 @@ const Product_cart = () => {
     const { addItem: addToFavorites, removeItem: removeFromFavorites, isInFavorites } = useFavoriteStore();
 
     // Подключаем store корзины
-    const { addItem: addToCart, updateQuantity, getItemQuantity, removeItem: removeFromCart } = useCartStore();
+    const { updateQuantity, getItemQuantity, removeFromCart, updateCart } = useCartStore();
 
     const params = useParams();
     const slug = params.slug;
@@ -56,8 +59,6 @@ const Product_cart = () => {
             setQuantity(cartQuantity);
         }
     }, [isInCart, cartQuantity]);
-
-    console.log('Product_cart render - product:', product);
 
     if (loading || homeLoading) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка товара: {error.message}</div>;
@@ -90,9 +91,24 @@ const Product_cart = () => {
     };
 
     // Добавление товара в корзину
-    const handleAddToCart = () => {
-        addToCart(product);
-        setQuantity(1);
+    const handleAddToCart = async () => {
+        const Add2Cart = api.AddToCart();
+        const data2 = await client.mutate({
+            mutation: Add2Cart,
+            variables: {
+                input: {
+                    productId: product.databaseId,
+                    quantity: 1,
+                }
+            }
+        });
+        const GetCart = api.getCart();
+        const data3 = await client.query({
+            query: GetCart,
+        });
+        console.log("data 3");
+        console.log(data3.data.cart);
+        const store = updateCart(data3.data.cart);
     };
 
     const handleGoToCart = () => {

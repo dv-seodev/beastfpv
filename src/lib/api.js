@@ -4,8 +4,8 @@ import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 
 const api = {
-    fetchProducts: (limit, cat_name) => {
-        return gql`
+  fetchProducts: (limit, cat_name) => {
+    return gql`
       query GetProducts {
         productCategory(id: "${cat_name}", idType: SLUG) {
           id
@@ -54,9 +54,9 @@ const api = {
         }
       }
     `;
-    },
-    fetchProductBySlug: (slug) => {
-        return gql`
+  },
+  fetchProductBySlug: (slug) => {
+    return gql`
             query GetProductBySlug {
                 product(id: "${slug}", idType: SLUG) {
                     id
@@ -134,10 +134,10 @@ const api = {
                 }
             }
         `;
-    },
+  },
 
-    fetchCategories: (limit, parentID) => {
-        return gql`
+  fetchCategories: (limit, parentID) => {
+    return gql`
 query GetCategories {
     productCategories(first: ${limit}, where: {parent: ${parentID}}) {
     nodes {
@@ -152,10 +152,10 @@ query GetCategories {
   }
     }
 `;
-    },
+  },
 
-    fetchShippingMethods: () => {
-        return gql`
+  fetchShippingMethods: () => {
+    return gql`
         query GetAllShippingMethods {
         shippingMethods(first: 100) {
             nodes {
@@ -167,10 +167,10 @@ query GetCategories {
         }
     }
     `;
-    },
+  },
 
-    createOrderMutation: () => {
-        return gql`
+  createOrderMutation: () => {
+    return gql`
           mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
       clientMutationId
@@ -191,10 +191,10 @@ query GetCategories {
     }
   }
 `;
-    },
+  },
 
-    fetchSearchingProducts: () => {
-        return gql`
+  fetchSearchingProducts: () => {
+    return gql`
 query SearchProducts {
     products(first: 5000) {
       nodes {
@@ -216,10 +216,10 @@ query SearchProducts {
     }
   }
 `;
-    },
+  },
 
-    fetchPaymentMethods: () => {
-        return gql`
+  fetchPaymentMethods: () => {
+    return gql`
     query GetPaymentMethods {
             paymentGateways(first: 100) {
                 nodes {
@@ -230,10 +230,10 @@ query SearchProducts {
             }
         }
   `;
-    },
+  },
 
-    applyCoupon: (couponCode) => {
-        return gql`
+  applyCoupon: (couponCode) => {
+    return gql`
     query ApplyCoupon($code: String!) {
         coupon(code: $code) {
             id
@@ -244,10 +244,10 @@ query SearchProducts {
         }
     }
     `;
-    },
+  },
 
-    fetchProductCategories: () => {
-        return gql`
+  fetchProductCategories: () => {
+    return gql`
     query GetProductCategories {
         productCategories(first: 100,  
         where: { 
@@ -279,11 +279,11 @@ query SearchProducts {
   }
 }
   `;
-    },
+  },
 
-    // ✅ ПОЛУЧИТЬ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ
-    getCurrentCustomer: () => {
-        return gql`
+  // ✅ ПОЛУЧИТЬ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ
+  getCurrentCustomer: () => {
+    return gql`
             query GetCurrentCustomer {
                 viewer {
                     id
@@ -292,11 +292,11 @@ query SearchProducts {
                 }
             }
         `;
-    },
+  },
 
-    // ✅ ПОЛУЧИТЬ ЗАКАЗЫ ПОЛЬЗОВАТЕЛЯ
-    getCustomerOrders: () => {
-        return gql`
+  // ✅ ПОЛУЧИТЬ ЗАКАЗЫ ПОЛЬЗОВАТЕЛЯ
+  getCustomerOrders: () => {
+    return gql`
             query GetCustomerOrders($first: Int!) {
                 orders(first: $first) {
                     nodes {
@@ -319,8 +319,201 @@ query SearchProducts {
                 }
             }
         `;
-    },
+  },
 
+  AddToCart: () => {
+    return gql`
+mutation ($input: AddToCartInput!) {
+    addToCart(input: $input) {
+      cartItem {
+        key
+        product {
+          node {
+            id
+            databaseId
+            name
+            description
+            type
+            onSale
+            slug
+            averageRating
+            reviewCount
+            image {
+              id
+              sourceUrl
+              altText
+            }
+            galleryImages {
+              nodes {
+                id
+                sourceUrl
+                altText
+              }
+            }
+          }
+        }
+        variation {
+          node {
+            id
+            databaseId
+            name
+            description
+            type
+            onSale
+            price
+            regularPrice
+            salePrice
+            image {
+              id
+              sourceUrl
+              altText
+            }
+            attributes {
+              nodes {
+                id
+                attributeId
+                name
+                value
+              }
+            }
+          }
+        }
+        quantity
+        total
+        subtotal
+        subtotalTax
+      }
+    }
+  }
+`;
+  },
+
+  emptyCart: () => {
+    return gql`
+    mutation EMPTY_CART {
+      emptyCart(input: {}) {
+        cart {
+          contents {
+            nodes {
+              key
+              quantity
+            }
+          }
+          subtotal
+          total
+          discountTotal
+        }
+      }
+    }
+  `;
+  },
+
+  getCart: () => {
+    return gql`
+  query GET_CART {
+    cart {
+      contents {
+        nodes {
+          key
+          product {
+            node {
+              id
+              databaseId
+              name
+              description
+              type
+              onSale
+              slug
+              averageRating
+              reviewCount
+              image {
+                id
+                sourceUrl
+                srcSet
+                altText
+                title
+              }
+                ... on SimpleProduct {
+              price
+              regularPrice
+              salePrice
+              stockQuantity
+              stockStatus
+            }
+            ... on VariableProduct {
+              price
+              regularPrice
+              salePrice
+            }
+            ... on ExternalProduct {
+              price
+              regularPrice
+              salePrice
+            }
+            ... on GroupProduct {
+              price
+              regularPrice
+              salePrice
+            }
+              galleryImages {
+                nodes {
+                  id
+                  sourceUrl
+                  srcSet
+                  altText
+                  title
+                }
+              }
+            }
+          }
+          variation {
+            node {
+              id
+              databaseId
+              name
+              description
+              type
+              onSale
+              price
+              regularPrice
+              salePrice
+              image {
+                id
+                sourceUrl
+                srcSet
+                altText
+                title
+              }
+              attributes {
+                nodes {
+                  id
+                  name
+                  value
+                }
+              }
+            }
+          }
+          quantity
+          total
+          subtotal
+          subtotalTax
+        }
+      }
+
+      subtotal
+      subtotalTax
+      shippingTax
+      shippingTotal
+      total
+      totalTax
+      feeTax
+      feeTotal
+      discountTax
+      discountTotal
+    }
+  }
+`;
+  }
 }
 
 export default api;

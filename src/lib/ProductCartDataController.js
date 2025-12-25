@@ -91,6 +91,7 @@ export const useProductData = (slug) => {
             id: product.id,
             name: product.name,
             slug: product.slug,
+            databaseId: product.databaseId,
             description: product.description,
             shortDescription: product.shortDescription,
             sku: product.sku,

@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import './Header.scss';
 import CartIcon from './CartItem';
+import AccountIcon from './AccountIcon';
 import { useFavoriteStore } from '../../stores/favoriteStore';
 import { useEffect, useState } from 'react';
 import SearchLine from './SearchLine';
@@ -121,10 +122,10 @@ const Header = () => {
                         <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
                         <CartIcon />
                         <Link className='icon-action menu-mobile-icon header__mobile-visible' href="" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
-                        <Link className='icon-action account-auth header__mobile-invisible' href="/account/">
+                        {/* <Link className='icon-action account-auth header__mobile-invisible' href="/account/">
                             <img src={isMounted && isAuthenticated ? "/icons-header/account-red.svg" : "/icons-header/account.svg"} alt={"account"} />
-                        </Link>
-
+                        </Link> */}
+                        <AccountIcon />
                     </div>
                 </div>
             </div >

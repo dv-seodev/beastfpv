@@ -9,26 +9,12 @@ export const useCartStore = create(
     persist(
         (set, get) => ({
             // ============ СОСТОЯНИЕ (STATE) ============
+
             items: [],
-            quantity: 0,
-            subtotal: "0",
-            total: "0",
             selectedShipping: '1',
             selectedPayment: '1',
 
             // ============ ДЕЙСТВИЯ (ACTIONS) ============
-            updateCart: (cart) => {
-
-                const calculatedQuantity = cart.contents?.nodes?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
-
-                set({
-                    items: cart.contents?.nodes || [],
-                    quantity: calculatedQuantity,
-                    subtotal: cart.subtotal || "0",
-                    total: cart.total || "0",
-                });
-            },
-
 
             /**
              * Добавление товара в корзину
@@ -115,13 +101,11 @@ export const useCartStore = create(
              * Очистка всей корзины
              */
             clearCart: () => {
-                set((state) => ({
+                set({
                     items: [],
-                    quantity: 0,
-                    subtotal: "0",
-                    total: "0",
-                }));
-                console.log('корзина очищена');
+                    selectedShipping: '1',
+                    selectedPayment: '1',
+                });
             },
 
             // ============ ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ (SELECTORS) ============
@@ -130,9 +114,8 @@ export const useCartStore = create(
              * Получение общего количества товаров
              */
             totalItems: () => {
-                const state = get();  // ✅ Получаем state
-                if (!state.items) return 0;  // ✅ Проверка на null
-                return state.items.reduce((total, item) => total + (item.quantity || 0), 0);
+                const items = get().items;
+                return items.reduce((total, item) => total + item.quantity, 0);
             },
 
             /**
