@@ -47,6 +47,8 @@ export function useAuth() {
 
             const data = await response.json();
 
+            console.log('asd-0as-d0 ', data);
+
             if (!response.ok) {
                 throw new Error(data.error || 'Ошибка входа');
             }

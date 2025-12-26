@@ -14,6 +14,8 @@ const Account = () => {
     const { token, loading: authLoading, logout } = useAuth();
     const { data, loading: dataLoading } = useHomeData();
 
+    console.log('asdhklzxhhjzxvhjzxvhjk', token);
+
     const {
         profileData,
         profileLoading,
@@ -26,6 +28,8 @@ const Account = () => {
         handleFieldChange,
         handleNestedFieldChange,
     } = useAccountController(token);
+
+    console.log('profile data', profileData);
 
     useEffect(() => {
         if (!authLoading && !token) {

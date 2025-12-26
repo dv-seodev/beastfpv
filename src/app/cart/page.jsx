@@ -46,7 +46,7 @@ const Cart = () => {
     const { applyCode, loading: couponLoading } = useCoupon();
 
     const {
-        items,              // оставляем, чтобы не ломать стор
+        items,
         removeItem,
         updateQuantity,
         totalPrice,
@@ -58,13 +58,17 @@ const Cart = () => {
         updateCart,
     } = useCartStore();
 
+    // ✅ ДОБАВЛЕНО: состояние для отслеживания очистки
+    const [isClearing, setIsClearing] = useState(false);
+
     const allMethodsQuery = api.getCart();
     const data1 = useQuery(allMethodsQuery, {
         errorPolicy: 'all',
         fetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: true,
     });
-    console.log(data1);
+
+    console.log('📦 GraphQL Cart Data:', data1);
 
     // ───── КУПОНЫ ─────
     const [couponCode, setCouponCode] = useState('');
@@ -97,7 +101,7 @@ const Cart = () => {
     const cartItemsFromGraphQL = graphQLCart?.contents?.nodes?.map(node => ({
         id: node.key,
         name: node.product?.node?.name || '',
-        price: parsePrice(node.product?.node?.price), // число
+        price: parsePrice(node.product?.node?.price),
         quantity: node.quantity,
         image: node.product?.node?.image?.sourceUrl || "/images/product_image.jpg",
         slug: node.product?.node?.slug || '',
@@ -114,29 +118,54 @@ const Cart = () => {
         ? parsePrice(graphQLCart.subtotal)
         : totalPrice();
 
-    // const finalTotal = baseTotal - discountAmount;
     const finalTotal = graphQLCart?.total
         ? parsePrice(graphQLCart.total)
         : totalPrice();
 
     const AppliedCouponAmount = graphQLCart?.discountTotal
         ? parsePrice(graphQLCart.discountTotal)
-        : totalPrice();
-
+        : 0;
 
     // ───── ОБРАБОТЧИКИ ─────
 
+    // ✅ ИСПРАВЛЕНО: добавлена обработка очистки корзины с перерендером
     const handleClearCart = async () => {
+        setIsClearing(true);
+
         try {
+            console.log('🗑️ Очищаем корзину...');
+
             const EmptyCart = api.emptyCart();
-            const { data } = await client.mutate({
+            const { data: clearData } = await client.mutate({
                 mutation: EmptyCart,
             });
 
-            if (data?.emptyCart?.cart) {
-                updateCart(data.emptyCart.cart);
+            console.log('✅ Результат очистки:', clearData);
+
+            if (clearData?.emptyCart?.cart) {
+                // ✅ ДОБАВЛЕНО: обновляем стор
+                updateCart(clearData.emptyCart.cart);
+
+                // ✅ ДОБАВЛЕНО: очищаем локальный стор
+                clearCart();
+
+                console.log('✅ Корзина успешно очищена');
             }
+
+            // ✅ ДОБАВЛЕНО: перезагружаем запрос GraphQL
+            await data1.refetch();
+
+            // ✅ ДОБАВЛЕНО: очищаем состояния купонов
+            setAppliedCoupon(null);
+            setDiscountAmount(0);
+            setCouponCode('');
+            setCouponMessage('');
+
         } catch (err) {
+            console.error('❌ Ошибка при очистке корзины:', err);
+            alert('❌ Ошибка при очистке корзины');
+        } finally {
+            setIsClearing(false);
         }
     };
 
@@ -203,19 +232,47 @@ const Cart = () => {
     // ───── СОСТОЯНИЯ ЗАГРУЗКИ / ОШИБОК ─────
 
     if (loading || shippingLoading || paymentLoading || data1.loading) {
-        return <div>Загрузка...</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     if (error || data1.error) {
-        return <div>Ошибка: {error?.message || data1.error?.message}</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>❌ Ошибка: {error?.message || data1.error?.message}</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     if (!data) {
-        return <div>Нет данных</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>Нет данных</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     const { new_products } = data;
 
+    // ✅ ДОБАВЛЕНО: проверка пустой корзины (более надёжная)
     if (displayItems.length === 0) {
         return (
             <section className="cart">
@@ -273,6 +330,7 @@ const Cart = () => {
                                                 <button
                                                     className="button cart__product-minus"
                                                     onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                    disabled={isClearing}
                                                 >
                                                     <img src="/images/minus.svg" alt="Уменьшить" />
                                                 </button>
@@ -284,6 +342,7 @@ const Cart = () => {
                                                 <button
                                                     className="button cart__product-plus"
                                                     onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                                    disabled={isClearing}
                                                 >
                                                     <img src="/images/plus.svg" alt="Увеличить" />
                                                 </button>
@@ -296,18 +355,22 @@ const Cart = () => {
                                     <button
                                         className="cart__product-item-delete"
                                         onClick={() => handleRemoveItem(item.id)}
+                                        disabled={isClearing}
                                     >
                                         <img src="/images/cart-delete.svg" alt="Удалить" />
                                     </button>
                                 </div>
                             ))}
                         </div>
+
+                        {/* ✅ ИСПРАВЛЕНО: добавлено состояние загрузки и правильная обработка */}
                         <button
                             type="button"
                             className="cart__clear-button cart__coupon-submit"
                             onClick={handleClearCart}
+                            disabled={isClearing || displayItems.length === 0}
                         >
-                            Очистить корзину
+                            {isClearing ? '⏳ Очищаем...' : 'Очистить корзину'}
                         </button>
                     </div>
 
@@ -361,6 +424,7 @@ const Cart = () => {
                                                         checked={selectedPayment === method.id}
                                                         onChange={() => handlePaymentChange(method.id)}
                                                         className="cart__payment-checkbox cart__shipping-checkbox"
+                                                        disabled={isClearing}
                                                     />
                                                     <label htmlFor={`payment-${method.id}`}>
                                                         {method.title}
@@ -387,6 +451,7 @@ const Cart = () => {
                                                         checked={selectedShipping === method.id}
                                                         onChange={() => handleShippingChange(method.id)}
                                                         className="cart__shipping-checkbox"
+                                                        disabled={isClearing}
                                                     />
                                                     <label htmlFor={`shipping-${method.id}`}>
                                                         {method.title}
@@ -424,13 +489,13 @@ const Cart = () => {
                                     onKeyDown={(e) =>
                                         e.key === 'Enter' && !appliedCoupon && handleApplyCoupon()
                                     }
-                                    disabled={!!appliedCoupon || couponLoading}
+                                    disabled={!!appliedCoupon || couponLoading || isClearing}
                                 />
                                 <button
                                     type="button"
                                     className="cart__coupon-submit"
                                     onClick={appliedCoupon ? handleRemoveCoupon : handleApplyCoupon}
-                                    disabled={couponLoading}
+                                    disabled={couponLoading || isClearing}
                                 >
                                     {couponLoading
                                         ? 'Проверка...'
@@ -443,7 +508,7 @@ const Cart = () => {
                             <Link
                                 href="/checkout"
                                 className="cart__form-button-submit"
-                                style={{ display: 'block', textAlign: 'center' }}
+                                style={{ display: 'block', textAlign: 'center', pointerEvents: isClearing ? 'none' : 'auto', opacity: isClearing ? 0.6 : 1 }}
                             >
                                 Перейти к оформлению
                             </Link>

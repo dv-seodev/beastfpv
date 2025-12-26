@@ -45,6 +45,8 @@ export function useAccountController(token) {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            console.log("куча всякой хуйни ", res);
+
             if (!res.ok) throw new Error(`Ошибка ${res.status}`);
 
             const data = await res.json();
