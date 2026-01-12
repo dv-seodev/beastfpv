@@ -44,9 +44,10 @@ const Cart = () => {
     const { methods: shippingMethods, loading: shippingLoading } = useShippingMethods();
     const { methods: paymentMethods, loading: paymentLoading } = usePaymentMethods();
     const { applyCode, loading: couponLoading } = useCoupon();
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const {
-        items,              // оставляем, чтобы не ломать стор
+        items,
         removeItem,
         updateQuantity,
         totalPrice,
@@ -58,13 +59,16 @@ const Cart = () => {
         updateCart,
     } = useCartStore();
 
+    const [isClearing, setIsClearing] = useState(false);
+
     const allMethodsQuery = api.getCart();
     const data1 = useQuery(allMethodsQuery, {
         errorPolicy: 'all',
         fetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: true,
     });
-    console.log(data1);
+
+    console.log('📦 GraphQL Cart Data:', data1);
 
     // ───── КУПОНЫ ─────
     const [couponCode, setCouponCode] = useState('');
@@ -94,49 +98,94 @@ const Cart = () => {
 
     // ───── ПРЕОБРАЗОВАНИЕ ДАННЫХ КОРЗИНЫ ИЗ GRAPHQL ─────
     const graphQLCart = data1?.data?.cart || null;
+
+    // ✅ ИСПРАВЛЕНО: правильное преобразование товаров
     const cartItemsFromGraphQL = graphQLCart?.contents?.nodes?.map(node => ({
+        key: node.key, // ← ИСПОЛЬЗУЕМ KEY для уникальности!
         id: node.key,
         name: node.product?.node?.name || '',
-        price: parsePrice(node.product?.node?.price), // число
+        price: parsePrice(node.product?.node?.price),
         quantity: node.quantity,
         image: node.product?.node?.image?.sourceUrl || "/images/product_image.jpg",
         slug: node.product?.node?.slug || '',
+        total: parsePrice(node.subtotal || '0'), // ✅ ДОБАВЛЕНО!
+    })) || [];
+
+    // ✅ ДОБАВЛЕНО: преобразование методов доставки из GraphQL
+    const graphQLShippingMethods = graphQLCart?.availableShippingMethods
+        ?.flatMap(pkg => pkg.rates || [])
+        .map(rate => ({
+            id: rate.id,
+            title: rate.label,
+            cost: parsePrice(rate.cost),
+        })) || [];
+
+    // ✅ ДОБАВЛЕНО: преобразование способов оплаты из GraphQL
+    const graphQLPaymentMethods = data1?.data?.paymentGateways?.nodes?.map(gateway => ({
+        id: gateway.id,
+        title: gateway.title,
+        description: gateway.description,
     })) || [];
 
     // Выбираем источник данных для отрисовки:
-    // если есть данные из GraphQL — берём их, иначе — старые items из стора
     const displayItems = cartItemsFromGraphQL.length > 0
         ? cartItemsFromGraphQL
         : items;
 
-    // Подитог: если есть subtotal из GraphQL — используем его, иначе — стор
+    // ✅ ИЗМЕНЕНО: используем GraphQL данные, если они есть
+    const displayShippingMethods = graphQLShippingMethods.length > 0
+        ? graphQLShippingMethods
+        : shippingMethods;
+
+    const displayPaymentMethods = graphQLPaymentMethods.length > 0
+        ? graphQLPaymentMethods
+        : paymentMethods;
+
     const baseTotal = graphQLCart?.subtotal
         ? parsePrice(graphQLCart.subtotal)
         : totalPrice();
 
-    // const finalTotal = baseTotal - discountAmount;
     const finalTotal = graphQLCart?.total
         ? parsePrice(graphQLCart.total)
         : totalPrice();
 
     const AppliedCouponAmount = graphQLCart?.discountTotal
         ? parsePrice(graphQLCart.discountTotal)
-        : totalPrice();
-
+        : 0;
 
     // ───── ОБРАБОТЧИКИ ─────
 
     const handleClearCart = async () => {
+        setIsClearing(true);
+
         try {
+            console.log('🗑️ Очищаем корзину...');
+
             const EmptyCart = api.emptyCart();
-            const { data } = await client.mutate({
+            const { data: clearData } = await client.mutate({
                 mutation: EmptyCart,
             });
 
-            if (data?.emptyCart?.cart) {
-                updateCart(data.emptyCart.cart);
+            console.log('✅ Результат очистки:', clearData);
+
+            if (clearData?.emptyCart?.cart) {
+                updateCart(clearData.emptyCart.cart);
+                clearCart();
+                console.log('✅ Корзина успешно очищена');
             }
+
+            await data1.refetch();
+
+            setAppliedCoupon(null);
+            setDiscountAmount(0);
+            setCouponCode('');
+            setCouponMessage('');
+
         } catch (err) {
+            console.error('❌ Ошибка при очистке корзины:', err);
+            alert('❌ Ошибка при очистке корзины');
+        } finally {
+            setIsClearing(false);
         }
     };
 
@@ -203,15 +252,42 @@ const Cart = () => {
     // ───── СОСТОЯНИЯ ЗАГРУЗКИ / ОШИБОК ─────
 
     if (loading || shippingLoading || paymentLoading || data1.loading) {
-        return <div>Загрузка...</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     if (error || data1.error) {
-        return <div>Ошибка: {error?.message || data1.error?.message}</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>❌ Ошибка: {error?.message || data1.error?.message}</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     if (!data) {
-        return <div>Нет данных</div>;
+        return (
+            <section className="cart">
+                <div className="container cart__container">
+                    <h1 className="cart__header">Корзина</h1>
+                    <div className="cart__empty">
+                        <p>Нет данных</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     const { new_products } = data;
@@ -250,8 +326,9 @@ const Cart = () => {
                                 <span></span>
                             </div>
 
+                            {/* ✅ ИСПРАВЛЕНО: правильный вывод цены и количества */}
                             {displayItems.map((item) => (
-                                <div key={item.id} className="cart__product-item">
+                                <div key={item.key} className="cart__product-item">
                                     <div className="cart__product-item-img">
                                         <img
                                             src={item.image || "/images/product_image.jpg"}
@@ -263,19 +340,23 @@ const Cart = () => {
                                     </div>
                                     <div className="cart__product-item-inner">
                                         <Link className="cart__product-item-link" href={getProductUrl(item)}>
+                                            {/* ✅ Используем item.name напрямую */}
                                             <div className="cart__product-item-name">{item.name}</div>
                                         </Link>
                                         <div className="cart__product-item-inner-wrapper">
+                                            {/* ✅ Выводим правильную цену */}
                                             <div className="cart__product-item-price">
                                                 {formatPriceForDisplay(item.price)}
                                             </div>
                                             <div className="cart__product-quantity">
                                                 <button
                                                     className="button cart__product-minus"
-                                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                    onClick={() => handleQuantityChange(item.key, item.quantity - 1)}
+                                                    disabled={isClearing}
                                                 >
                                                     <img src="/images/minus.svg" alt="Уменьшить" />
                                                 </button>
+                                                {/* ✅ Выводим количество */}
                                                 <input
                                                     className="cart__product-count"
                                                     value={item.quantity}
@@ -283,31 +364,36 @@ const Cart = () => {
                                                 />
                                                 <button
                                                     className="button cart__product-plus"
-                                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                                    onClick={() => handleQuantityChange(item.key, item.quantity + 1)}
+                                                    disabled={isClearing}
                                                 >
                                                     <img src="/images/plus.svg" alt="Увеличить" />
                                                 </button>
                                             </div>
+                                            {/* ✅ Выводим итоговую стоимость правильно */}
                                             <div className="cart__product-item-final-price">
-                                                {formatPriceForDisplay(item.price * item.quantity)}
+                                                {formatPriceForDisplay(item.total)}
                                             </div>
                                         </div>
                                     </div>
                                     <button
                                         className="cart__product-item-delete"
-                                        onClick={() => handleRemoveItem(item.id)}
+                                        onClick={() => handleRemoveItem(item.key)}
+                                        disabled={isClearing}
                                     >
                                         <img src="/images/cart-delete.svg" alt="Удалить" />
                                     </button>
                                 </div>
                             ))}
                         </div>
+
                         <button
                             type="button"
                             className="cart__clear-button cart__coupon-submit"
                             onClick={handleClearCart}
+                            disabled={isClearing || displayItems.length === 0}
                         >
-                            Очистить корзину
+                            {isClearing ? '⏳ Очищаем...' : 'Очистить корзину'}
                         </button>
                     </div>
 
@@ -347,11 +433,12 @@ const Cart = () => {
                                     </div>
                                 )}
 
+                                {/* ✅ ИЗМЕНЕНО: используем GraphQL методы оплаты */}
                                 <div className="cart__price-shipping">
                                     <span className="cart__price-name">Способ оплаты:</span>
                                     <div className="cart__checkbox-wrapper">
-                                        {paymentMethods && paymentMethods.length > 0 ? (
-                                            paymentMethods.map((method) => (
+                                        {displayPaymentMethods && displayPaymentMethods.length > 0 ? (
+                                            displayPaymentMethods.map((method) => (
                                                 <div key={method.id} className="cart__checkbox-main">
                                                     <input
                                                         type="radio"
@@ -361,6 +448,7 @@ const Cart = () => {
                                                         checked={selectedPayment === method.id}
                                                         onChange={() => handlePaymentChange(method.id)}
                                                         className="cart__payment-checkbox cart__shipping-checkbox"
+                                                        disabled={isClearing}
                                                     />
                                                     <label htmlFor={`payment-${method.id}`}>
                                                         {method.title}
@@ -373,11 +461,12 @@ const Cart = () => {
                                     </div>
                                 </div>
 
+                                {/* ✅ ИЗМЕНЕНО: используем GraphQL методы доставки */}
                                 <div className="cart__price-shipping">
                                     <span className="cart__price-name">Способ доставки:</span>
                                     <div className="cart__checkbox-wrapper">
-                                        {shippingMethods && shippingMethods.length > 0 ? (
-                                            shippingMethods.map((method) => (
+                                        {displayShippingMethods && displayShippingMethods.length > 0 ? (
+                                            displayShippingMethods.map((method) => (
                                                 <div key={method.id} className="cart__checkbox-main">
                                                     <input
                                                         type="radio"
@@ -387,6 +476,7 @@ const Cart = () => {
                                                         checked={selectedShipping === method.id}
                                                         onChange={() => handleShippingChange(method.id)}
                                                         className="cart__shipping-checkbox"
+                                                        disabled={isClearing}
                                                     />
                                                     <label htmlFor={`shipping-${method.id}`}>
                                                         {method.title}
@@ -424,13 +514,13 @@ const Cart = () => {
                                     onKeyDown={(e) =>
                                         e.key === 'Enter' && !appliedCoupon && handleApplyCoupon()
                                     }
-                                    disabled={!!appliedCoupon || couponLoading}
+                                    disabled={!!appliedCoupon || couponLoading || isClearing}
                                 />
                                 <button
                                     type="button"
                                     className="cart__coupon-submit"
                                     onClick={appliedCoupon ? handleRemoveCoupon : handleApplyCoupon}
-                                    disabled={couponLoading}
+                                    disabled={couponLoading || isClearing}
                                 >
                                     {couponLoading
                                         ? 'Проверка...'
@@ -443,7 +533,7 @@ const Cart = () => {
                             <Link
                                 href="/checkout"
                                 className="cart__form-button-submit"
-                                style={{ display: 'block', textAlign: 'center' }}
+                                style={{ display: 'block', textAlign: 'center', pointerEvents: isClearing ? 'none' : 'auto', opacity: isClearing ? 0.6 : 1 }}
                             >
                                 Перейти к оформлению
                             </Link>

@@ -23,6 +23,7 @@ const parsePrice = (priceString) => {
     return parseFloat(normalized) || 0;
 };
 
+
 const formatPriceForDisplay = (price) => {
     if (typeof price !== 'number' || isNaN(price)) {
         return '0 ₽';
@@ -33,12 +34,14 @@ const formatPriceForDisplay = (price) => {
     }).format(Math.round(price)) + ' ₽';
 };
 
+
 const getProductUrl = (item) => {
     if (item.slug) {
         return `/product/${item.slug}`;
     }
     return '/';
 };
+
 
 const Cart = () => {
     const { data, loading, error } = useHomeData();
@@ -73,6 +76,25 @@ const Cart = () => {
 
     console.log('📦 GraphQL Cart Data:', data1);
 
+    // ───── ИНИЦИАЛИЗАЦИЯ СПОСОБОВ ДОСТАВКИ/ОПЛАТЫ ─────
+    useEffect(() => {
+        if (shippingMethods && shippingMethods.length > 0) {
+            const methodExists = shippingMethods.some(m => m.id === selectedShipping);
+            if (!methodExists) {
+                setSelectedShipping(shippingMethods[0].id);
+            }
+        }
+    }, [shippingMethods, selectedShipping, setSelectedShipping]);
+
+    useEffect(() => {
+        if (paymentMethods && paymentMethods.length > 0) {
+            const methodExists = paymentMethods.some(m => m.id === selectedPayment);
+            if (!methodExists) {
+                setSelectedPayment(paymentMethods[0].id);
+            }
+        }
+    }, [paymentMethods, selectedPayment, setSelectedPayment]);
+
     // ───── ПРЕОБРАЗОВАНИЕ ДАННЫХ КОРЗИНЫ ИЗ GRAPHQL ─────
     const graphQLCart = data1?.data?.cart || null;
 
@@ -105,7 +127,6 @@ const Cart = () => {
         ? cartItemsFromGraphQL
         : items;
 
-    // ✅ ИСПОЛЬЗУЙ ТОЛЬКО GRAPHQL МЕТОДЫ
     const displayShippingMethods = graphQLShippingMethods.length > 0
         ? graphQLShippingMethods
         : shippingMethods;
@@ -121,28 +142,6 @@ const Cart = () => {
     const finalTotal = graphQLCart?.total
         ? parsePrice(graphQLCart.total)
         : totalPrice();
-
-    // ───── ИНИЦИАЛИЗАЦИЯ СПОСОБОВ ДОСТАВКИ ─────
-    useEffect(() => {
-        if (displayShippingMethods && displayShippingMethods.length > 0) {
-            const methodExists = displayShippingMethods.some(m => m.id === selectedShipping);
-            if (!methodExists) {
-                console.log('🔄 Инициализируем доставку:', displayShippingMethods[0].id);
-                setSelectedShipping(displayShippingMethods[0].id);
-            }
-        }
-    }, [displayShippingMethods, selectedShipping, setSelectedShipping]);
-
-    // ───── ИНИЦИАЛИЗАЦИЯ СПОСОБОВ ОПЛАТЫ ─────
-    useEffect(() => {
-        if (displayPaymentMethods && displayPaymentMethods.length > 0) {
-            const methodExists = displayPaymentMethods.some(m => m.id === selectedPayment);
-            if (!methodExists) {
-                console.log('🔄 Инициализируем оплату:', displayPaymentMethods[0].id);
-                setSelectedPayment(displayPaymentMethods[0].id);
-            }
-        }
-    }, [displayPaymentMethods, selectedPayment, setSelectedPayment]);
 
     // ───── ОБРАБОТЧИКИ ─────
 
@@ -255,15 +254,11 @@ const Cart = () => {
         }
     };
 
-    // ✅ ОБРАБОТЧИК ВЫБОРА ДОСТАВКИ
     const handleShippingChange = (methodId) => {
-        console.log(`✅ Выбрана доставка: ${methodId}`);
         setSelectedShipping(methodId);
     };
 
-    // ✅ ОБРАБОТЧИК ВЫБОРА ОПЛАТЫ
     const handlePaymentChange = (methodId) => {
-        console.log(`✅ Выбрана оплата: ${methodId}`);
         setSelectedPayment(methodId);
     };
 
@@ -288,7 +283,6 @@ const Cart = () => {
             });
 
             console.log('✅ Ответ купона:', couponData);
-            setCouponMessage('✅ Купон применён');
 
             await data1.refetch();
 
@@ -308,7 +302,7 @@ const Cart = () => {
                 mutation: RemoveCouponMutation,
                 variables: {
                     input: {
-                        codes: [graphQLCart?.appliedCoupons?.[0]?.code]
+                        codes: [graphQLCart?.appliedCoupons?.[0]?.code] // codes - множественное число!
                     }
                 }
             });
@@ -325,6 +319,7 @@ const Cart = () => {
             alert('Ошибка при удалении купона');
         }
     };
+
 
     // ───── СОСТОЯНИЯ ЗАГРУЗКИ / ОШИБОК ─────
 
@@ -537,7 +532,7 @@ const Cart = () => {
                                                         className="cart__payment-checkbox cart__shipping-checkbox"
                                                         disabled={isClearing || isUpdating}
                                                     />
-                                                    <label htmlFor={`payment-${method.id}`} style={{ cursor: 'pointer' }}>
+                                                    <label htmlFor={`payment-${method.id}`}>
                                                         {method.title}
                                                     </label>
                                                 </div>
@@ -560,12 +555,13 @@ const Cart = () => {
                                                         id={`shipping-${method.id}`}
                                                         name="shipping"
                                                         value={method.id}
+                                                        // ✅ ИСПРАВЛЕНО: просто проверяем selectedShipping
                                                         checked={selectedShipping === method.id}
                                                         onChange={() => handleShippingChange(method.id)}
                                                         className="cart__shipping-checkbox"
                                                         disabled={isClearing || isUpdating}
                                                     />
-                                                    <label htmlFor={`shipping-${method.id}`} style={{ cursor: 'pointer' }}>
+                                                    <label htmlFor={`shipping-${method.id}`}>
                                                         {method.title}
                                                         {method.cost > 0 && ` (+${formatPriceForDisplay(method.cost)})`}
                                                     </label>
@@ -576,6 +572,7 @@ const Cart = () => {
                                         )}
                                     </div>
                                 </div>
+
 
                                 <div className="cart__price-final">
                                     <span className="cart__price-name price-bold">Итого:</span>

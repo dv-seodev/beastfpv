@@ -6,12 +6,10 @@ import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
 import { useCartStore } from "../../stores/cartStore";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import api from "../../lib/api";
 import { useQuery } from "@apollo/client";
 import { formatPhoneNumber } from "../../lib/phoneMask";
-import { useAuth } from "../../lib/useAuth";
-import CdekMap from "./cdekmap";
 
 
 const parsePrice = (priceString) => {
@@ -22,6 +20,7 @@ const parsePrice = (priceString) => {
     const normalized = noSpaces.replace(/,/g, '.');
     return parseFloat(normalized) || 0;
 };
+
 
 const formatPriceForDisplay = (price) => {
     if (typeof price !== 'number' || isNaN(price)) {
@@ -37,12 +36,6 @@ const formatPriceForDisplay = (price) => {
 const Checkout = () => {
     const router = useRouter();
     const { data, loading, error } = useHomeData();
-    const { user, token } = useAuth();
-
-    const handlePVZSelect = (pvzData) => {
-        console.log('📍 Выбран ПВЗ:', pvzData.code);
-        setCDEKOfficeID(pvzData.code);
-    };
 
     const {
         items,
@@ -52,11 +45,6 @@ const Checkout = () => {
     } = useCartStore();
 
     const [isHydrated, setIsHydrated] = useState(false);
-    const cdekWidgetRef = useRef(null);
-    const [cdekReady, setCdekReady] = useState(false);
-    const [cdekError, setCdekError] = useState(null);
-
-    const [selectedCDEKOfficeID, setCDEKOfficeID] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -75,17 +63,6 @@ const Checkout = () => {
     useEffect(() => {
         setIsHydrated(true);
     }, []);
-
-    // ✅ ЗАПОЛНЯЕМ EMAIL ЕСЛИ ПОЛЬЗОВАТЕЛЬ АВТОРИЗОВАН
-    useEffect(() => {
-        if (isHydrated && user?.email) {
-            setFormData(prev => ({
-                ...prev,
-                email: user.email,
-            }));
-            console.log('✅ Email заполнен из профиля пользователя:', user.email);
-        }
-    }, [isHydrated, user]);
 
     // ───── ПОЛУЧЕНИЕ ДАННЫХ КОРЗИНЫ ИЗ GRAPHQL ─────
     const allMethodsQuery = api.getCart();
@@ -149,8 +126,6 @@ const Checkout = () => {
     console.log('Shipping cost:', shippingCost);
     console.log('Final total:', finalTotal);
 
-    const cdekInitializedRef = useRef(false);
-
     // ✅ ПОКАЗЫВАЕМ ЗАГРУЗКУ ПОКА ГИДРАЦИЯ НЕ ГОТОВА
     if (!isHydrated) {
         return (
@@ -206,7 +181,7 @@ const Checkout = () => {
 
     const { new_products } = data;
 
-    // ✅ ПРОВЕРКА КОРЗИНЫ ПОСЛЕ ГИДРАЦИИ
+    // ✅ ПРОВЕРКА КОРЗИНЫ ПОСЛЕ ГИДРАЦИИ - ИСПОЛЬЗУЕМ GraphQL ДАННЫЕ
     if (isHydrated && cartItems.length === 0) {
         return (
             <section className="checkout">
@@ -258,71 +233,12 @@ const Checkout = () => {
         setIsSubmitting(true);
 
         try {
-
-            const cartResponse = await fetch(
-                'https://test.beastfpv.ru/wp-json/wc/store/v1/cart',
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                }
-            );
-
-            // ✅ Попробуй получить из заголовка
-            let cartToken = cartResponse.headers.get('Cart-Token');
-            console.log('📋 все headers:', cartResponse.headers);
-            console.log('📋 Cart-Token из headers:', cartToken ? 'найден' : 'не найден');
-
-            // ✅ ВАРИАНТ 2: Если нет - получи из cookies
-            if (!cartToken) {
-                console.log('🔍 Ищу Cart-Token в cookies...');
-
-                // Прочитай все cookies
-                const allHeaders = Array.from(cartResponse.headers.entries());
-                console.log('📋 Все заголовки ответа:', allHeaders);
-
-                // Попробуй извлечь из Set-Cookie
-                const setCookieHeaders = allHeaders
-                    .filter(([name]) => name.toLowerCase() === 'set-cookie')
-                    .map(([, value]) => value);
-
-                console.log('🍪 Set-Cookie:', setCookieHeaders);
-
-                // Ищи "woocommerce_cart_token" в cookies
-                const cartTokenCookie = document.cookie
-                    .split(';')
-                    .find(c => c.trim().startsWith('woocommerce_cart_token='));
-
-                if (cartTokenCookie) {
-                    cartToken = cartTokenCookie.split('=')[1];
-                    console.log('✅ Cart-Token найден в cookies:', cartToken.substring(0, 30) + '...');
-                }
-            }
-
-            // ✅ Если ВСЕ ещё нет — возьми из ответа JSON
-            if (!cartToken) {
-                const cartData = await cartResponse.json();
-
-                // Иногда WooCommerce отправляет token в теле ответа
-                if (cartData?.extensions?.woocommerce_session?.cart_token) {
-                    cartToken = cartData.extensions.woocommerce_session.cart_token;
-                    console.log('✅ Cart-Token найден в JSON:', cartToken.substring(0, 30) + '...');
-                }
-            }
-
-            if (!cartToken) {
-                console.error('❌ Cart-Token не найден ни в headers, ни в cookies, ни в теле ответа');
-                throw new Error('❌ Cart-Token не получен из сервера');
-            }
-
-            console.log('✅ Cart-Token успешно получен');
+            console.log('🔍 Товары из GraphQL:', cartItems);
 
             const orderData = {
                 payment_method: selectedPayment || "bacs",
                 payment_method_title: selectedPaymentMethod?.title || "Bank Transfer",
-                billing_address: {
+                billing: {
                     first_name: formData.name.split(' ')[0] || 'Customer',
                     last_name: formData.name.split(' ')[1] || '',
                     address_1: isPickup ? 'Самовывоз' : `${formData.street} ${formData.house}`,
@@ -334,7 +250,7 @@ const Checkout = () => {
                     email: formData.email || 'guest@example.com',
                     phone: formData.phone,
                 },
-                shipping_address: {
+                shipping: {
                     first_name: formData.name.split(' ')[0] || 'Customer',
                     last_name: formData.name.split(' ')[1] || '',
                     address_1: isPickup ? 'Самовывоз' : `${formData.street} ${formData.house}`,
@@ -344,7 +260,9 @@ const Checkout = () => {
                     country: 'RU',
                     state: 'RU',
                 },
+                // ✅ ИСПРАВЛЕННОЕ: Берём данные правильно из структуры GraphQL
                 line_items: cartItems.map(item => {
+                    // Товар находится в item.product.node
                     const product = item.product?.node;
                     const productId = product?.databaseId || null;
                     const quantity = item.quantity || 1;
@@ -372,35 +290,22 @@ const Checkout = () => {
                         total: shippingCost.toString(),
                     },
                 ],
-                extensions: { official_cdek: { office_code: selectedCDEKOfficeID } },
             };
 
             console.log('📝 Создаём заказ:', orderData);
             console.log('📦 Line items для отправки:', orderData.line_items);
 
-            // const apiUrl = typeof window !== 'undefined'
-            //     ? `${window.location.origin}/api/checkout`
-            //     : 'http://localhost:3000/api/checkout';
-
-            const apiUrl = 'https://test.beastfpv.ru/wp-json/wc/store/v1/checkout';
+            const apiUrl = typeof window !== 'undefined'
+                ? `${window.location.origin}/api/checkout`
+                : 'http://localhost:3000/api/checkout';
 
             console.log('📡 Отправляем на:', apiUrl);
-            console.log('🔑 Используем токен:', token ? `${token.substring(0, 20)}...` : 'нет токена');
-
-            // ✅ ПЕРЕДАЁМ ТОКЕН ЕСЛИ ПОЛЬЗОВАТЕЛЬ АВТОРИЗОВАН
-            const headers = {
-                'Content-Type': 'application/json',
-                'Cart-Token': cartToken,
-            };
-
-            // if (token) {
-            //     headers['Authorization'] = `Bearer ${token}`;
-            //     console.log('✅ Токен добавлен в заголовок');
-            // }
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(orderData),
             });
 
@@ -412,7 +317,6 @@ const Checkout = () => {
             }
 
             console.log('✅ Заказ успешно создан:', result.orderId);
-            console.log('👤 Customer ID заказа:', result.customerId);
             clearCart();
             router.push(`/order-success/?orderId=${result.orderId}`);
 
@@ -423,6 +327,30 @@ const Checkout = () => {
             setIsSubmitting(false);
         }
     };
+
+    const cdekMap = new CDEKWidget({
+        from: 'Новосибирск',
+        root: 'cdek-map',
+        apiKey: 'b443f28b-9003-4dfd-a7e4-56bd877bef2a',
+        canChoose: true,
+        defaultLocation: [82.9346, 55.0415],
+        lang: 'rus',
+        currency: 'RUB',
+        servicePath: 'https://test.beastfpv.ru/wp-json/cdek/v1/webhook',
+        hideDeliveryOptions: {
+            office: false,
+            door: true,
+        },
+        onReady() {
+            console.log('Виджет загружен');
+        },
+        onCalculate() {
+            console.log('Расчет стоимости доставки произведен');
+        },
+        onChoose() {
+            console.log('Доставка выбрана');
+        },
+    });
 
     return (
         <section className="checkout">
@@ -451,22 +379,6 @@ const Checkout = () => {
                 </div>
 
                 <form className="checkout__form" onSubmit={handleSubmit}>
-
-                    {/* ✅ СТАТУС АВТОРИЗАЦИИ */}
-                    {user && (
-                        <div className="checkout__auth-info" style={{
-                            padding: '10px 15px',
-                            backgroundColor: '#e8f5e9',
-                            borderLeft: '4px solid #4caf50',
-                            marginBottom: '20px',
-                            borderRadius: '4px'
-                        }}>
-                            <p style={{ margin: 0, color: '#2e7d32', fontSize: '14px' }}>
-                                ✅ Вы авторизованы как <strong>{user.email}</strong>
-                            </p>
-                        </div>
-                    )}
-
                     {/* ✅ ВСЕГДА ПОКАЗЫВАЕМ: ФИО, Телефон, Email */}
                     <div className="checkout__name-phone">
                         <div className="checkout__wrapper">
@@ -500,7 +412,6 @@ const Checkout = () => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleInputChange}
-                                required={!user}
                             />
                         </div>
                     </div>
@@ -577,12 +488,6 @@ const Checkout = () => {
                             <p>Адрес склада: <strong>Москва, пр-т. Мира, 102, стр. 31</strong></p>
                             <p>Режим работы: <strong>Пн-Пт: 9:00-21:00, Сб: 11:00-16:00, Вс: выходной</strong></p>
                         </div>
-                    )}
-
-
-                    {/* ✅ CDEK КАРТА - С ОБРАБОТКОЙ ОШИБОК */}
-                    {!isPickup && (
-                        <CdekMap onPVZselect={handlePVZSelect} />
                     )}
 
                     {/* ✅ ОТОБРАЖЕНИЕ ЦЕНЫ С ДОСТАВКОЙ ИЗ GRAPHQL */}

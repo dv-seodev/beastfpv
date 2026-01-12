@@ -7,89 +7,53 @@ const Brands = () => {
             <div className="container brands__container">
                 <div className="brands__header">
                     <h2>Бренды</h2>
-                    <Link className="link__show-all desktop-show" href="/">
-                        <span>Все бренды</span>
-                    </Link>
                 </div>
 
                 <div className="brands__wrapper">
                     <div className="brands__wrapper-inner">
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/dji.png" />
-                            </Link>
+                            <img src="/images/brands/dji.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/autel.png" />
-                            </Link>
+                            <img src="/images/brands/autel.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/betafpv.png" />
-                            </Link>
+                            <img src="/images/brands/betafpv.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/gerpc.png" />
-                            </Link>
+                            <img src="/images/brands/gerpc.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/hubsan.png" />
-                            </Link>
+                            <img src="/images/brands/hubsan.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/iflight.png" />
-                            </Link>
+                            <img src="/images/brands/iflight.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/parrot.png" />
-                            </Link>
+                            <img src="/images/brands/parrot.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/dji.png" />
-                            </Link>
+                            <img src="/images/brands/dji.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/autel.png" />
-                            </Link>
+                            <img src="/images/brands/autel.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/betafpv.png" />
-                            </Link>
+                            <img src="/images/brands/betafpv.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/gerpc.png" />
-                            </Link>
+                            <img src="/images/brands/gerpc.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/hubsan.png" />
-                            </Link>
+                            <img src="/images/brands/hubsan.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/iflight.png" />
-                            </Link>
+                            <img src="/images/brands/iflight.png" />
                         </div>
                         <div className="brands__item">
-                            <Link href="/">
-                                <img src="/images/brands/parrot.png" />
-                            </Link>
+                            <img src="/images/brands/parrot.png" />
                         </div>
                     </div>
-                </div>
-                <div className="link__show-all mobile-show">
-                    <Link href="/">
-                        <span className="show-all">Все бренды</span>
-                    </Link>
                 </div>
             </div >
         </section >

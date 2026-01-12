@@ -2,6 +2,7 @@
 
 import './styles/globals.scss';
 import './styles/typography.scss';
+import Script from 'next/script';
 
 import Footer from "../components/footer/Footer";
 import Header from "../components/header/Header";
@@ -26,9 +27,10 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
+        {/* <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" charSet="utf-8"></script> */}
       </head>
       <body className={``}>
+        <Script src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" charSet="utf-8" strategy="beforeInteractive" />
         <ApolloProviderWrapper>
           <div className="app_wrapper">
             <div className="app_header">

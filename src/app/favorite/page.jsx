@@ -4,17 +4,82 @@ import Link from "next/link";
 import { useFavoriteStore } from '../../stores/favoriteStore';
 import { useProductsList } from '../../lib/ProductsListController';
 import ProductListItem from "../../components/ProductListElement";
-
+import { useState, useEffect } from "react";
+import { useQuery } from "@apollo/client";
+import api from "../../lib/api";
 
 const FavoritePage = () => {
-    const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
-    const { addCartProduct, formatPrice } = useProductsList();
+    const [isMounted, setIsMounted] = useState(false);
+    const [favoriteIds, setFavoriteIds] = useState([]);
+    const { addCartProduct } = useProductsList();
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    const handleAddCart = (product) => {
-        addCartProduct(product);
-    };
+    // 1️⃣ Синхронизируем ID из localStorage
+    useEffect(() => {
+        setIsMounted(true);
 
-    if (favoriteItems.length === 0) {
+        // Инициализируем ID из localStorage
+        const initialIds = useFavoriteStore.getAllFavorites();
+        setFavoriteIds(initialIds);
+
+        // Слушаем изменения избранного
+        const handleUpdate = () => {
+            setFavoriteIds(useFavoriteStore.getAllFavorites());
+        };
+
+        window.addEventListener('favoritesChanged', handleUpdate);
+        return () => window.removeEventListener('favoritesChanged', handleUpdate);
+    }, []);
+
+    // 2️⃣ GraphQL запрос товаров по ID
+    const { data, loading, error, refetch } = useQuery(
+        api.getProductsByIds(favoriteIds),
+        {
+            variables: { include: favoriteIds },
+            skip: !isMounted || favoriteIds.length === 0,
+        }
+    );
+
+    const products = data?.products?.nodes || [];
+
+    // 3️⃣ Пересчитываем, когда меняются ID
+    useEffect(() => {
+        if (isMounted && favoriteIds.length > 0) {
+            refetch({ include: favoriteIds });
+        }
+    }, [favoriteIds, isMounted, refetch]);
+
+    // 4️⃣ До гидрации не рендерим
+    if (!isMounted) return null;
+
+    // 5️⃣ Загрузка
+    if (loading) {
+        return (
+            <section className="popular-products favoritepage">
+                <div className="container popular-products__container favoritepage__container">
+                    <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                        Загрузка избранного...
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    // 6️⃣ Ошибка GraphQL
+    if (error) {
+        return (
+            <section className="popular-products favoritepage">
+                <div className="container popular-products__container favoritepage__container">
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+                        Ошибка загрузки: {error.message}
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    // 7️⃣ Пусто
+    if (favoriteIds.length === 0 || products.length === 0) {
         return (
             <section className="popular-products favoritepage">
                 <div className="container popular-products__container favoritepage__container">
@@ -41,18 +106,19 @@ const FavoritePage = () => {
         );
     }
 
+    // 8️⃣ Рендер товаров
     return (
         <section className="popular-products favoritepage">
             <div className="container popular-products__container favoritepage__container">
                 <div className="popular-products__header">
-                    <h2>Понравившиеся товары </h2>
+                    <h2>Понравившиеся товары ({products.length})</h2>
                 </div>
                 <div className="popular-products__items-grid">
-                    {favoriteItems.map((product) => (
+                    {products.map((product) => (
                         <ProductListItem
+                            key={product.databaseId}
                             product={product}
-                            key={product.id}
-                            onAddCart={handleAddCart}
+                            onAddCart={addCartProduct}
                         />
                     ))}
                 </div>
@@ -64,6 +130,6 @@ const FavoritePage = () => {
             </div>
         </section>
     );
-}
+};
 
 export default FavoritePage;

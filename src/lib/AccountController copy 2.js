@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from './useAuth'; // ✅ Импорт
 
-export function useAccountController() {
-    const { token, logout, isHydrated } = useAuth(); // ✅ Вызов ВНУТРИ хука
-    const router = useRouter();
+const { token, loading: authLoading, logout } = useAuth();
 
+export function useAccountController(token) {
     const [profileData, setProfileData] = useState(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -37,26 +34,28 @@ export function useAccountController() {
     });
 
     useEffect(() => {
-        if (token && isHydrated) {
+        if (token) {
             fetchProfile();
         }
-    }, [token, isHydrated]);
+    }, [token]);
 
     const fetchProfile = async () => {
-        if (!token) return;
-
         try {
+
+            //если токен протух, то сделать рефреш и потом пытаться выполнять запрос
+
             console.log('📦 Загружаем профиль');
 
             const res = await fetch('/api/auth/profile', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            // ✅ НОВОЕ: Проверка 401 - токен неvalid или протух
             if (res.status === 401) {
                 console.warn('⚠️ Токен невалиден или протух (401)');
-                logout();
-                router.push('/login/');
-                return;
+                logout(); // разлогиниваем пользователя
+                router.push('/login/'); // перенаправляем на страницу входа
+                return; // выходим из функции
             }
 
             if (!res.ok) throw new Error(`Ошибка ${res.status}`);
@@ -99,11 +98,13 @@ export function useAccountController() {
     };
 
     const handleSaveProfile = async (e) => {
-        e?.preventDefault();
-        e?.stopPropagation();
+        // ✨ ВАЖНО: предотвращаем стандартное поведение формы
+        e.preventDefault();
+        e.stopPropagation();
 
+        // ✨ Проверяем, что мы в режиме редактирования
         if (!isEditing) {
-            console.log('⚠️ Не в режиме редактирования');
+            console.log('⚠️ Не в режиме редактирования, игнорируем');
             return;
         }
 
@@ -139,15 +140,21 @@ export function useAccountController() {
     };
 
     const handleStartEdit = (e) => {
-        e?.preventDefault();
-        e?.stopPropagation();
+        // ✨ Предотвращаем отправку формы
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         console.log('✏️ Начинаем редактирование');
         setIsEditing(true);
     };
 
     const handleCancelEdit = (e) => {
-        e?.preventDefault();
-        e?.stopPropagation();
+        // ✨ Предотвращаем отправку формы
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         console.log('❌ Отменяем редактирование');
         setIsEditing(false);
         if (profileData) {
@@ -156,16 +163,18 @@ export function useAccountController() {
     };
 
     const handleFieldChange = (field, value) => {
+        // ✨ Обновляем только если в режиме редактирования
         if (!isEditing) {
-            console.log('⚠️ Поле заблокировано');
+            console.log('⚠️ Поле заблокировано, игнорируем изменение');
             return;
         }
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const handleNestedFieldChange = (parent, field, value) => {
+        // ✨ Обновляем только если в режиме редактирования
         if (!isEditing) {
-            console.log('⚠️ Поле заблокировано');
+            console.log('⚠️ Поле заблокировано, игнорируем изменение');
             return;
         }
         setFormData(prev => ({

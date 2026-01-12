@@ -13,8 +13,6 @@ export const useCartStore = create(
             quantity: 0,
             subtotal: "0",
             total: "0",
-            selectedShipping: '1',
-            selectedPayment: '1',
 
             // ============ ДЕЙСТВИЯ (ACTIONS) ============
             updateCart: (cart) => {

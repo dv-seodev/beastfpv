@@ -56,49 +56,6 @@ export async function POST(request) {
 
         console.log('📡 Отправляем на REST API:', wooApiUrl);
 
-        // ✅ ПОЛУЧАЕМ CUSTOMER_ID ИЗ ТОКЕНА (если пользователь авторизован)
-        let customerId = null;
-
-        const authHeader = request.headers.get('authorization');
-        const token = authHeader?.replace('Bearer ', '');
-
-        if (token) {
-            try {
-                const parts = token.split('.');
-                if (parts.length === 3) {
-                    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-                    customerId = payload?.data?.user?.id;
-                    console.log('👤 Customer ID from JWT:', customerId);
-                }
-            } catch (err) {
-                console.warn('⚠️ Не удалось извлечь customerId из токена:', err.message);
-            }
-        }
-
-        // ✅ ЕСЛИ ТОКЕНА НЕ БЫЛО, ПЫТАЕМСЯ ПОЛУЧИТЬ customerId ПО EMAIL
-        if (!customerId && orderData.billing?.email) {
-            try {
-                const customerUrl = `${wooUrl}/wp-json/wc/v3/customers?email=${orderData.billing.email}`;
-                const customerResponse = await fetch(customerUrl, {
-                    headers: {
-                        'Authorization': `Basic ${credentials}`,
-                    },
-                });
-
-                if (customerResponse.ok) {
-                    const customers = await customerResponse.json();
-                    if (customers.length > 0) {
-                        customerId = customers[0].id;
-                        console.log('👤 Customer ID найден по email:', customerId);
-                    }
-                }
-            } catch (err) {
-                console.warn('⚠️ Ошибка поиска customer по email:', err.message);
-            }
-        }
-
-        console.log('👤 Используется customer_id:', customerId || 'гость (0)');
-
         // ✅ ФУНКЦИЯ ПОЛУЧЕНИЯ ЦЕНЫ ТОВАРА
         async function getProductPrice(productId) {
             try {
@@ -137,12 +94,13 @@ export async function POST(request) {
 
             if (price === null) {
                 console.error(`❌ Не удалось получить цену для товара ${productId}`);
+                // Пытаемся добавить товар БЕЗ цены (WooCommerce попробует использовать каталог)
             }
 
             preparedLineItems.push({
                 product_id: productId,
                 quantity: quantity,
-                ...(price && { price })
+                ...(price && { price }) // Добавляем цену если она есть
             });
         }
 
@@ -150,14 +108,12 @@ export async function POST(request) {
         const finalOrderData = {
             payment_method: orderData.payment_method || 'bacs',
             payment_method_title: orderData.payment_method_title || 'Bank Transfer',
-            set_paid: false,
-            status: 'pending',
+            set_paid: false, // Заказ НЕ оплачен
+            status: 'pending', // Статус "ожидание оплаты"
             billing: orderData.billing,
             shipping: orderData.shipping,
             line_items: preparedLineItems,
             shipping_lines: orderData.shipping_lines || [],
-            // ✅ ДОБАВЛЯЕМ CUSTOMER_ID
-            customer_id: customerId || 0, // 0 = гость
             meta_data: [
                 {
                     key: '_created_via',
@@ -223,7 +179,6 @@ export async function POST(request) {
         console.log('✅ Заказ успешно создан в WooCommerce. ID:', result.id);
         console.log('✅ Order Total:', result.total);
         console.log('✅ Line Items Count:', result.line_items?.length);
-        console.log('✅ Customer ID:', result.customer_id);
 
         return Response.json(
             {
@@ -232,7 +187,6 @@ export async function POST(request) {
                 orderNumber: result.number,
                 orderStatus: result.status,
                 orderTotal: result.total,
-                customerId: result.customer_id,
             },
             { status: 201 }
         );

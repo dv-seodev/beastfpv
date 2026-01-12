@@ -2,9 +2,6 @@ import './Tabs.scss'
 
 const Tabs = ({ product = {} }) => {
 
-    console.log('Tabs product:', product);
-    console.log('shortDescription:', product.shortDescription);
-
     // ✅ ДОБАВЛЕНО: функция для отрисовки HTML из shortDescription
     const renderHTML = (htmlString) => {
         return (

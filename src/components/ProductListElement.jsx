@@ -5,41 +5,120 @@ import { useProductsList } from '../lib/ProductsListController';
 import { useCartStore } from '../stores/cartStore';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import api from '../lib/api';
+import client from '../lib/ApolloClient';
 
 function ProductListItem({ product, onAddCart, onOneClick }) {
     const router = useRouter();
-    const { addCartProduct, formatPrice } = useProductsList();
-    const { isInCart } = useCartStore();
+    const { formatPrice } = useProductsList();
+    const { updateCart } = useCartStore();
     const [isMounted, setIsMounted] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [inCart, setInCart] = useState(false); // ✅ ЛОКАЛЬНОЕ СОСТОЯНИЕ
 
     // Проверяем hydration
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    // Проверяем есть ли товар в корзине
-    const inCart = isMounted ? isInCart(product.id) : false;
+    // ✅ НОВЫЙ USEEFFECT: следим за изменениями корзины
+    useEffect(() => {
+        if (isMounted) {
+            const cartItems = useCartStore.getState().items;
+            const isProductInCart = cartItems.some(item =>
+                item.product?.node?.id === product.id ||
+                item.id === product.databaseId ||
+                item.id === product.id
+            );
+            setInCart(isProductInCart);
+            console.log(`🛒 Товар ${product.name} в корзине:`, isProductInCart);
+        }
+    }, [isMounted, product.id, product.databaseId]);
+
+    // ✅ СЛУШАЕМ ИЗМЕНЕНИЯ ZUSTAND STORE
+    useEffect(() => {
+        if (!isMounted) return;
+
+        const unsubscribe = useCartStore.subscribe(
+            (state) => state.items,
+            (items) => {
+                const isProductInCart = items.some(item =>
+                    item.product?.node?.id === product.id ||
+                    item.id === product.databaseId ||
+                    item.id === product.id
+                );
+                setInCart(isProductInCart);
+                console.log(`🛒 Товар ${product.name} в корзине (обновлено):`, isProductInCart);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [isMounted, product.id, product.databaseId, product.name]);
 
     // ✨ НОВАЯ ПРОВЕРКА: товар в наличии или нет
     const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK' || product.stockQuantity === 0;
 
-    const handleCartButtonClick = () => {
-        if (inCart) {
-            // Если товар в корзине - переходим на страницу корзины
-            router.push('/cart/');
-        } else {
-            // Если товара нет - добавляем его
-            onAddCart(product);
+    // Используем изображение или плейсхолдер
+    const imageUrl = product?.image?.sourceUrl || '/images/placeholder.jpg';
+
+    // ✅ НОВЫЙ МЕТОД: добавление товара в корзину через GraphQL
+    const handleAddToCart = async () => {
+        try {
+            setIsAddingToCart(true);
+
+            console.log(`📦 Добавляем товар ${product.name} в корзину`);
+
+            const Add2Cart = api.AddToCart();
+            await client.mutate({
+                mutation: Add2Cart,
+                variables: {
+                    input: {
+                        productId: product.databaseId,
+                        quantity: 1,
+                    }
+                }
+            });
+
+            // ✅ Получаем обновленную корзину
+            const GetCart = api.getCart();
+            const { data: cartData } = await client.query({
+                query: GetCart,
+            });
+
+            if (cartData?.cart) {
+                updateCart(cartData.cart);
+                setInCart(true); // ✅ ОБНОВЛЯЕМ ЛОКАЛЬНОЕ СОСТОЯНИЕ
+                console.log("✅ Товар успешно добавлен в корзину");
+            }
+
+        } catch (err) {
+            console.error("❌ Ошибка при добавлении в корзину:", err);
+            alert('❌ Ошибка при добавлении товара в корзину');
+        } finally {
+            setIsAddingToCart(false);
         }
     };
 
-    // ✨ НОВАЯ ФУНКЦИЯ: обработчик для предзаказа
+    // ✅ ПЕРЕХОД В КОРЗИНУ
+    const handleGoToCart = () => {
+        router.push('/cart/');
+    };
+
+    // ✅ ОБРАБОТЧИК КЛИКА ПО КНОПКЕ КОРЗИНЫ
+    const handleCartButtonClick = () => {
+        if (inCart) {
+            // Если товар в корзине - переходим на страницу корзины
+            handleGoToCart();
+        } else {
+            // Если товара нет - добавляем его
+            handleAddToCart();
+        }
+    };
+
+    // ✨ ОБРАБОТЧИК ДЛЯ ПРЕДЗАКАЗА
     const handlePreOrder = () => {
         onOneClick(product);
     };
-
-    // Используем изображение или плейсхолдер
-    const imageUrl = product?.image?.sourceUrl || '/images/placeholder.jpg';
 
     return (
         <div key={product.id} className="new-items__item popular-products__item">
@@ -70,9 +149,15 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
                     <button
                         className={`new-items__cart-button button ${inCart ? 'cart-added' : ''}`}
                         onClick={handleCartButtonClick}
+                        disabled={isAddingToCart}
                         type="button"
                         title={inCart ? 'Товар в корзине' : 'Добавить в корзину'}
+                        style={{
+                            opacity: isAddingToCart ? 0.6 : 1,
+                            cursor: isAddingToCart ? 'not-allowed' : 'pointer',
+                        }}
                     >
+                        {isAddingToCart ? '⏳' : ''}
                     </button>
                 )}
             </div>
@@ -82,6 +167,11 @@ function ProductListItem({ product, onAddCart, onOneClick }) {
                 className="new-items__one-click button"
                 type="button"
                 onClick={handlePreOrder}
+                disabled={isOutOfStock}
+                style={{
+                    opacity: isOutOfStock ? 0.5 : 1,
+                    cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                }}
             >
                 {isOutOfStock ? 'Оформить предзаказ' : 'Купить в один клик'}
             </button>

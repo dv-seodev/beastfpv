@@ -9,8 +9,7 @@ import './page.scss';
 const Login = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, token, isHydrated, loading: authLoading, login, error: authError } = useAuth();
-
+    const { user, token, loading: authLoading, login } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -19,15 +18,15 @@ const Login = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 🔐 Редирект если уже авторизован
+    // 🔐 Проверяем если уже авторизован
     useEffect(() => {
-        if (isHydrated && token && user) {
+        if (token && user) {
             console.log('✅ Пользователь уже авторизован, редирект на /account/');
             router.push('/account/');
         }
-    }, [isHydrated, token, user, router]);
+    }, [token, user, router]);
 
-    // ✅ Сообщение об успешной регистрации
+    // ✅ Проверка успешной регистрации
     useEffect(() => {
         const registered = searchParams.get('registered');
         if (registered === 'true') {
@@ -47,23 +46,18 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLocalError('');
-        setSuccessMessage('');
+        setSuccessMessage(''); // Очищаем success при попытке входа
         setIsSubmitting(true);
 
         try {
             console.log('📝 Попытка входа:', formData.username);
-
-            // ✅ Вызываем функцию входа из хука
             await login(formData.username, formData.password);
-
             console.log('✅ Вход успешен, токен получен');
 
-            // ✅ Редирект после успешного входа
             setTimeout(() => {
                 console.log('🔄 Перенаправляем на /account/');
                 router.push('/account/');
             }, 500);
-
         } catch (err) {
             console.error('❌ Ошибка входа:', err);
             setLocalError(err.message || 'Ошибка входа. Проверьте учётные данные.');
@@ -72,8 +66,8 @@ const Login = () => {
         }
     };
 
-    // ⏳ Пока проверяется гидрация
-    if (!isHydrated || authLoading) {
+    // ⏳ Пока проверяется авторизация
+    if (authLoading) {
         return (
             <section className="login">
                 <div className="container login__container">
@@ -100,10 +94,8 @@ const Login = () => {
                     )}
 
                     {/* ❌ Сообщение об ошибке */}
-                    {(localError || authError) && (
-                        <div className="login__error">
-                            ⚠️ {localError || authError}
-                        </div>
+                    {localError && (
+                        <div className="login__error">⚠️ {localError}</div>
                     )}
 
                     <p>Имя пользователя или Email</p>
@@ -137,7 +129,7 @@ const Login = () => {
                         className="login__form-button-submit"
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? '⏳ Вход...' : 'Войти'}
+                        {isSubmitting ? '⏳ Загрузка...' : 'Войти'}
                     </button>
 
                     <p className="login__signup">

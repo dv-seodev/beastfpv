@@ -21,36 +21,15 @@ const OrderSuccess = () => {
 
         const fetchOrder = async () => {
             try {
-                console.log(`📍 Fetching order: ${orderId}`);
-
-                // ✅ Вызываем НАШЕ API (не WooCommerce напрямую!)
-                const response = await fetch(`/api/auth/orders/${orderId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                console.log(`📊 API Response Status: ${response.status}`);
+                const response = await fetch(`/api/orders/${orderId}`);
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Response text:', errorText);
-
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        throw new Error(errorData.error || 'Не удалось загрузить заказ');
-                    } catch {
-                        throw new Error('Не удалось загрузить заказ');
-                    }
+                    throw new Error('Не удалось загрузить заказ');
                 }
 
                 const data = await response.json();
-                console.log('✅ Order data:', data);
-
                 setOrder(data);
             } catch (err) {
-                console.error('❌ Error fetching order:', err.message);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -118,7 +97,7 @@ const OrderSuccess = () => {
 
                         <div className="order-success__info-row">
                             <span className="order-success__label">Номер заказа:</span>
-                            <span className="order-success__value">#{order.number || orderId}</span>
+                            <span className="order-success__value">#{orderId}</span>
                         </div>
 
                         <div className="order-success__info-row">
@@ -245,7 +224,7 @@ const OrderSuccess = () => {
                     <ul>
                         <li>На вашу почту отправлено подтверждение заказа</li>
                         <li>Вы получите уведомление о готовности к отправке</li>
-                        <li>Отследить статус заказа можно по номеру #{order.number || orderId}</li>
+                        <li>Отследить статус заказа можно по номеру #{orderId}</li>
                         <li>Если у вас есть вопросы, свяжитесь с нами через форму контактов</li>
                     </ul>
                 </div>

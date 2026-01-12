@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -6,30 +5,42 @@ import './Header.scss';
 import CartIcon from './CartItem';
 import AccountIcon from './AccountIcon';
 import { useFavoriteStore } from '../../stores/favoriteStore';
-import { useEffect, useState } from 'react';
 import SearchLine from './SearchLine';
 import { useProductsList } from '../../lib/ProductsListController';
 import MobileMenu from './MobileMenu';
 import { useAuth } from '../../lib/useAuth';
+import { useState, useEffect } from 'react';
 
 const Header = () => {
-    const { isAuthenticated, user, logout } = useAuth(); // ✅ ПОЛУЧИ ИЗ ХУКА
-    const favoriteItems = useFavoriteStore(state => state.getAllFavorites());
-    const [isMounted, setIsMounted] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // ← State для меню
+    const { isAuthenticated, isHydrated } = useAuth();
+
+    const [favoriteCount, setFavoriteCount] = useState(0);
 
     useEffect(() => {
-        setIsMounted(true);
+        const count = useFavoriteStore.getFavoriteCount();
+        setFavoriteCount(count);
+
+        const handleUpdate = () => {
+            setFavoriteCount(useFavoriteStore.getFavoriteCount());
+        };
+
+        window.addEventListener('favoritesChanged', handleUpdate);
+        return () => window.removeEventListener('favoritesChanged', handleUpdate);
     }, []);
+
+    const hasFavorites = favoriteCount > 0;
+
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // const hasFavorites = isHydrated && curIds.length > 0;
 
     // Закрываем меню при клике на ссылку
     const handleMenuClose = () => {
         setMobileMenuOpen(false);
     };
 
-    // До монтирования показываем обычную иконку
-    const hasFavorites = isMounted ? favoriteItems.length > 0 : false;
     return (
+
         <header className="header">
             <div className="header__upper">
                 <div className="container header__container">
@@ -109,7 +120,7 @@ const Header = () => {
                         <Link href="tel:+74954878782">+7 (495) 487-87-82</Link>
                     </div>
                     <div className="header__profile">
-                        {/* <Link className='icon-action header__mobile-invisible' href="/favorite/"><img src="/icons-header/heart.svg" alt={"favorite"} /></Link> */}
+                        {/* ✅ ИСПРАВЛЕНО: используем hasFavorites из favoriteIds */}
                         <Link
                             className='icon-action header__mobile-invisible'
                             href="/favorite/"
@@ -121,19 +132,21 @@ const Header = () => {
                         </Link>
                         <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
                         <CartIcon />
-                        <Link className='icon-action menu-mobile-icon header__mobile-visible' href="" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><img src="/icons-header/menu-mobile.svg" alt={"mail"} /></Link>
-                        {/* <Link className='icon-action account-auth header__mobile-invisible' href="/account/">
-                            <img src={isMounted && isAuthenticated ? "/icons-header/account-red.svg" : "/icons-header/account.svg"} alt={"account"} />
-                        </Link> */}
+                        <Link
+                            className='icon-action menu-mobile-icon header__mobile-visible'
+                            href=""
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            <img src="/icons-header/menu-mobile.svg" alt={"menu"} />
+                        </Link>
                         <AccountIcon />
                     </div>
                 </div>
-            </div >
+            </div>
 
-            <MobileMenu isOpen={mobileMenuOpen}
-                onClose={handleMenuClose} />
-        </header >
+            <MobileMenu isOpen={mobileMenuOpen} onClose={handleMenuClose} />
+        </header>
     );
-}
+};
 
 export default Header;

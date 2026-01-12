@@ -1,33 +1,21 @@
-export async function GET(request, { params }) {
-    const { orderId } = await params;
-
-    console.log(`📍 GET /api/orders/${orderId}`);
-
-    if (!orderId) {
-        return Response.json({ error: 'Order ID required' }, { status: 400 });
-    }
+export async function GET(request) {
+    console.log('📍 GET /api/auth/user');
 
     try {
         const wooUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
         const wooUsername = process.env.WOOCOMMERCE_USERNAME;
         const wooPassword = process.env.WOOCOMMERCE_APP_PASSWORD;
 
-        console.log('🔧 Config:', {
-            wooUrl: wooUrl ? '✓' : '✗',
-            wooUsername: wooUsername ? '✓' : '✗',
-            wooPassword: wooPassword ? '✓' : '✗',
-        });
-
         if (!wooUrl || !wooUsername || !wooPassword) {
-            console.error('❌ Missing environment variables');
             return Response.json(
                 { error: 'Server configuration error' },
                 { status: 500 }
             );
         }
 
+        // ✅ Получаем текущего пользователя
         const credentials = Buffer.from(`${wooUsername}:${wooPassword}`).toString('base64');
-        const wooApiUrl = `${wooUrl}/wp-json/wc/v3/orders/${orderId}`;
+        const wooApiUrl = `${wooUrl}/wp-json/wc/v3/customers/me`;
 
         console.log('📡 Fetching from:', wooApiUrl);
 
@@ -39,19 +27,17 @@ export async function GET(request, { params }) {
             },
         });
 
-        console.log('📊 WooCommerce Status:', response.status);
-
         const data = await response.json();
 
         if (!response.ok) {
             console.error('❌ WooCommerce Error:', data);
             return Response.json(
-                { error: data.message || 'Order not found' },
-                { status: response.status }
+                { error: 'Not authenticated' },
+                { status: 401 }
             );
         }
 
-        console.log(`✅ Order #${data.number} found`);
+        console.log(`✅ User #${data.id} found`);
         return Response.json(data);
 
     } catch (error) {
