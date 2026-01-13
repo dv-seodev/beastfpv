@@ -6,7 +6,9 @@ import { useRestCart } from "../../lib/hooks/useRestCart";
 const CART_EVENTS = ["cartUpdated", "cartItemChanged", "cartCleared"];
 
 const CartIcon = () => {
-  const { items_count, isLoading } = useRestCart();
+  const { cart, loading } = useRestCart();
+  const items_count = cart?.items_count || 0;
+  const isLoading = loading;
 
   const cartState = useRestCart((state) => state);
   console.log("cartState: ", cartState);

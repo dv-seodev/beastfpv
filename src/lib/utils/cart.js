@@ -51,3 +51,73 @@ export const transformPaymentMethods = (nodes) => {
     description: gateway.description,
   }));
 };
+
+/**
+ * Преобразует товары из REST API формата в формат для отображения
+ * @param {Array} items - Массив товаров из REST API cart.items
+ * @returns {Array} - Массив товаров в упрощённом формате
+ */
+export const transformRestCartItems = (items) => {
+  if (!items || !Array.isArray(items)) return [];
+  
+  return items.map((item) => ({
+    key: item.key,
+    id: item.key,
+    name: item.name,
+    price: parsePrice(item.prices?.price || "0"),
+    quantity: item.quantity,
+    image: item.images?.[0]?.src || "/images/product_image.jpg",
+    slug: item.permalink?.match(/\/product\/([^\/]+)/)?.[1] || "",
+    total: parsePrice(item.totals?.line_subtotal || "0"),
+  }));
+};
+
+/**
+ * Преобразует методы доставки из REST API формата
+ * @param {Array} shippingRates - Массив методов доставки из REST API cart.shipping_rates
+ * @returns {Array} - Массив методов доставки в упрощённом формате
+ */
+export const transformRestShippingMethods = (shippingRates) => {
+  if (!shippingRates || !Array.isArray(shippingRates)) return [];
+  
+  return shippingRates
+    .flatMap((pkg) => pkg.shipping_rates || [])
+    .map((rate) => ({
+      id: rate.rate_id,
+      title: rate.name,
+      cost: parsePrice(rate.price || "0"),
+    }));
+};
+
+/**
+ * Дефолтные методы оплаты для REST API
+ */
+const DEFAULT_PAYMENT_METHODS = [
+  { id: "cod", title: "Оплата наличными", description: "Оплата наличными при самовывозе" },
+  { id: "bacs", title: "Оплата на расчетный счет", description: "Оплата на расчетный счет" },
+  { id: "yookassa_widget", title: "Онлайн-оплата Юкасса", description: "Онлайн-оплата Юкасса" },
+];
+
+/**
+ * Преобразует методы оплаты из REST API формата
+ * @param {Array} paymentMethodIds - Массив ID методов оплаты из REST API cart.payment_methods
+ * @returns {Array} - Массив методов оплаты в упрощённом формате
+ */
+export const transformRestPaymentMethods = (paymentMethodIds) => {
+  if (!paymentMethodIds || !Array.isArray(paymentMethodIds)) return DEFAULT_PAYMENT_METHODS;
+  
+  return paymentMethodIds.map((methodId) => {
+    const found = DEFAULT_PAYMENT_METHODS.find((m) => m.id === methodId);
+    return found || { id: methodId, title: methodId, description: "" };
+  });
+};
+
+/**
+ * Обрабатывает ошибку с показом alert
+ * @param {Error} err - Объект ошибки
+ * @param {string} message - Сообщение для пользователя
+ */
+export const handleCartError = (err, message) => {
+  console.error(message, err);
+  alert(message);
+};

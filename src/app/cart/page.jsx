@@ -1,44 +1,124 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
-import { useCartStore } from "../../stores/cartStore";
-import { useCartOperations } from "../../lib/hooks/useCartOperations";
-import { useCartCoupon } from "../../lib/hooks/useCartCoupon";
+import { useRestCart } from "../../lib/hooks/useRestCart";
 import { formatPriceForDisplay, parsePrice } from "../../lib/utils/price";
 import { getProductUrl, getProductImage } from "../../lib/utils/product";
+import {
+  transformRestCartItems,
+  transformRestShippingMethods,
+  transformRestPaymentMethods,
+  handleCartError,
+} from "../../lib/utils/cart";
+
+const EmptyCartState = ({ title, children }) => (
+  <section className="cart">
+    <div className="container cart__container">
+      <h1 className="cart__header">Корзина</h1>
+      <div className="cart__empty">
+        {title && <p>{title}</p>}
+        {children}
+      </div>
+    </div>
+  </section>
+);
 
 const Cart = () => {
-  const { data, loading, error } = useHomeData();
-  const { selectedShipping, selectedPayment, setSelectedShipping, setSelectedPayment, items } = useCartStore();
-
+  const { data, loading } = useHomeData();
   const {
-    cartQuery,
-    graphQLCart,
-    cartItems,
-    shippingMethods,
-    paymentMethods,
-    baseTotal,
-    finalTotal,
-    isUpdating,
-    isClearing,
+    selectedShipping,
+    selectedPayment,
+    setSelectedShipping,
+    setSelectedPayment,
+    cart,
     handleQuantityChange,
     handleRemoveItem,
     handleClearCart,
-  } = useCartOperations();
-
-  const {
+    fetchCart,
+    loading: cartLoading,
     couponCode,
-    setCouponCode,
     couponMessage,
-    isLoading: couponLoading,
-    hasAppliedCoupon,
+    couponLoading,
+    setCouponCode,
     applyCoupon,
     removeCoupon,
-  } = useCartCoupon(cartQuery, graphQLCart);
+  } = useRestCart();
+
+  const items = cart?.items || [];
+  const shipping_rates = cart?.shipping_rates || [];
+  const payment_methods = cart?.payment_methods || [];
+  const totals = cart?.totals || {};
+  const coupons = cart?.coupons || [];
+
+  // Загрузка данных корзины
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  // Преобразование данных с мемоизацией
+  const cartItems = useMemo(() => transformRestCartItems(items), [items]);
+  const shippingMethods = useMemo(() => transformRestShippingMethods(shipping_rates), [shipping_rates]);
+  const paymentMethods = useMemo(() => transformRestPaymentMethods(payment_methods), [payment_methods]);
+  const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
+  const finalTotal = useMemo(() => (totals?.total_price ? parsePrice(totals.total_price) : 0), [totals?.total_price]);
+  const appliedCoupon = useMemo(() => coupons?.[0], [coupons]);
+  const hasAppliedCoupon = !!appliedCoupon;
+
+  // Обработчики с мемоизацией и обработкой ошибок
+  const handleQuantityChangeWrapper = useCallback(
+    async (itemKey, newQuantity) => {
+      try {
+        await handleQuantityChange(itemKey, newQuantity);
+      } catch (err) {
+        handleCartError(err, "❌ Ошибка при изменении количества товара");
+      }
+    },
+    [handleQuantityChange]
+  );
+
+  const handleRemoveItemWrapper = useCallback(
+    async (itemKey) => {
+      try {
+        await handleRemoveItem(itemKey);
+      } catch (err) {
+        handleCartError(err, "❌ Ошибка при удалении товара из корзины");
+      }
+    },
+    [handleRemoveItem]
+  );
+
+  const handleClearCartWrapper = useCallback(async () => {
+    try {
+      await handleClearCart();
+    } catch (err) {
+      handleCartError(err, "❌ Ошибка при очистке корзины");
+    }
+  }, [handleClearCart]);
+
+  const handleApplyCoupon = useCallback(async () => {
+    try {
+      await applyCoupon(couponCode);
+    } catch (err) {
+      // Ошибка уже обработана в useRestCart
+    }
+  }, [applyCoupon, couponCode]);
+
+  const handleRemoveCoupon = useCallback(async () => {
+    if (!appliedCoupon) return;
+    try {
+      await removeCoupon(appliedCoupon.code);
+    } catch (err) {
+      handleCartError(err, "Ошибка при удалении купона");
+    }
+  }, [removeCoupon, appliedCoupon]);
+
+  const handleImageError = useCallback((e) => {
+    e.target.src = "/images/product_image.jpg";
+  }, []);
 
   // Инициализация способов доставки
   useEffect(() => {
@@ -54,48 +134,17 @@ const Cart = () => {
     }
   }, [paymentMethods, selectedPayment, setSelectedPayment]);
 
-  // Состояния загрузки и ошибок
-  const isLoading = loading || cartQuery.loading;
-  const hasError = error || cartQuery.error;
-  const displayItems = cartItems.length > 0 ? cartItems : items;
+  // Состояния загрузки
+  const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
+  const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
+  const isDisabled = cartLoading;
 
   if (isLoading) {
-    return (
-      <section className="cart">
-        <div className="container cart__container">
-          <h1 className="cart__header">Корзина</h1>
-          <div className="cart__empty">
-            <p>Загрузка...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (hasError) {
-    return (
-      <section className="cart">
-        <div className="container cart__container">
-          <h1 className="cart__header">Корзина</h1>
-          <div className="cart__empty">
-            <p>❌ Ошибка: {error?.message || cartQuery.error?.message}</p>
-          </div>
-        </div>
-      </section>
-    );
+    return <EmptyCartState title="Загрузка..." />;
   }
 
   if (!data) {
-    return (
-      <section className="cart">
-        <div className="container cart__container">
-          <h1 className="cart__header">Корзина</h1>
-          <div className="cart__empty">
-            <p>Нет данных</p>
-          </div>
-        </div>
-      </section>
-    );
+    return <EmptyCartState title="Нет данных" />;
   }
 
   if (displayItems.length === 0) {
@@ -115,9 +164,6 @@ const Cart = () => {
       </section>
     );
   }
-
-  const appliedCoupon = graphQLCart?.appliedCoupons?.[0];
-  const isDisabled = isClearing || isUpdating;
 
   return (
     <section className="cart">
@@ -140,13 +186,7 @@ const Cart = () => {
               {displayItems.map((item) => (
                 <div key={item.key} className="cart__product-item">
                   <div className="cart__product-item-img">
-                    <img
-                      src={getProductImage(item)}
-                      alt={item.name}
-                      onError={(e) => {
-                        e.target.src = "/images/product_image.jpg";
-                      }}
-                    />
+                    <img src={getProductImage(item)} alt={item.name} onError={handleImageError} />
                   </div>
                   <div className="cart__product-item-inner">
                     <Link className="cart__product-item-link" href={getProductUrl(item)}>
@@ -159,14 +199,14 @@ const Cart = () => {
                           className="button cart__product-minus"
                           onClick={() => {
                             if (item.quantity === 1) {
-                              handleRemoveItem(item.key);
+                              handleRemoveItemWrapper(item.key);
                             } else {
-                              handleQuantityChange(item.key, item.quantity - 1);
+                              handleQuantityChangeWrapper(item.key, item.quantity - 1);
                             }
                           }}
                           disabled={isDisabled}
                           title={
-                            isUpdating
+                            cartLoading
                               ? "Обновление..."
                               : item.quantity === 1
                               ? "Удалить товар"
@@ -178,9 +218,9 @@ const Cart = () => {
                         <input className="cart__product-count" value={item.quantity} readOnly />
                         <button
                           className="button cart__product-plus"
-                          onClick={() => handleQuantityChange(item.key, item.quantity + 1)}
+                          onClick={() => handleQuantityChangeWrapper(item.key, item.quantity + 1)}
                           disabled={isDisabled}
-                          title={isUpdating ? "Обновление..." : "Увеличить количество"}
+                          title={cartLoading ? "Обновление..." : "Увеличить количество"}
                         >
                           <img src="/images/plus.svg" alt="Увеличить" />
                         </button>
@@ -190,9 +230,9 @@ const Cart = () => {
                   </div>
                   <button
                     className="cart__product-item-delete"
-                    onClick={() => handleRemoveItem(item.key)}
+                    onClick={() => handleRemoveItemWrapper(item.key)}
                     disabled={isDisabled}
-                    title={isUpdating ? "Удаление..." : "Удалить товар"}
+                    title={cartLoading ? "Удаление..." : "Удалить товар"}
                   >
                     <img src="/images/cart-delete.svg" alt="Удалить" />
                   </button>
@@ -203,10 +243,10 @@ const Cart = () => {
             <button
               type="button"
               className="cart__clear-button cart__coupon-submit"
-              onClick={handleClearCart}
+              onClick={handleClearCartWrapper}
               disabled={isDisabled || displayItems.length === 0}
             >
-              {isClearing ? "⏳ Очищаем..." : "Очистить корзину"}
+              {cartLoading ? "⏳ Очищаем..." : "Очистить корзину"}
             </button>
           </div>
 
@@ -225,7 +265,7 @@ const Cart = () => {
                   <div className="cart__price-discount cart__price-underline">
                     <span className="cart__price-name">Промокод ({appliedCoupon.code}):</span>
                     <span className="cart__price-numb action-price">
-                      -{formatPriceForDisplay(parsePrice(appliedCoupon.discountAmount))}
+                      -{formatPriceForDisplay(parsePrice(appliedCoupon.totals?.total_discount || "0"))}
                     </span>
                   </div>
                 )}
@@ -320,13 +360,13 @@ const Cart = () => {
                   placeholder="Введите купон"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !hasAppliedCoupon && applyCoupon()}
+                  onKeyDown={(e) => e.key === "Enter" && !hasAppliedCoupon && handleApplyCoupon()}
                   disabled={hasAppliedCoupon || couponLoading || isDisabled}
                 />
                 <button
                   type="button"
                   className="cart__coupon-submit"
-                  onClick={hasAppliedCoupon ? removeCoupon : applyCoupon}
+                  onClick={hasAppliedCoupon ? handleRemoveCoupon : handleApplyCoupon}
                   disabled={couponLoading || isDisabled}
                 >
                   {couponLoading ? "Проверка..." : hasAppliedCoupon ? "Удалить купон" : "Применить"}
