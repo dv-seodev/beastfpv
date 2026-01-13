@@ -1,23 +1,31 @@
-'use client'
+"use client";
 
-import './styles/globals.scss';
-import './styles/typography.scss';
+import "./styles/globals.scss";
+import "./styles/typography.scss";
 
-import SwipeSlider from '../components/Slider';
-import PopularProducts from '../components/Popular_products';
-import NewItems from '../components/New_items';
-import Advantages from '../components/Advantages';
-import News from '../components/News';
-import WhyUs from '../components/WhyUs';
-import Brands from '../components/Brands';
-import Contact_us from '../components/Contact_us';
-import Actions from '../components/Actions';
-import Categories from '../components/Categories';
-import { useHomeData } from '../lib/HomePageDataContoller';
+import SwipeSlider from "../components/Slider";
+import PopularProducts from "../components/Popular_products";
+import NewItems from "../components/New_items";
+import Advantages from "../components/Advantages";
+import News from "../components/News";
+import WhyUs from "../components/WhyUs";
+import Brands from "../components/Brands";
+import Contact_us from "../components/Contact_us";
+import Actions from "../components/Actions";
+import Categories from "../components/Categories";
+import { useHomeData } from "../lib/HomePageDataContoller";
+import { useRestCart } from "../lib/hooks/useRestCart";
+import { useEffect } from "react";
 
 export default function Home() {
-
   const { data, loading, error } = useHomeData();
+  const { fetchCart } = useRestCart();
+
+  // Fetch cart on mount
+  useEffect(() => {
+    console.log("[Main Page] Initial fetch cart");
+    fetchCart();
+  }, []);
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error.message}</div>;
