@@ -1,32 +1,37 @@
-'use client'
+"use client";
 
-import './styles/globals.scss';
-import './styles/typography.scss';
-import Script from 'next/script';
+import "./styles/globals.scss";
+import "./styles/typography.scss";
+import Script from "next/script";
 
 import Footer from "../components/footer/Footer";
 import Header from "../components/header/Header";
-import SwipeSlider from '../components/Slider';
-import PopularProducts from '../components/Popular_products';
-import NewItems from '../components/New_items';
-import Advantages from '../components/Advantages';
-import News from '../components/News';
-import WhyUs from '../components/WhyUs';
-import Brands from '../components/Brands';
-import Contact_us from '../components/Contact_us';
-import MobileMenu from '../components/header/MobileMenu';
-import Actions from '../components/Actions';
-import Categories from '../components/Categories';
+import SwipeSlider from "../components/Slider";
+import PopularProducts from "../components/Popular_products";
+import NewItems from "../components/New_items";
+import Advantages from "../components/Advantages";
+import News from "../components/News";
+import WhyUs from "../components/WhyUs";
+import Brands from "../components/Brands";
+import Contact_us from "../components/Contact_us";
+import MobileMenu from "../components/header/MobileMenu";
+import Actions from "../components/Actions";
+import Categories from "../components/Categories";
 import client from "../lib/ApolloClient";
-import { ApolloProvider } from '@apollo/client/react';
-import ApolloProviderWrapper from '../components/ApolloProvider';
+import { ApolloProvider } from "@apollo/client/react";
+import ApolloProviderWrapper from "../components/ApolloProvider";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="ru">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+          rel="stylesheet"
+        />
+
         {/* <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" charSet="utf-8"></script> */}
       </head>
       <body className={``}>
@@ -37,9 +42,7 @@ export default function RootLayout({ children }) {
               <Header />
               {/* <MobileMenu /> */}
             </div>
-            <div className="app_content">
-              {children}
-            </div>
+            <div className="app_content">{children}</div>
             <div className="app_footer">
               <Footer />
             </div>
