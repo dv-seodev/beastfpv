@@ -1,0 +1,8 @@
+---
+name: llms-doc
+description: Check llms-full.txt
+---
+
+# Overview
+
+Всегда проверяй файл llms-full.txt при разработке функционала связанного с woocommerce
