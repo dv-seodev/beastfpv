@@ -20,8 +20,19 @@ import Categories from "../components/Categories";
 import client from "../lib/ApolloClient";
 import { ApolloProvider } from "@apollo/client/react";
 import ApolloProviderWrapper from "../components/ApolloProvider";
+import { useRestCart } from "../lib/hooks/useRestCart";
+import { useEffect } from "react";
 
 export default function RootLayout({ children }) {
+  const { fetchCart, cartInitialized } = useRestCart();
+
+  useEffect(() => {
+    if (!cartInitialized) {
+      console.log("[RootLayout] Initialize cart");
+      fetchCart();
+    }
+  }, [cartInitialized]);
+
   return (
     <html lang="ru">
       <head>

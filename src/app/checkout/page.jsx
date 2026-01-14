@@ -1,483 +1,234 @@
 "use client";
 
-import Link from "next/link";
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { formatPhoneNumber } from "../../lib/phoneMask";
-import { useAuth } from "../../lib/useAuth";
+import { useMemo } from "react";
 import CdekMap from "./cdekmap";
-import wooRestApi from "../../lib/woo_rest_api/rest_api.js";
 import { useRestCart } from "../../lib/hooks/useRestCart";
-import { formatPriceForDisplay, parsePrice } from "../../lib/utils/price";
-import {
-  transformRestCartItems,
-  transformRestShippingMethods,
-  transformRestPaymentMethods,
-  handleCartError,
-} from "../../lib/utils/cart";
+import { Formik } from "formik";
+import { useState } from "react";
 
-const EmptyCheckoutState = ({ title, children }) => (
-  <section className="checkout">
-    <div className="container checkout__container">
-      <h1 className="checkout__header">Оформление заказа</h1>
-      <div className="checkout__empty">
-        {title && <p>{title}</p>}
-        {children}
-      </div>
-    </div>
-  </section>
-);
+import {
+  EmptyCheckoutState,
+  CheckoutMethodsInfo,
+  CheckoutAuthInfo,
+  CheckoutContactForm,
+  CheckoutAddressForm,
+  CheckoutPickupNotice,
+  CheckoutPriceBreakdown,
+  CheckoutSubmitSection,
+} from "../../components/checkout";
+import { usePaymentMethods } from "../../lib/usePaymentMethods";
+import wooRestApi from "../../lib/woo_rest_api/rest_api";
 
 const Checkout = () => {
-  const router = useRouter();
-  const { data, loading, error } = useHomeData();
-  const { user } = useAuth();
+  const { data: homeData, loading: newProductsLoading } = useHomeData();
+  const { selectedPayment, selectedShipping, getShippingMethods, cartInitialized } = useRestCart();
+  const cart = useRestCart((state) => state.cart);
 
-  const { selectedShipping, selectedPayment, cart, fetchCart, loading: cartLoading, handleClearCart } = useRestCart();
+  // Payment and Shipping Data
+  const paymentMethods = usePaymentMethods();
+  const shippingMethods = getShippingMethods();
+  const selectedPaymentMethod = paymentMethods.methods.find((method) => method.id === selectedPayment);
+  const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
 
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [selectedCDEKOfficeID, setCDEKOfficeID] = useState("");
-  const [formData, setFormData] = useState({
+  // Computed Values & State
+  const isPickup = useMemo(() => selectedShipping?.includes("pickup") || false, [selectedShipping]);
+  const isLoading = useMemo(() => newProductsLoading || !cartInitialized);
+  const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
+  const formInitialValues = {
     name: "",
-    phone: "",
     email: "",
+    phone: "",
     city: "",
     street: "",
     house: "",
-    flat: "",
-    index: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    country: "RU",
+    state: "",
+    postcode: "",
+    comments: "",
+  };
 
-  // Загрузка данных корзины
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
+  //Methods
+  const handleSubmitForm = (values) => {
+    const billingAddress = {
+      first_name: values.name.split(" ")[0] || "",
+      last_name: values.name.split(" ")[1] || "",
+      company: "",
+      address_1: `${values.street} ${values.house}`,
+      address_2: "",
+      city: values.city || "",
+      state: values.state || "",
+      postcode: values.postcode || "",
+      country: "RU",
+      email: values.email || "",
+      phone: values.phone || "",
+    };
 
-  // Проверка гидратации
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+    const checkoutData = {
+      billing_address: { ...billingAddress },
+      shipping_address: { ...billingAddress },
+      customer_note: values.comments || "",
+      payment_method: selectedPayment || "",
+      payment_data: [],
+      shipping_lines: [],
+      extensions: {},
+    };
 
-  // Заполняем email если пользователь авторизован
-  useEffect(() => {
-    if (isHydrated && user?.email) {
-      setFormData((prev) => ({
-        ...prev,
-        email: user.email,
-      }));
-    }
-  }, [isHydrated, user]);
-
-  // Преобразование данных с мемоизацией
-  const items = cart?.items || [];
-  const shipping_rates = cart?.shipping_rates || [];
-  const payment_methods = cart?.payment_methods || [];
-  const totals = cart?.totals || {};
-  const coupons = cart?.coupons || [];
-
-  const cartItems = useMemo(() => transformRestCartItems(items), [items]);
-  const shippingMethods = useMemo(() => transformRestShippingMethods(shipping_rates), [shipping_rates]);
-  const paymentMethods = useMemo(() => transformRestPaymentMethods(payment_methods), [payment_methods]);
-
-  const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
-
-  const discountTotal = useMemo(
-    () => (coupons?.[0]?.totals?.total_discount ? parsePrice(coupons[0].totals.total_discount) : 0),
-    [coupons]
-  );
-
-  const selectedShippingMethod = useMemo(
-    () => shippingMethods.find((m) => m.id === selectedShipping),
-    [shippingMethods, selectedShipping]
-  );
-
-  const shippingCost = useMemo(() => selectedShippingMethod?.cost || 0, [selectedShippingMethod]);
-
-  const finalTotal = useMemo(
-    () => (totals?.total_price ? parsePrice(totals.total_price) : baseTotal - discountTotal + shippingCost),
-    [totals?.total_price, baseTotal, discountTotal, shippingCost]
-  );
-
-  const selectedPaymentMethod = useMemo(
-    () => paymentMethods.find((m) => m.id === selectedPayment),
-    [paymentMethods, selectedPayment]
-  );
-
-  const isPickup = useMemo(
-    () =>
-      selectedShippingMethod?.id?.includes("pickup") ||
-      selectedShippingMethod?.title?.toLowerCase().includes("самовывоз"),
-    [selectedShippingMethod]
-  );
-
-  // Состояния загрузки
-  const isLoading = useMemo(() => loading || cartLoading || !isHydrated, [loading, cartLoading, isHydrated]);
-
-  // Обработчики - ВСЕ ХУКИ ДОЛЖНЫ БЫТЬ ДО РАННИХ ВОЗВРАТОВ
-  const handlePVZSelect = useCallback((pvzData) => {
-    setCDEKOfficeID(pvzData.code);
-  }, []);
-
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    let newValue = value;
-
-    if (name === "phone") {
-      newValue = formatPhoneNumber(value);
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
-  }, []);
-
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-
-      // Валидация телефона
-      if (formData.phone.length < 18) {
-        alert("Пожалуйста, введите полный номер телефона");
-        return;
-      }
-
-      // Валидация адреса для доставки (кроме самовывоза)
-      if (!isPickup && (!formData.city || !formData.street || !formData.house || !formData.index)) {
-        alert("Пожалуйста, заполните все поля адреса");
-        return;
-      }
-
-      // Валидация товаров
-      if (cartItems.length === 0) {
-        alert("Ошибка: В корзине нет товаров");
-        return;
-      }
-
-      setIsSubmitting(true);
-
-      try {
-        const nameParts = formData.name.split(" ");
-        const orderData = {
-          billing_address: {
-            first_name: nameParts[0] || "Customer",
-            last_name: nameParts.slice(1).join(" ") || "",
-            company: "",
-            address_1: isPickup ? "Самовывоз" : `${formData.street} ${formData.house}`,
-            address_2: isPickup ? "" : formData.flat || "",
-            city: isPickup ? "Москва" : formData.city,
-            state: "RU",
-            postcode: isPickup ? "" : formData.index,
-            country: "RU",
-            email: formData.email || "guest@example.com",
-            phone: formData.phone,
-          },
-          shipping_address: {
-            first_name: nameParts[0] || "Customer",
-            last_name: nameParts.slice(1).join(" ") || "",
-            company: "",
-            address_1: isPickup ? "Самовывоз" : `${formData.street} ${formData.house}`,
-            address_2: isPickup ? "" : formData.flat || "",
-            city: isPickup ? "Москва" : formData.city,
-            state: "RU",
-            postcode: isPickup ? "" : formData.index,
-            country: "RU",
-          },
-          payment_method: selectedPayment || "bacs",
-          payment_data: [],
-          customer_note: "",
-          create_account: false,
-          extensions: selectedCDEKOfficeID
-            ? {
-                official_cdek: { office_code: selectedCDEKOfficeID },
-              }
-            : {},
+    if (selectedShippingMethod?.method == "official_cdek") {
+      checkoutData.shipping_lines.push({
+        method_id: selectedShippingMethod.id,
+        method_title: selectedShippingMethod.title,
+      });
+      if (cdekSelectedPoint) {
+        checkoutData.extensions.official_cdek = {
+          office_code: cdekSelectedPoint?.code || "",
         };
-
-        const result = await wooRestApi.createOrder(orderData);
-
-        if (!result || result.error) {
-          throw new Error(result?.message || result?.error || "Ошибка при создании заказа");
-        }
-
-        if (result.orderId) {
-          await handleClearCart();
-          router.push(`/order-success/?orderId=${result.orderId}`);
-        } else {
-          throw new Error("Не удалось получить ID заказа");
-        }
-      } catch (err) {
-        handleCartError(err, "Ошибка при создании заказа");
-      } finally {
-        setIsSubmitting(false);
       }
-    },
-    [
-      formData,
-      isPickup,
-      cartItems,
-      items,
-      selectedPayment,
-      selectedPaymentMethod,
-      selectedShippingMethod,
-      shippingCost,
-      selectedCDEKOfficeID,
-      handleClearCart,
-      router,
-    ]
-  );
+    }
 
-  // Ранние возвраты ПОСЛЕ всех хуков
-  if (isLoading) {
-    return <EmptyCheckoutState title="Загрузка..." />;
-  }
+    // Checkout method
+    console.log("[Checkout Data]", checkoutData);
 
-  if (error) {
-    return <EmptyCheckoutState title={`❌ Ошибка: ${error?.message || "Неизвестная ошибка"}`} />;
-  }
+    wooRestApi
+      .createOrder(checkoutData)
+      .then((result) => {
+        console.log("[Checkout Result]", result);
+      })
+      .catch((error) => {
+        console.error("[Checkout Error]", error);
+      });
+  };
 
-  if (!data) {
-    return <EmptyCheckoutState title="Нет данных" />;
-  }
+  const onCdekSelectedPVZ = (data) => {
+    setCdekSelectedPoint(data);
+  };
 
-  const { new_products } = data;
-
-  // Проверка корзины после гидратации
-  if (isHydrated && cartItems.length === 0) {
-    return (
-      <section className="checkout">
-        <div className="container checkout__container">
-          <h3 className="checkout__header">Ваша корзина пуста</h3>
-          <Link className="continue-buy" href="/cart/">
-            Продолжить покупки
-          </Link>
-        </div>
-      </section>
-    );
-  }
+  /* 
+  ==================================================
+  RENDER SECTION
+  ==================================================
+  */
+  if (isLoading) return <EmptyCheckoutState title="Загрузка..." />;
+  if (cart.items.length === 0) return <EmptyCheckoutState title="Ваша корзина пуста" />;
 
   return (
     <section className="checkout">
       <div className="container checkout__container">
         <h1 className="checkout__header">Оформление заказа</h1>
 
-        {/* Выбранные методы */}
-        <div className="checkout__methods-wrapper">
-          <div className="checkout__method">
-            <p className="checkout__method-label">Выбранный способ оплаты:</p>
-            <p className="checkout__method-value">
-              <b>{selectedPaymentMethod?.title || "Не выбран"}</b>
-            </p>
-          </div>
-          <div className="checkout__method">
-            <p className="checkout__method-label">Выбранный способ доставки:</p>
-            <p className="checkout__method-value">
-              <b>{selectedShippingMethod?.title || "Не выбран"}</b>
-            </p>
-          </div>
-          <div>
-            <Link href="/cart/" className="checkout__change-link continue-buy">
-              <b>Вернуться в корзину</b>
-            </Link>
-          </div>
-        </div>
+        <CheckoutMethodsInfo paymentMethod={selectedPaymentMethod} shippingMethod={selectedShippingMethod} />
 
-        <form className="checkout__form" onSubmit={handleSubmit}>
-          {/* Статус авторизации */}
-          {user && (
-            <div
-              className="checkout__auth-info"
-              style={{
-                padding: "10px 15px",
-                backgroundColor: "#e8f5e9",
-                borderLeft: "4px solid #4caf50",
-                marginBottom: "20px",
-                borderRadius: "4px",
-              }}
-            >
-              <p style={{ margin: 0, color: "#2e7d32", fontSize: "14px" }}>
-                ✅ Вы авторизованы как <strong>{user.email}</strong>
-              </p>
-            </div>
-          )}
-
-          {/* Всегда показываем: ФИО, Телефон, Email */}
-          <div className="checkout__name-phone">
-            <div className="checkout__wrapper">
-              <p>ФИО</p>
-              <input
-                className="checkout__form-input"
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="checkout__wrapper">
-              <p>Телефон</p>
-              <input
-                className="checkout__form-input"
-                type="tel"
-                name="phone"
-                placeholder="+7 (___) ___-__-__"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="checkout__wrapper">
-              <p>Email</p>
-              <input
-                className="checkout__form-input"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required={!user}
-              />
-            </div>
-          </div>
-
-          {/* Условное отображение: Адрес только если это НЕ самовывоз */}
-          {!isPickup && (
-            <>
-              <div className="checkout__wrapper">
-                <p>Город</p>
+        <Formik initialValues={formInitialValues} onSubmit={handleSubmitForm}>
+          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+            <form className="checkout__form" onSubmit={handleSubmit}>
+              <div className="checkout-form-group">
                 <input
+                  type="text"
+                  name="name"
+                  value={values.name}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   className="checkout__form-input"
+                  placeholder="Имя"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={values.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Email"
+                />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={values.phone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Телефон"
+                />
+                <input
+                  type="text"
+                  name="state"
+                  value={values.state}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Область/Регион"
+                />
+                <input
                   type="text"
                   name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  required
+                  value={values.city}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Город"
+                />
+                <input
+                  type="text"
+                  name="street"
+                  value={values.street}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Улица"
+                />
+                <input
+                  type="text"
+                  name="house"
+                  value={values.house}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Дом"
+                />
+                <input
+                  type="text"
+                  name="postcode"
+                  value={values.postcode}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="checkout__form-input"
+                  placeholder="Почтовый индекс"
                 />
               </div>
 
-              <div className="checkout__adress">
-                <div className="checkout__wrapper checkout__street">
-                  <p>Улица</p>
-                  <input
-                    className="checkout__form-input"
-                    type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="checkout__wrapper checkout__house-ind">
-                  <div className="checkout__wrapper">
-                    <p>Дом</p>
-                    <input
-                      className="checkout__form-input"
-                      type="text"
-                      name="house"
-                      value={formData.house}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="checkout__wrapper">
-                    <p>Квартира</p>
-                    <input
-                      className="checkout__form-input"
-                      type="text"
-                      name="flat"
-                      value={formData.flat}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="checkout__wrapper">
-                    <p>Индекс</p>
-                    <input
-                      className="checkout__form-input"
-                      type="text"
-                      name="index"
-                      value={formData.index}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
+              {isPickup && <CheckoutPickupNotice />}
+              <button type="submit">Отправить</button>
+            </form>
           )}
+        </Formik>
 
-          {/* Если самовывоз - показываем уведомление */}
-          {isPickup && (
-            <div className="checkout__pickup-notice">
-              <p>
-                📍 Вы выбрали <strong>самовывоз</strong> со склада.
-              </p>
-              <p>
-                Адрес склада: <strong>Москва, пр-т. Мира, 102, стр. 31</strong>
-              </p>
-              <p>
-                Режим работы: <strong>Пн-Пт: 9:00-21:00, Сб: 11:00-16:00, Вс: выходной</strong>
-              </p>
-            </div>
-          )}
+        {!isPickup && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
 
-          {/* CDEK карта */}
+        {/* CheckoutForm 
+        <form className="checkout__form" onSubmit={handleSubmit}>
+          <CheckoutAuthInfo user={user} />
+          <CheckoutContactForm formData={formData} onChange={handleInputChange} isUserLoggedIn={!!user} />
+
+          {!isPickup && <CheckoutAddressForm formData={formData} onChange={handleInputChange} />}
+          {isPickup && <CheckoutPickupNotice />}
           {!isPickup && <CdekMap onPVZselect={handlePVZSelect} />}
 
-          {/* Отображение цены с доставкой */}
-          <div className="checkout__price-breakdown">
-            <div className="checkout__price-item">
-              <span>
-                <b>Подитог: </b>
-              </span>
-              <span>{formatPriceForDisplay(baseTotal)}</span>
-            </div>
+          <CheckoutPriceBreakdown
+            baseTotal={baseTotal}
+            discountTotal={discountTotal}
+            shippingCost={shippingCost}
+            finalTotal={finalTotal}
+            isPickup={isPickup}
+          />
 
-            {discountTotal > 0 && (
-              <div className="checkout__price-item discount">
-                <span>
-                  <b>Скидка: </b>
-                </span>
-                <span>-{formatPriceForDisplay(discountTotal)}</span>
-              </div>
-            )}
-
-            {!isPickup && shippingCost > 0 && (
-              <div className="checkout__price-item">
-                <span>
-                  <b>Доставка: </b>
-                </span>
-                <span>{formatPriceForDisplay(shippingCost)}</span>
-              </div>
-            )}
-
-            {isPickup && (
-              <div className="checkout__price-item">
-                <span>
-                  <b>Доставка: </b>
-                </span>
-                <span>Бесплатно</span>
-              </div>
-            )}
-          </div>
-
-          <div className="checkout__price">
-            Сумма заказа: <span>{formatPriceForDisplay(finalTotal)}</span>
-          </div>
-
-          <div className="checkout__checkbox-wrapper">
-            <input type="checkbox" className="checkout__form-checkbox" defaultChecked required />
-            <span>Я даю свое согласие на обработку своих персональных данных</span>
-          </div>
-
-          <button type="submit" className="checkout__form-button-submit" disabled={isSubmitting}>
-            {isSubmitting ? "Обработка..." : "Перейти к оплате"}
-          </button>
+          <CheckoutSubmitSection isSubmitting={isSubmitting} />
         </form>
+        */}
 
-        <NewItems products={new_products} />
+        <NewItems products={homeData.new_products} />
       </div>
     </section>
   );

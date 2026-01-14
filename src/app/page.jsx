@@ -19,13 +19,6 @@ import { useEffect } from "react";
 
 export default function Home() {
   const { data, loading, error } = useHomeData();
-  const { fetchCart } = useRestCart();
-
-  // Fetch cart on mount
-  useEffect(() => {
-    console.log("[Main Page] Initial fetch cart");
-    fetchCart();
-  }, []);
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error.message}</div>;

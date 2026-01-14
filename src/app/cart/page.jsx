@@ -14,6 +14,8 @@ import {
   transformRestPaymentMethods,
   handleCartError,
 } from "../../lib/utils/cart";
+import { title } from "process";
+import { usePaymentMethods } from "../../lib/usePaymentMethods";
 
 const EmptyCartState = ({ title, children }) => (
   <section className="cart">
@@ -46,11 +48,13 @@ const Cart = () => {
     setCouponCode,
     applyCoupon,
     removeCoupon,
+    getShippingMethods,
+    setupShippingRate,
   } = useRestCart();
 
+  const { methods: paymentMethods } = usePaymentMethods();
+
   const items = cart?.items || [];
-  const shipping_rates = cart?.shipping_rates || [];
-  const payment_methods = cart?.payment_methods || [];
   const totals = cart?.totals || {};
   const coupons = cart?.coupons || [];
 
@@ -59,10 +63,19 @@ const Cart = () => {
     fetchCart();
   }, [fetchCart]);
 
+  const paymentMethodsToRenderData = (methods) => {
+    if (!methods || !Array.isArray(methods)) return {};
+    const out = [];
+    methods.map((key, index) => {
+      const info = paymentMethodsInfo[key];
+      if (info) out.push({ ...info, key });
+    });
+    return out;
+  };
+
   // Преобразование данных с мемоизацией
+  const shippingMethods = getShippingMethods();
   const cartItems = useMemo(() => transformRestCartItems(items), [items]);
-  const shippingMethods = useMemo(() => transformRestShippingMethods(shipping_rates), [shipping_rates]);
-  const paymentMethods = useMemo(() => transformRestPaymentMethods(payment_methods), [payment_methods]);
   const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
   const finalTotal = useMemo(() => (totals?.total_price ? parsePrice(totals.total_price) : 0), [totals?.total_price]);
   const appliedCoupon = useMemo(() => coupons?.[0], [coupons]);
@@ -118,6 +131,16 @@ const Cart = () => {
 
   const handleImageError = useCallback((e) => {
     e.target.src = "/images/product_image.jpg";
+  }, []);
+
+  const onDeliveryMethodChange = useCallback(async (method) => {
+    try {
+      console.log("[onDeliveryMethodChange =====>] method", method);
+      await setupShippingRate(method.id);
+      setSelectedShipping(method.id);
+    } catch (err) {
+      handleCartError(err, "❌ Ошибка при выборе способа доставки");
+    }
   }, []);
 
   // Инициализация способов доставки
@@ -323,7 +346,7 @@ const Cart = () => {
                             name="shipping"
                             value={method.id}
                             checked={selectedShipping === method.id}
-                            onChange={() => setSelectedShipping(method.id)}
+                            onChange={() => onDeliveryMethodChange(method)}
                             className="cart__shipping-checkbox"
                             disabled={isDisabled}
                           />

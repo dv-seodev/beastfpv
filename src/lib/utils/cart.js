@@ -7,7 +7,7 @@ import { parsePrice } from "./price";
  */
 export const transformCartItems = (nodes) => {
   if (!nodes || !Array.isArray(nodes)) return [];
-  
+
   return nodes.map((node) => ({
     key: node.key,
     id: node.key,
@@ -27,7 +27,7 @@ export const transformCartItems = (nodes) => {
  */
 export const transformShippingMethods = (availableShippingMethods) => {
   if (!availableShippingMethods || !Array.isArray(availableShippingMethods)) return [];
-  
+
   return availableShippingMethods
     .flatMap((pkg) => pkg.rates || [])
     .map((rate) => ({
@@ -44,7 +44,7 @@ export const transformShippingMethods = (availableShippingMethods) => {
  */
 export const transformPaymentMethods = (nodes) => {
   if (!nodes || !Array.isArray(nodes)) return [];
-  
+
   return nodes.map((gateway) => ({
     id: gateway.id,
     title: gateway.title,
@@ -59,7 +59,7 @@ export const transformPaymentMethods = (nodes) => {
  */
 export const transformRestCartItems = (items) => {
   if (!items || !Array.isArray(items)) return [];
-  
+
   return items.map((item) => ({
     key: item.key,
     id: item.key,
@@ -79,7 +79,7 @@ export const transformRestCartItems = (items) => {
  */
 export const transformRestShippingMethods = (shippingRates) => {
   if (!shippingRates || !Array.isArray(shippingRates)) return [];
-  
+
   return shippingRates
     .flatMap((pkg) => pkg.shipping_rates || [])
     .map((rate) => ({
@@ -87,29 +87,6 @@ export const transformRestShippingMethods = (shippingRates) => {
       title: rate.name,
       cost: parsePrice(rate.price || "0"),
     }));
-};
-
-/**
- * Дефолтные методы оплаты для REST API
- */
-const DEFAULT_PAYMENT_METHODS = [
-  { id: "cod", title: "Оплата наличными", description: "Оплата наличными при самовывозе" },
-  { id: "bacs", title: "Оплата на расчетный счет", description: "Оплата на расчетный счет" },
-  { id: "yookassa_widget", title: "Онлайн-оплата Юкасса", description: "Онлайн-оплата Юкасса" },
-];
-
-/**
- * Преобразует методы оплаты из REST API формата
- * @param {Array} paymentMethodIds - Массив ID методов оплаты из REST API cart.payment_methods
- * @returns {Array} - Массив методов оплаты в упрощённом формате
- */
-export const transformRestPaymentMethods = (paymentMethodIds) => {
-  if (!paymentMethodIds || !Array.isArray(paymentMethodIds)) return DEFAULT_PAYMENT_METHODS;
-  
-  return paymentMethodIds.map((methodId) => {
-    const found = DEFAULT_PAYMENT_METHODS.find((m) => m.id === methodId);
-    return found || { id: methodId, title: methodId, description: "" };
-  });
 };
 
 /**

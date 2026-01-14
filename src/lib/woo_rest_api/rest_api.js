@@ -36,6 +36,10 @@ class WooRestApi extends WooClient {
   clearCart = async () => {
     return this.delete("/cart/items");
   };
+
+  selectShippingRate = async (packageId, rateId) => {
+    return this.post("/cart/select-shipping-rate", { package_id: packageId, rate_id: rateId });
+  };
 }
 
 const wpUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL;

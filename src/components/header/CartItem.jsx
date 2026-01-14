@@ -11,14 +11,11 @@ const CartIcon = () => {
   const isLoading = loading;
 
   const cartState = useRestCart((state) => state);
-  console.log("cartState: ", cartState);
 
   return (
     <Link href="/cart" className="icon-action cart-icon">
       <img src="/icons-header/basket.svg" alt="cart" />
-      {!isLoading && items_count > 0 && (
-        <span className="cart-icon__badge">{items_count}</span>
-      )}
+      {!isLoading && items_count > 0 && <span className="cart-icon__badge">{items_count}</span>}
     </Link>
   );
 };
