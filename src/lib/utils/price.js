@@ -26,6 +26,6 @@ export const formatPriceForDisplay = (price) => {
     new Intl.NumberFormat("ru-RU", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(Math.round(price)) + " ₽"
+    }).format(Math.round(price / 100)) + " ₽"
   );
 };

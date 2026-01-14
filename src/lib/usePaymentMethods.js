@@ -27,7 +27,7 @@ export const usePaymentMethods = () => {
   if (!methods.some((m) => m.id === "cod")) {
     methods.push({
       id: "cod",
-      title: "Оплата при получении",
+      title: "Оплата наличными при получении",
       description: "",
     });
   }
