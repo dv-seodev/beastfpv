@@ -23,6 +23,15 @@ export const usePaymentMethods = () => {
     }));
   }
 
+  // Лютый костыль
+  if (!methods.some((m) => m.id === "cod")) {
+    methods.push({
+      id: "cod",
+      title: "Оплата при получении",
+      description: "",
+    });
+  }
+
   return {
     methods,
     loading,
