@@ -16,6 +16,7 @@ import {
 } from "../../lib/utils/cart";
 import { title } from "process";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
+import { useState } from "react";
 
 const EmptyCartState = ({ title, children }) => (
   <section className="cart">
@@ -57,6 +58,8 @@ const Cart = () => {
   const items = cart?.items || [];
   const totals = cart?.totals || {};
   const coupons = cart?.coupons || [];
+
+  const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
 
   // Загрузка данных корзины
   useEffect(() => {
@@ -135,11 +138,13 @@ const Cart = () => {
 
   const onDeliveryMethodChange = useCallback(async (method) => {
     try {
-      console.log("[onDeliveryMethodChange =====>] method", method);
-      await setupShippingRate(method.id);
+      setShippingMethodUpdating(true);
       setSelectedShipping(method.id);
+      await setupShippingRate(method.id);
     } catch (err) {
       handleCartError(err, "❌ Ошибка при выборе способа доставки");
+    } finally {
+      setShippingMethodUpdating(false);
     }
   }, []);
 
@@ -274,7 +279,7 @@ const Cart = () => {
           </div>
 
           {/* ПРАВАЯ ЧАСТЬ - СУММА И МЕТОДЫ */}
-          <div className="cart__right-section">
+          <div className={`cart__right-section ${shippingMethodUpdating ? "is-updating" : ""}`}>
             <div className="cart__price-info">
               <h3 className="cart__price-heading">Сумма заказа</h3>
               <div className="cart__price-wrapper">

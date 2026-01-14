@@ -130,7 +130,6 @@ const Checkout = () => {
                   name="name"
                   value={values.name}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Имя"
                 />
@@ -139,7 +138,6 @@ const Checkout = () => {
                   name="email"
                   value={values.email}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Email"
                 />
@@ -148,7 +146,6 @@ const Checkout = () => {
                   name="phone"
                   value={values.phone}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Телефон"
                 />
@@ -157,7 +154,6 @@ const Checkout = () => {
                   name="state"
                   value={values.state}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Область/Регион"
                 />
@@ -166,7 +162,6 @@ const Checkout = () => {
                   name="city"
                   value={values.city}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Город"
                 />
@@ -175,7 +170,6 @@ const Checkout = () => {
                   name="street"
                   value={values.street}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Улица"
                 />
@@ -193,40 +187,23 @@ const Checkout = () => {
                   name="postcode"
                   value={values.postcode}
                   onChange={handleChange}
-                  onBlur={handleBlur}
                   className="checkout__form-input"
                   placeholder="Почтовый индекс"
                 />
               </div>
 
               {isPickup && <CheckoutPickupNotice />}
-              <button type="submit">Отправить</button>
+              {!isPickup && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
+
+              <br />
+              <br />
+
+              <button type="submit" className="checkout__form-button-submit">
+                Оформить заказ
+              </button>
             </form>
           )}
         </Formik>
-
-        {!isPickup && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
-
-        {/* CheckoutForm 
-        <form className="checkout__form" onSubmit={handleSubmit}>
-          <CheckoutAuthInfo user={user} />
-          <CheckoutContactForm formData={formData} onChange={handleInputChange} isUserLoggedIn={!!user} />
-
-          {!isPickup && <CheckoutAddressForm formData={formData} onChange={handleInputChange} />}
-          {isPickup && <CheckoutPickupNotice />}
-          {!isPickup && <CdekMap onPVZselect={handlePVZSelect} />}
-
-          <CheckoutPriceBreakdown
-            baseTotal={baseTotal}
-            discountTotal={discountTotal}
-            shippingCost={shippingCost}
-            finalTotal={finalTotal}
-            isPickup={isPickup}
-          />
-
-          <CheckoutSubmitSection isSubmitting={isSubmitting} />
-        </form>
-        */}
 
         <NewItems products={homeData.new_products} />
       </div>
