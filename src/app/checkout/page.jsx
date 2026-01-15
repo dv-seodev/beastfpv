@@ -193,7 +193,7 @@ const Checkout = () => {
               </div>
 
               {isPickup && <CheckoutPickupNotice />}
-              {!isPickup && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
+              {selectedShipping.includes('cdek') && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
 
               <br />
               <br />
