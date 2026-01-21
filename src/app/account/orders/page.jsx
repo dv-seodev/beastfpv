@@ -14,26 +14,20 @@ const OrdersPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        console.log('🔐 Проверка авторизации');
-        console.log('👤 User:', user);
-        console.log('🔑 Token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
 
         if (!authLoading && !token) {
-            console.log('❌ Не авторизован, редирект');
             router.push('/login/');
         }
     }, [token, authLoading, router]);
 
     useEffect(() => {
         if (!authLoading && token) {
-            console.log('📦 Загружаем заказы');
             fetchOrders();
         }
     }, [authLoading, token]);
 
     const fetchOrders = async () => {
         try {
-            console.log('🔑 Отправляем запрос с токеном');
 
             const response = await fetch('/api/auth/orders', {
                 method: 'GET',
@@ -91,13 +85,13 @@ const OrdersPage = () => {
         const normalizedStatus = status?.toLowerCase().replace(/_/g, '-');
 
         const statusMap = {
-            'completed': { text: '✅ Завершён', color: '#4caf50' },
-            'processing': { text: '⏳ Обработка', color: '#ff9800' },
-            'pending': { text: '⏱️ Ожидание', color: '#2196f3' },
-            'on-hold': { text: '⏸️ На удержании', color: '#ff9800' },
-            'cancelled': { text: '❌ Отменён', color: '#f44336' },
-            'refunded': { text: '💸 Возврат', color: '#9c27b0' },
-            'failed': { text: '❌ Ошибка', color: '#f44336' },
+            'completed': { text: 'Завершён', color: '#4caf50' },
+            'processing': { text: 'Обработка', color: '#ff9800' },
+            'pending': { text: 'Ожидание', color: '#2196f3' },
+            'on-hold': { text: 'На удержании', color: '#ff9800' },
+            'cancelled': { text: 'Отменён', color: '#f44336' },
+            'refunded': { text: 'Возврат', color: '#9c27b0' },
+            'failed': { text: 'Ошибка', color: '#f44336' },
         };
 
         const statusInfo = statusMap[normalizedStatus] || { text: status, color: '#999' };
@@ -133,10 +127,7 @@ const OrdersPage = () => {
             const numPrice = parseFloat(cleanPrice);
 
             if (!isNaN(numPrice)) {
-                return numPrice.toLocaleString('ru-RU', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }) + ' ₽';
+                return numPrice.toLocaleString('ru-RU') + ' ₽';
             }
 
             // Если не смогли распарсить, возвращаем как есть
@@ -144,10 +135,7 @@ const OrdersPage = () => {
         }
 
         // Если это число
-        return parseFloat(price).toLocaleString('ru-RU', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) + ' ₽';
+        return parseFloat(price).toLocaleString('ru-RU') + ' ₽';
     };
 
     return (
@@ -187,12 +175,13 @@ const OrdersPage = () => {
                         <div style={{
                             padding: '20px',
                             marginTop: '15px',
+                            marginBottom: '30px',
                             backgroundColor: '#f9f9f9',
                             borderRadius: '4px',
                             textAlign: 'center',
                             color: '#999'
                         }}>
-                            📭 У вас пока нет заказов
+                            У вас пока нет заказов
                         </div>
                     ) : (
                         <div className="account__orders-list" style={{ marginTop: '20px' }}>
@@ -200,14 +189,12 @@ const OrdersPage = () => {
                                 // ✨ Правильная структура GraphQL: lineItems.nodes
                                 const lineItems = order.lineItems?.nodes || [];
 
-                                console.log('📦 Order:', order.orderNumber, 'Items:', lineItems.length);
-
                                 return (
                                     <div
                                         key={order.id}
                                         className="account__order-item"
                                         style={{
-                                            padding: '15px',
+                                            padding: '20px',
                                             marginBottom: '15px',
                                             backgroundColor: '#f9f9f9',
                                             borderRadius: '8px',
@@ -222,25 +209,25 @@ const OrdersPage = () => {
                                             flexWrap: 'wrap',
                                             gap: '10px'
                                         }}>
-                                            <h3 style={{ margin: 0 }}>
-                                                Заказ {order.orderNumber || `#${order.databaseId}`}
-                                            </h3>
+                                            <Link href={`/account/orders/${order.orderNumber}`}>
+                                                <h3 style={{ margin: 0, textDecoration: 'underline', textUnderlineOffset: '5px' }}>
+                                                    Заказ {order.orderNumber}
+                                                </h3></Link>
                                             {getStatusBadge(order.status)}
+
                                         </div>
 
                                         <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                                            📅 {formatDate(order.date)}
+                                            <Link href={`/account/orders/${order.orderNumber}`}>
+                                                📅 {formatDate(order.date)}
+                                            </Link>
                                         </p>
 
                                         <div style={{
-                                            marginTop: '10px',
-                                            paddingTop: '10px',
-                                            borderTop: '1px solid #ddd'
                                         }}>
                                             <h4 style={{ margin: '5px 0' }}>Товары:</h4>
                                             {lineItems.length > 0 ? (
                                                 lineItems.map((item, idx) => {
-                                                    // ✨ Правильная структура: item.product.node
                                                     const productName = item.product?.node?.name || 'Товар';
 
                                                     return (
@@ -249,7 +236,7 @@ const OrdersPage = () => {
                                                             fontSize: '14px'
                                                         }}>
                                                             <p style={{ margin: '3px 0' }}>
-                                                                • {productName} × {item.quantity}
+                                                                {productName} × {item.quantity}
                                                             </p>
                                                             <p style={{ margin: '3px 0', color: '#2180a0', fontWeight: 'bold' }}>
                                                                 {formatPrice(item.total)}
@@ -265,13 +252,12 @@ const OrdersPage = () => {
                                         <div style={{
                                             marginTop: '10px',
                                             paddingTop: '10px',
-                                            borderTop: '1px solid #ddd',
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center'
                                         }}>
-                                            <span style={{ fontSize: '14px', color: '#666' }}>
-                                                💰 Итого:
+                                            <span style={{ fontSize: '14px', color: '#666', marginRight: '12px' }}>
+                                                Итог:
                                             </span>
                                             <span style={{
                                                 fontSize: '18px',

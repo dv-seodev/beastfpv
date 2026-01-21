@@ -70,7 +70,10 @@ const Cart = () => {
   const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
 
 
-
+  // Загрузка данных корзины
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   const paymentMethodsToRenderData = (methods) => {
     if (!methods || !Array.isArray(methods)) return {};
@@ -197,7 +200,7 @@ const Cart = () => {
 
     // Фильтруем видимые методы оплаты
     const visibleMethods = paymentMethods.filter((method) => {
-      if (isLocalPickup && method.id === "yookassa_widget") {
+      if (isLocalPickup && method.id !== "cod") {
         return false;
       }
       if (isCdek && method.id === "cod") {
@@ -385,7 +388,7 @@ const Cart = () => {
 
                         // ✅ ТОЛЬКО ФИЛЬТРАЦИЯ - БЕЗ setState
                         const visibleMethods = paymentMethods.filter((method) => {
-                          if (isLocalPickup && method.id === "yookassa_widget") {
+                          if (isLocalPickup && method.id !== "cod") {
                             return false;
                           }
                           if (isCdek && method.id === "cod") {

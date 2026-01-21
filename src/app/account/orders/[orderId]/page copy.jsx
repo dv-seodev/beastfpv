@@ -13,7 +13,6 @@ const OrderDetailPage = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [invoiceUrl, setInvoiceUrl] = useState(null);
 
     useEffect(() => {
         if (authLoading) return;
@@ -58,14 +57,6 @@ const OrderDetailPage = () => {
             console.log('✅ Order loaded:', order);
             setOrder(order);
 
-            if (order.payment_method === 'bacs' && Array.isArray(order.meta_data)) {
-                const invoiceMeta = order.meta_data.find(
-                    (meta) => meta.key === '_bacs_invoice_url'
-                );
-                if (invoiceMeta?.value) {
-                    setInvoiceUrl(invoiceMeta.value);
-                }
-            }
         } catch (err) {
             console.error('🔴 Error loading order:', err);
             setError(err.message);
@@ -157,8 +148,6 @@ const OrderDetailPage = () => {
     const statusInfo = getStatusBadge(order.status);
     const orderItems = order.line_items || [];
 
-    console.log('orderItems - ', orderItems);
-
     const getProductSlug = async (productId) => {
         try {
             const response = await fetch(
@@ -199,14 +188,6 @@ const OrderDetailPage = () => {
                                 })}
                             </p>
                         </div>
-
-                        {order.payment_method === 'bacs' && invoiceUrl && (
-                            <h3 style={{ marginBottom: '20px' }}>
-                                <Link href={invoiceUrl} download>
-                                    📄 Скачать счёт на оплату
-                                </Link>
-                            </h3>
-                        )}
 
                         {/* СТАТУС И ИТОГО */}
                         <div className="account__order-summary">
@@ -316,8 +297,8 @@ const OrderDetailPage = () => {
 
                     </div>
                 </section>
-            </div >
-        </section >
+            </div>
+        </section>
     );
 };
 

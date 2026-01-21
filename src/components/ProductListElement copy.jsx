@@ -2,59 +2,92 @@
 
 import Link from "next/link";
 import { useProductsList } from "../lib/ProductsListController";
+import { useCartStore } from "../stores/cartStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import api from "../lib/api";
+import client from "../lib/ApolloClient";
+import { useCustomGql } from "../lib/useCustomGql";
 import restApi from "../lib/woo_rest_api/rest_api";
-// ✅ ИЗМЕНЕНИЕ: Заменяем старый useCartStore на новый useRestCart
 import { useRestCart } from "../lib/hooks/useRestCart";
 
-// ✅ ИЗМЕНЕНИЕ: Добавляем пропс isInCart (вычисляется в родителе)
-function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
+function ProductListItem({ product, onAddCart, onOneClick }) {
   const router = useRouter();
   const { formatPrice } = useProductsList();
+  const { updateCart } = useCartStore();
   const [isMounted, setIsMounted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  // ✅ ИЗМЕНЕНИЕ: Локальное состояние inCart инициализируется пропсом
-  const [inCart, setInCart] = useState(isInCart);
+  const [inCart, setInCart] = useState(false); // ✅ ЛОКАЛЬНОЕ СОСТОЯНИЕ
 
-  // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart вместо старого useCartStore
-  const { updateCart } = useRestCart();
+  const restCart = useRestCart();
 
   // Проверяем hydration
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // ✅ ИЗМЕНЕНИЕ: Синхронизируем локальное состояние с пропсом isInCart
+  // ✅ НОВЫЙ USEEFFECT: следим за изменениями корзины
   useEffect(() => {
-    setInCart(isInCart);
-  }, [isInCart]);
+    if (isMounted) {
+      const cartItems = useCartStore.getState().items;
+      const isProductInCart = cartItems.some(
+        (item) =>
+          item.product?.node?.id === product.id ||
+          item.id === product.databaseId ||
+          item.id === product.id
+      );
+      setInCart(isProductInCart);
+    }
+  }, [isMounted, product.id, product.databaseId]);
 
-  // ✨ Проверка: товар в наличии или нет
+  // ✅ СЛУШАЕМ ИЗМЕНЕНИЯ ZUSTAND STORE
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const unsubscribe = useCartStore.subscribe(
+      (state) => state.items,
+      (items) => {
+        const isProductInCart = items.some(
+          (item) =>
+            item.product?.node?.id === product.id ||
+            item.id === product.databaseId ||
+            item.id === product.id
+        );
+        setInCart(isProductInCart);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isMounted, product.id, product.databaseId, product.name]);
+
+  // ✨ НОВАЯ ПРОВЕРКА: товар в наличии или нет
   const isOutOfStock =
     product.stockStatus === "OUT_OF_STOCK" || product.stockQuantity === 0;
 
   // Используем изображение или плейсхолдер
   const imageUrl = product?.image?.sourceUrl || "/images/placeholder.jpg";
 
-  // ✅ ИЗМЕНЕНИЕ: Переделан метод добавления товара в корзину с использованием REST API
+  // ✅ НОВЫЙ МЕТОД: добавление товара в корзину через GraphQL
   const handleAddToCart = async () => {
     try {
       setIsAddingToCart(true);
 
-      // ✅ Добавляем товар в корзину через REST API
+      // Add to cart via REST API
       const newCart = await restApi.addToCart({
         id: product.databaseId,
         quantity: 1,
       });
+      restCart.updateCart(newCart);
 
-      // ✅ ИЗМЕНЕНИЕ: Обновляем состояние REST корзины
-      updateCart(newCart);
+      // ✅ Получаем обновленную корзину
+      const { fetchCart } = useCustomGql();
+      const { data: cartData } = fetchCart();
 
-      // ✅ ИЗМЕНЕНИЕ: Устанавливаем состояние товара в корзине
-      setInCart(true);
-
-      console.log("✅ Товар успешно добавлен в корзину листинга");
+      if (cartData?.cart) {
+        updateCart(cartData.cart);
+        setInCart(true); // ✅ ОБНОВЛЯЕМ ЛОКАЛЬНОЕ СОСТОЯНИЕ
+        console.log("✅ Товар успешно добавлен в корзину");
+      }
     } catch (err) {
       console.error("❌ Ошибка при добавлении в корзину:", err);
       alert("❌ Ошибка при добавлении товара в корзину");
@@ -63,12 +96,12 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
     }
   };
 
-  // ✅ Переход в корзину
+  // ✅ ПЕРЕХОД В КОРЗИНУ
   const handleGoToCart = () => {
     router.push("/cart/");
   };
 
-  // ✅ Обработчик клика по кнопке корзины
+  // ✅ ОБРАБОТЧИК КЛИКА ПО КНОПКЕ КОРЗИНЫ
   const handleCartButtonClick = () => {
     if (inCart) {
       // Если товар в корзине - переходим на страницу корзины
@@ -79,7 +112,7 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
     }
   };
 
-  // ✨ Обработчик для предзаказа
+  // ✨ ОБРАБОТЧИК ДЛЯ ПРЕДЗАКАЗА
   const handlePreOrder = () => {
     onOneClick(product);
   };
@@ -102,14 +135,13 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
           <div className="new-items__out-of-stock-text">Нет в наличии</div>
         ) : (
           <button
-            // ✅ ИЗМЕНЕНИЕ: Класс меняется в зависимости от состояния inCart
-            className={`new-items__cart-button button ${inCart ? "cart-added" : ""
-              }`}
+            className={`new-items__cart-button button ${
+              inCart ? "cart-added" : ""
+            }`}
             onClick={handleCartButtonClick}
             disabled={isAddingToCart}
             type="button"
-            // ✅ ИЗМЕНЕНИЕ: Подсказка меняется в зависимости от состояния
-            title={inCart ? "Перейти в корзину" : "Добавить в корзину"}
+            title={inCart ? "Товар в корзине" : "Добавить в корзину"}
             style={{
               opacity: isAddingToCart ? 0.6 : 1,
               cursor: isAddingToCart ? "not-allowed" : "pointer",
@@ -120,7 +152,7 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
         )}
       </div>
 
-      {/* ✨ КНОПКА ПРЕДЗАКАЗА */}
+      {/* ✨ УСЛОВНЫЙ ТЕКСТ И ОБРАБОТЧИК */}
       <button
         className="new-items__one-click button"
         type="button"

@@ -26,39 +26,16 @@ const Register = () => {
         }
     }, [token, user, router]);
 
-    // ✅ ИЗМЕНЕНИЕ: Функция для расшифровки ошибок регистрации
-    const getDetailedRegisterError = (errorCode, errorText) => {
-        const errorMessages = {
-            'validation_error': 'Ошибка валидации: ' + errorText,
-            'username_exists': 'Это имя пользователя уже занято. Выберите другое.',
-            'email_exists': 'Этот email уже зарегистрирован. Используйте другой или войдите в систему.',
-            'registration_error': 'Ошибка при регистрации. ' + errorText,
-            'invalid_json': 'Ошибка формата данных. Попробуйте еще раз.',
-            'config_error': 'Ошибка конфигурации сервера.',
-            'unexpected_response': 'Неожиданный ответ от сервера.',
-            'server_error': 'Ошибка сервера. Попробуйте позже.',
-        };
-
-        // Если есть код ошибки, используем его
-        if (errorMessages[errorCode]) {
-            return errorMessages[errorCode];
-        }
-
-        // Иначе возвращаем текст как есть (от сервера)
-        return errorText || 'Ошибка при регистрации. Попробуйте позже.';
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value,
         }));
-        // ✅ ИЗМЕНЕНИЕ: Очищаем ошибку при вводе
+        // Очищаем ошибку при вводе
         if (localError) setLocalError('');
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Улучшенная валидация формы с подробными ошибками
     const validateForm = () => {
         // Валидация username
         if (!formData.username.trim()) {
@@ -67,10 +44,6 @@ const Register = () => {
         }
         if (formData.username.length < 3) {
             setLocalError('Имя пользователя должно содержать минимум 3 символа');
-            return false;
-        }
-        if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
-            setLocalError('Имя пользователя может содержать только буквы, цифры, дефис и подчеркивание');
             return false;
         }
 
@@ -108,7 +81,7 @@ const Register = () => {
         e.preventDefault();
         setLocalError('');
 
-        // ✅ ИЗМЕНЕНИЕ: Валидация формы на клиенте
+        // Валидация формы
         if (!validateForm()) {
             return;
         }
@@ -118,15 +91,14 @@ const Register = () => {
         try {
             console.log('📝 Попытка регистрации:', formData.username, formData.email);
 
-            // ✅ ИЗМЕНЕНИЕ: Улучшенная обработка ответа от сервера
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: formData.username.trim(),
-                    email: formData.email.trim(),
+                    username: formData.username,
+                    email: formData.email,
                     password: formData.password,
                 }),
             });
@@ -134,28 +106,20 @@ const Register = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                console.error('❌ Ошибка регистрации:', data);
-
-                // ✅ ИЗМЕНЕНИЕ: Обработка ошибок от сервера
-                const errorMessage = getDetailedRegisterError(data.code, data.message);
-                setLocalError(errorMessage);
-                return;
+                throw new Error(data.message || 'Ошибка регистрации');
             }
 
-            if (data.success) {
-                console.log('✅ Регистрация успешна:', data.user);
+            console.log('✅ Регистрация успешна:', data);
 
-                // ✅ ИЗМЕНЕНИЕ: Редирект после успешной регистрации
-                setTimeout(() => {
-                    console.log('🔄 Перенаправляем на /login/?registered=true');
-                    router.push('/login/?registered=true');
-                }, 500);
-            }
+            // Перенаправляем на страницу логина с сообщением
+            setTimeout(() => {
+                console.log('🔄 Перенаправляем на /login/');
+                router.push('/login/?registered=true');
+            }, 500);
+
         } catch (err) {
             console.error('❌ Ошибка регистрации:', err);
-            setLocalError(
-                err.message || 'Ошибка подключения к серверу. Проверьте интернет-соединение и попробуйте еще раз.'
-            );
+            setLocalError(err.message || 'Ошибка регистрации. Попробуйте ещё раз.');
         } finally {
             setIsSubmitting(false);
         }
@@ -250,10 +214,6 @@ const Register = () => {
                     <p className="register__login">
                         Уже есть аккаунт?{' '}
                         <Link href="/login/">Войти</Link>
-                    </p><br />
-                    <p className="login__signup">
-                        Забыли пароль?{' '}
-                        <Link href="/register/">Восстановить</Link>
                     </p>
                 </form>
             </div>

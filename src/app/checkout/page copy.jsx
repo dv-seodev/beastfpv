@@ -23,21 +23,11 @@ import {
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
 import wooRestApi from "../../lib/woo_rest_api/rest_api";
 
-import { useAuth } from "../../lib/useAuth";
-import { useAccountController } from "../../lib/AccountController";
-
 const Checkout = () => {
   const router = useRouter();
   const { data: homeData, loading: newProductsLoading } = useHomeData();
   const { selectedPayment, selectedShipping, getShippingMethods, cartInitialized } = useRestCart();
   const cart = useRestCart((state) => state.cart);
-
-  // 🔽 АВТОРИЗАЦИЯ + ПРОФИЛЬ 
-  const { token } = useAuth();
-  const {
-    profileData,
-    profileLoading,
-  } = useAccountController(token);
 
   // Payment and Shipping Data
   const paymentMethods = usePaymentMethods();
@@ -49,19 +39,17 @@ const Checkout = () => {
   const isPickup = useMemo(() => selectedShipping?.includes("pickup") || false, [selectedShipping]);
   const isLoading = useMemo(() => newProductsLoading || !cartInitialized);
   const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
-
-  // 🔽 ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ initialValues ИЗ ПРОФИЛЯ
   const formInitialValues = {
-    name: profileData?.firstName || "",
-    surname: profileData?.lastName || "",
-    email: profileData?.email || "",
-    phone: profileData?.billing?.phone || "",
-    city: profileData?.shipping?.city || "",
-    street: profileData?.shipping?.address1 || "",
-    house: profileData?.shipping?.address2 || "",
-    country: profileData?.shipping?.country || "RU",
-    state: profileData?.shipping?.state || "",
-    postcode: profileData?.shipping?.postcode || "",
+    name: "",
+    surname: "",
+    email: "",
+    phone: "",
+    city: "",
+    street: "",
+    house: "",
+    country: "RU",
+    state: "",
+    postcode: "",
     comments: "",
   };
 
@@ -89,7 +77,7 @@ const Checkout = () => {
       customer_note: values.comments || "",
       payment_method: selectedPayment || "",
       payment_data: [],
-      shipping_lines: [],
+      // shipping_lines: [],
       extensions: {},
 
     };
@@ -147,7 +135,7 @@ const Checkout = () => {
 
         <CheckoutMethodsInfo paymentMethod={selectedPaymentMethod} shippingMethod={selectedShippingMethod} />
 
-        <Formik initialValues={formInitialValues} enableReinitialize={true} onSubmit={handleSubmitForm}>
+        <Formik initialValues={formInitialValues} onSubmit={handleSubmitForm}>
           {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
             <form className="checkout__form" onSubmit={handleSubmit}>
               <b>Ваши данные</b><br />

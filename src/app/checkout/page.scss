@@ -115,11 +115,12 @@
     height: 57px;
     color: var(--black);
     padding: 10px;
-    font-size: 20px;
+    font-size: 18px;
 
     @include respond-to("large") {
       margin-bottom: 20px;
       height: 48px;
+      font-size: 14px;
     }
   }
 
@@ -196,4 +197,11 @@
 
 .continue-buy {
   text-decoration: underline;
+}
+
+.ship-met {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 40px;
+  display: grid;
 }

@@ -68,13 +68,13 @@ const Account = () => {
 
                 <div className="account__profile-section">
                     {profileLoading ? (
-                        <div className="account__profile-loading">⏳ Загрузка профиля...</div>
+                        <div className="account__profile-loading">Загрузка профиля...</div>
                     ) : (
                         <form onSubmit={handleSaveProfile}>
                             {/* Основная информация */}
                             <div className="account__profile-card">
                                 <h2 className="account__profile-title">
-                                    <span>👤</span> Основная информация
+                                    Основная информация
                                 </h2>
                                 <div className="account__profile-grid">
                                     <div>
@@ -123,7 +123,7 @@ const Account = () => {
                             {/* Адрес доставки */}
                             <div className="account__profile-card">
                                 <h2 className="account__profile-title">
-                                    <span>🏠</span> Адрес доставки
+                                    Адрес доставки
                                 </h2>
                                 <div className="account__profile-grid">
                                     <div>
@@ -190,7 +190,6 @@ const Account = () => {
                             </div>
 
                             {/* Кнопки */}
-                            {/* Кнопки */}
                             <div className="account__profile-actions">
                                 {!isEditing ? (
                                     <button
@@ -198,7 +197,7 @@ const Account = () => {
                                         onClick={handleStartEdit}
                                         className="account__profile-edit-btn"
                                     >
-                                        ✏️ Редактировать профиль
+                                        Редактировать профиль
                                     </button>
                                 ) : (
                                     <>
@@ -215,7 +214,7 @@ const Account = () => {
                                             disabled={saving}
                                             className="account__profile-cancel-btn"
                                         >
-                                            ❌ Отмена
+                                            Отмена
                                         </button>
                                     </>
                                 )}

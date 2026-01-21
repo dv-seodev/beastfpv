@@ -7,6 +7,8 @@ import {
   ApolloLink,
 } from "@apollo/client";
 
+import { BatchHttpLink } from "@apollo/client/link/batch-http";
+
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 /**
@@ -87,10 +89,15 @@ const client = new ApolloClient({
   ssrMode: clientSide,
   link: middleware.concat(
     afterware.concat(
-      createHttpLink({
+      new BatchHttpLink({
         uri: process.env.NEXT_PUBLIC_GRAPHQL_URL,
         fetch,
         credentials: "include", // Include cookies for authentication
+
+        // ⚙️ Настройки batching
+        batchMax: 5,          // Макс 5 операций в batch
+        batchInterval: 20,    // Интервал в ms
+        batchDebounce: false, // Throttling режим
       })
     )
   ),

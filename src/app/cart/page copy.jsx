@@ -1,6 +1,5 @@
 "use client";
 
-
 import Link from "next/link";
 import { useEffect, useMemo, useCallback } from "react";
 import "./page.scss";
@@ -19,7 +18,6 @@ import { title } from "process";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
 import { useState } from "react";
 
-
 const EmptyCartState = ({ title, children }) => (
   <section className="cart">
     <div className="container cart__container">
@@ -32,10 +30,8 @@ const EmptyCartState = ({ title, children }) => (
   </section>
 );
 
-
 const Cart = () => {
   const { data, loading } = useHomeData();
-
 
   const {
     selectedShipping,
@@ -58,18 +54,18 @@ const Cart = () => {
     setupShippingRate,
   } = useRestCart();
 
-
   const { methods: paymentMethods } = usePaymentMethods();
-
 
   const items = cart?.items || [];
   const totals = cart?.totals || {};
   const coupons = cart?.coupons || [];
 
-
   const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
 
-
+  // Загрузка данных корзины
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
 
   const paymentMethodsToRenderData = (methods) => {
@@ -82,23 +78,15 @@ const Cart = () => {
     return out;
   };
 
-
   // Преобразование данных с мемоизацией
   const shippingMethods = getShippingMethods();
-
-
   const cartItems = useMemo(() => transformRestCartItems(items), [items]);
   const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
   const finalTotal = useMemo(() => (totals?.total_price ? parsePrice(totals.total_price) : 0), [totals?.total_price]);
   const appliedCoupon = useMemo(() => coupons?.[0], [coupons]);
   const hasAppliedCoupon = !!appliedCoupon;
 
-
   const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
-
-  console.log('🔍 DEBUG shippingMethods:', shippingMethods);
-  console.log('🔍 DEBUG selectedShipping:', selectedShipping);
-  console.log('🔍 DEBUG selectedShippingMethod:', selectedShippingMethod);
 
   // Обработчики с мемоизацией и обработкой ошибок
   const handleQuantityChangeWrapper = useCallback(
@@ -112,7 +100,6 @@ const Cart = () => {
     [handleQuantityChange]
   );
 
-
   const handleRemoveItemWrapper = useCallback(
     async (itemKey) => {
       try {
@@ -124,7 +111,6 @@ const Cart = () => {
     [handleRemoveItem]
   );
 
-
   const handleClearCartWrapper = useCallback(async () => {
     try {
       await handleClearCart();
@@ -133,7 +119,6 @@ const Cart = () => {
     }
   }, [handleClearCart]);
 
-
   const handleApplyCoupon = useCallback(async () => {
     try {
       await applyCoupon(couponCode);
@@ -141,7 +126,6 @@ const Cart = () => {
       // Ошибка уже обработана в useRestCart
     }
   }, [applyCoupon, couponCode]);
-
 
   const handleRemoveCoupon = useCallback(async () => {
     if (!appliedCoupon) return;
@@ -152,34 +136,28 @@ const Cart = () => {
     }
   }, [removeCoupon, appliedCoupon]);
 
-
   const handleImageError = useCallback((e) => {
     e.target.src = "/images/product_image.jpg";
   }, []);
 
-
   const onDeliveryMethodChange = useCallback(async (method) => {
     try {
       setShippingMethodUpdating(true);
-      setSelectedShipping(method.id);           // ← React state ✅
-      await setupShippingRate(method.id);       // ← Сервер ✅
+      setSelectedShipping(method.id);
+      await setupShippingRate(method.id);
     } catch (err) {
       handleCartError(err, "❌ Ошибка при выборе способа доставки");
     } finally {
       setShippingMethodUpdating(false);
     }
-  }, [setSelectedShipping, setupShippingRate]);
+  }, []);
 
-
-  // // Инициализация способов доставки
-  // useEffect(() => {
-  //   console.log('📍 Effect triggered:', {
-  //     shippingMethodsLength: shippingMethods?.length,
-  //     selectedShippingId: selectedShipping,
-  //     shouldInitialize: !selectedShipping && shippingMethods?.length > 0,
-  //   });
-  // }, [shippingMethods, selectedShipping]);
-
+  // Инициализация способов доставки
+  useEffect(() => {
+    if (shippingMethods?.length > 0 && !selectedShipping) {
+      setSelectedShipping(shippingMethods[0].id);
+    }
+  }, [shippingMethods, selectedShipping, setSelectedShipping]);
 
   // Инициализация способов оплаты
   useEffect(() => {
@@ -188,16 +166,14 @@ const Cart = () => {
     }
   }, [paymentMethods, selectedPayment, setSelectedPayment]);
 
-
   useEffect(() => {
     const shippingMethod = selectedShippingMethod?.method || "";
     const isLocalPickup = shippingMethod.includes("pickup");
     const isCdek = shippingMethod.includes("cdek");
 
-
     // Фильтруем видимые методы оплаты
     const visibleMethods = paymentMethods.filter((method) => {
-      if (isLocalPickup && method.id === "yookassa_widget") {
+      if (isLocalPickup && method.id !== "cod") {
         return false;
       }
       if (isCdek && method.id === "cod") {
@@ -206,29 +182,24 @@ const Cart = () => {
       return true;
     });
 
-
     // Если выбранный метод больше не видим — сбрасываем на первый доступный
     if (visibleMethods.length > 0 && !visibleMethods.find(m => m.id === selectedPayment)) {
       setSelectedPayment(visibleMethods[0].id);
     }
   }, [selectedShippingMethod, paymentMethods, selectedPayment, setSelectedPayment]);
 
-
   // Состояния загрузки
   const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
   const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
   const isDisabled = cartLoading;
 
-
   if (isLoading) {
     return <EmptyCartState title="Загрузка..." />;
   }
 
-
   if (!data) {
     return <EmptyCartState title="Нет данных" />;
   }
-
 
   if (displayItems.length === 0) {
     return (
@@ -253,7 +224,6 @@ const Cart = () => {
       <div className="container cart__container">
         <h1 className="cart__header">Корзина</h1>
 
-
         <div className="cart__wrapper">
           {/* ЛЕВАЯ ЧАСТЬ - ТОВАРЫ */}
           <div className="cart__items">
@@ -266,7 +236,6 @@ const Cart = () => {
                 <span></span>
                 <span></span>
               </div>
-
 
               {displayItems.map((item) => (
                 <div key={item.key} className="cart__product-item">
@@ -325,7 +294,6 @@ const Cart = () => {
               ))}
             </div>
 
-
             <button
               type="button"
               className="cart__clear-button cart__coupon-submit"
@@ -335,7 +303,6 @@ const Cart = () => {
               {cartLoading ? "⏳ Очищаем..." : "Очистить корзину"}
             </button>
           </div>
-
 
           {/* ПРАВАЯ ЧАСТЬ - СУММА И МЕТОДЫ */}
           <div className={`cart__right-section ${shippingMethodUpdating ? "is-updating" : ""}`}>
@@ -347,7 +314,6 @@ const Cart = () => {
                   <span className="cart__price-numb">{formatPriceForDisplay(baseTotal)}</span>
                 </div>
 
-
                 {/* ПРИМЕНЁННЫЙ КУПОН */}
                 {appliedCoupon && (
                   <div className="cart__price-discount cart__price-underline">
@@ -357,7 +323,6 @@ const Cart = () => {
                     </span>
                   </div>
                 )}
-
 
                 {couponMessage && (
                   <div
@@ -371,7 +336,6 @@ const Cart = () => {
                   </div>
                 )}
 
-
                 {/* СПОСОБ ОПЛАТЫ */}
                 <div className="cart__price-shipping">
                   <span className="cart__price-name">Способы оплаты:</span>
@@ -382,10 +346,9 @@ const Cart = () => {
                         const isLocalPickup = shippingMethod.includes("pickup");
                         const isCdek = shippingMethod.includes("cdek");
 
-
                         // ✅ ТОЛЬКО ФИЛЬТРАЦИЯ - БЕЗ setState
                         const visibleMethods = paymentMethods.filter((method) => {
-                          if (isLocalPickup && method.id === "yookassa_widget") {
+                          if (isLocalPickup && method.id !== "cod") {
                             return false;
                           }
                           if (isCdek && method.id === "cod") {
@@ -393,7 +356,6 @@ const Cart = () => {
                           }
                           return true;
                         });
-
 
                         // ✅ ТОЛЬКО РЕНДЕР - БЕЗ логики
                         return visibleMethods.map((method) => (
@@ -418,7 +380,6 @@ const Cart = () => {
                     )}
                   </div>
                 </div>
-
 
                 {/* СПОСОБ ДОСТАВКИ */}
                 <div className="cart__price-shipping">
@@ -449,14 +410,12 @@ const Cart = () => {
                   </div>
                 </div>
 
-
                 <div className="cart__price-final">
                   <span className="cart__price-name price-bold">Итого:</span>
                   <span className="cart__price-numb">{formatPriceForDisplay(finalTotal)}</span>
                 </div>
               </div>
             </div>
-
 
             <form
               className="cart__form"
@@ -485,7 +444,6 @@ const Cart = () => {
                 </button>
               </div>
 
-
               <Link
                 href="/checkout"
                 className="cart__form-button-submit"
@@ -502,12 +460,10 @@ const Cart = () => {
           </div>
         </div>
 
-
         <NewItems products={data.new_products} />
       </div>
     </section>
   );
 };
-
 
 export default Cart;

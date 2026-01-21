@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from './useAuth'; // ✅ Импорт
+import { useAuth } from './useAuth';
 
 export function useAccountController() {
-    const { token, logout, isHydrated } = useAuth(); // ✅ Вызов ВНУТРИ хука
+    const { token, logout, isHydrated } = useAuth();
     const router = useRouter();
 
     const [profileData, setProfileData] = useState(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState(null);
+    const [messageType, setMessageType] = useState('success');
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -41,6 +43,16 @@ export function useAccountController() {
             fetchProfile();
         }
     }, [token, isHydrated]);
+
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => {
+                setMessage(null);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     const fetchProfile = async () => {
         if (!token) return;
@@ -110,7 +122,7 @@ export function useAccountController() {
         setSaving(true);
 
         try {
-            console.log('💾 Сохраняем профиль:', formData);
+            console.log('💾 Сохраняем профиль:', JSON.stringify(formData, null, 2));
 
             const res = await fetch('/api/auth/profile', {
                 method: 'PUT',
@@ -121,18 +133,31 @@ export function useAccountController() {
                 body: JSON.stringify(formData),
             });
 
-            if (!res.ok) throw new Error(`Ошибка ${res.status}`);
-
             const savedData = await res.json();
+
+            console.log('📦 Response status:', res.status);
+            console.log('📦 Response data:', JSON.stringify(savedData, null, 2));
+
+            if (!res.ok) {
+                const errorMsg = savedData.error || `Ошибка ${res.status}`;
+                console.error('❌ API error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
             console.log('✅ Профиль сохранён:', savedData);
 
             setProfileData(savedData);
             setIsEditing(false);
-            alert('✅ Профиль успешно обновлён');
+
+            setMessageType('success');
+            setMessage('✅ Профиль успешно обновлён');
+
             await fetchProfile();
         } catch (error) {
             console.error('❌ Ошибка сохранения профиля:', error);
-            alert('❌ Ошибка при сохранении профиля');
+
+            setMessageType('error');
+            setMessage(`❌ Ошибка: ${error.message}`);
         } finally {
             setSaving(false);
         }
@@ -180,6 +205,8 @@ export function useAccountController() {
         isEditing,
         saving,
         formData,
+        message,
+        messageType,
         handleSaveProfile,
         handleStartEdit,
         handleCancelEdit,

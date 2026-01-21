@@ -2,21 +2,32 @@
 
 import Link from "next/link";
 import './Popular_products.scss';
-import { useState } from 'react';
-import { useCartStore } from '../stores/cartStore';
+import { useState, useEffect } from 'react';
+import { useRestCart } from '../lib/hooks/useRestCart';
 import { useProductsList } from '../lib/ProductsListController';
 import ProductListItem from "./ProductListElement";
 import OneClickModal from "./OneClickModal";
 
 const PopularProducts = ({ products }) => {
-    const { addCartProduct, formatPrice } = useProductsList();
+    const { formatPrice } = useProductsList();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleAddCart = (product) => {
-        addCartProduct(product);
-    };
+    // ✅ ИЗМЕНЕНИЕ: Получаем корзину из useRestCart
+    const { cart, fetchCart } = useRestCart();
 
+    // ✅ ИЗМЕНЕНИЕ: Загружаем корзину при монтировании компонента
+    useEffect(() => {
+        fetchCart();
+    }, [fetchCart]);
+
+    // ✅ ИЗМЕНЕНИЕ: Вычисляем ID товаров в корзине один раз для всех ProductListItem
+    // Это предотвращает множественные запросы в каждом компоненте
+    const cartProductIds = new Set(
+        (cart?.items || []).map(item => item.product_id || item.id)
+    );
+
+    // ✅ ИЗМЕНЕНИЕ: Удаляем handleAddCart (больше не нужен, логика в ProductListItem)
     const handleOneClick = (product) => {
         setSelectedProduct(product);
         setIsModalOpen(true);
@@ -37,7 +48,8 @@ const PopularProducts = ({ products }) => {
                             <ProductListItem
                                 product={product}
                                 key={product.id}
-                                onAddCart={handleAddCart}
+                                // ✅ ИЗМЕНЕНИЕ: Пробрасываем вычисленный флаг isInCart
+                                isInCart={cartProductIds.has(product.databaseId)}
                                 onOneClick={handleOneClick}
                             />
                         ))}

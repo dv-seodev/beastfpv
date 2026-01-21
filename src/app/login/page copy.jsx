@@ -36,102 +36,37 @@ const Login = () => {
         }
     }, [searchParams]);
 
-    // ✅ ИЗМЕНЕНИЕ: Функция для расшифровки кодов ошибок
-    const getDetailedErrorMessage = (errorCode, errorText) => {
-        const errorMessages = {
-            // Ошибки валидации
-            'invalid_credentials': 'Неверное имя пользователя или пароль. Попробуйте еще раз.',
-            'invalid_json': 'Ошибка формата данных. Попробуйте отправить форму еще раз.',
-            'service_unavailable': 'Сервис временно недоступен. Попробуйте позже.',
-            'server_error': 'Внутренняя ошибка сервера. Наша команда уже работает над исправлением. Попробуйте позже.',
-            'user_not_found': 'Пользователь с таким именем пользователя или email не найден.',
-            'access_denied': 'У вас нет прав доступа. Свяжитесь с администратором.',
-        };
-
-        // Если есть код ошибки, используем его
-        if (errorMessages[errorCode]) {
-            return errorMessages[errorCode];
-        }
-
-        // Иначе возвращаем текст как есть (от сервера)
-        return errorText || 'Попробуйте еще раз или свяжитесь с поддержкой.';
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value,
         }));
-        // ✅ ИЗМЕНЕНИЕ: Очищаем ошибки при изменении поля
-        setLocalError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // ✅ ИЗМЕНЕНИЕ: Очищаем предыдущие ошибки
         setLocalError('');
         setSuccessMessage('');
-
-        // ✅ ИЗМЕНЕНИЕ: Базовая валидация на клиенте
-        if (!formData.username.trim()) {
-            setLocalError('Введите имя пользователя или email');
-            return;
-        }
-
-        if (!formData.password) {
-            setLocalError('Введите пароль');
-            return;
-        }
-
         setIsSubmitting(true);
 
         try {
             console.log('📝 Попытка входа:', formData.username);
 
-            // ✅ ИЗМЕНЕНИЕ: Вызываем API напрямую с улучшенной обработкой ошибок
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: formData.username.trim(),
-                    password: formData.password,
-                }),
-            });
+            // ✅ Вызываем функцию входа из хука
+            await login(formData.username, formData.password);
 
-            const data = await response.json();
+            console.log('✅ Вход успешен, токен получен');
 
-            if (!response.ok) {
-                // ✅ ИЗМЕНЕНИЕ: Обработка ошибок от сервера
-                console.error('❌ Ошибка входа:', data);
+            // ✅ Редирект после успешного входа
+            setTimeout(() => {
+                console.log('🔄 Перенаправляем на /account/');
+                router.push('/account/');
+            }, 500);
 
-                const errorMessage = getDetailedErrorMessage(data.code, data.error);
-                setLocalError(errorMessage);
-                return;
-            }
-
-            if (data.success) {
-                console.log('✅ Вход успешен, токен получен');
-
-                // ✅ ИЗМЕНЕНИЕ: Вызываем функцию входа из хука (если она используется)
-                if (login) {
-                    await login(formData.username, formData.password);
-                }
-
-                // ✅ ИЗМЕНЕНИЕ: Редирект после успешного входа
-                setTimeout(() => {
-                    console.log('🔄 Перенаправляем на /account/');
-                    router.push('/account/');
-                }, 500);
-            }
         } catch (err) {
-            console.error('❌ Ошибка сети:', err);
-            setLocalError(
-                'Ошибка подключения к серверу. Проверьте интернет-соединение и попробуйте еще раз.'
-            );
+            console.error('❌ Ошибка входа:', err);
+            setLocalError(err.message || 'Ошибка входа. Проверьте учётные данные.');
         } finally {
             setIsSubmitting(false);
         }
@@ -164,7 +99,7 @@ const Login = () => {
                         <div className="login__success">{successMessage}</div>
                     )}
 
-                    {/* ✅ Сообщение об ошибке */}
+                    {/* ❌ Сообщение об ошибке */}
                     {(localError || authError) && (
                         <div className="login__error">
                             ⚠️ {localError || authError}
@@ -208,10 +143,6 @@ const Login = () => {
                     <p className="login__signup">
                         Нет аккаунта?{' '}
                         <Link href="/register/">Зарегистрироваться</Link>
-                    </p><br />
-                    <p className="login__signup">
-                        Забыли пароль?{' '}
-                        <Link href="/register/">Восстановить</Link>
                     </p>
                 </form>
             </div>

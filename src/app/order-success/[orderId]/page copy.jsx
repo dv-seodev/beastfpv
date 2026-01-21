@@ -2,28 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuth } from '../../../../lib/useAuth';
 import Link from 'next/link';
-import '../../page.scss';
+import '../../account/page.scss';
 
-const OrderDetailPage = () => {
+const OrderSuccessPage = () => {
     const router = useRouter();
     const params = useParams();
-    const { user, token, loading: authLoading } = useAuth();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [invoiceUrl, setInvoiceUrl] = useState(null);
 
     useEffect(() => {
-        if (authLoading) return;
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-        if (!params.orderId) return; // ← Проверяем, что orderId загружен
+        if (!params.orderId) return;
         fetchOrderDetails();
-    }, [user, token, authLoading, params.orderId]); // ← ДОБАВЛЕНА зависимость params.orderId
+    }, [params.orderId]);
 
     const fetchOrderDetails = async () => {
         try {
@@ -31,18 +23,14 @@ const OrderDetailPage = () => {
             setError(null);
 
             const orderId = params.orderId;
-            console.log('🔍 Loading order:', orderId); // ← Логирование для отладки
+            console.log('🔍 Loading order:', orderId);
 
-            const response = await fetch(
-                `/api/auth/orders/${orderId}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
             console.log('📡 Backend API Response status:', response.status);
 
@@ -54,18 +42,8 @@ const OrderDetailPage = () => {
             }
 
             const order = await response.json();
-
             console.log('✅ Order loaded:', order);
             setOrder(order);
-
-            if (order.payment_method === 'bacs' && Array.isArray(order.meta_data)) {
-                const invoiceMeta = order.meta_data.find(
-                    (meta) => meta.key === '_bacs_invoice_url'
-                );
-                if (invoiceMeta?.value) {
-                    setInvoiceUrl(invoiceMeta.value);
-                }
-            }
         } catch (err) {
             console.error('🔴 Error loading order:', err);
             setError(err.message);
@@ -77,23 +55,16 @@ const OrderDetailPage = () => {
     const formatPriceForDisplay = (price) => {
         if (!price) return '0 ₽';
 
-        // Парсим цену в число
         let numPrice;
-
         if (typeof price === 'string') {
-            // Убираем все кроме цифр и точки
             numPrice = parseFloat(price.replace(/[^\d.]/g, ''));
         } else {
             numPrice = parseFloat(price);
         }
 
-        // Если не число, возвращаем оригинальное значение
         if (isNaN(numPrice)) return price;
-
-        // Форматируем с пробелом как разделитель тысяч
         return numPrice.toLocaleString('ru-RU') + ' ₽';
     };
-
 
     const getStatusBadge = (status) => {
         const statusMap = {
@@ -110,7 +81,7 @@ const OrderDetailPage = () => {
         return statusMap[normalizedStatus] || { label: status, color: '#666' };
     };
 
-    if (authLoading || loading) {
+    if (loading) {
         return (
             <section className="account__section">
                 <div className="account__container">
@@ -131,8 +102,8 @@ const OrderDetailPage = () => {
                     <div className="account__error">
                         ❌ Ошибка: {error}
                     </div>
-                    <Link href="/account/orders" className="account__back-link">
-                        ← Вернуться к заказам
+                    <Link href="/" className="account__back-link">
+                        ← На главную
                     </Link>
                 </div>
             </section>
@@ -146,8 +117,8 @@ const OrderDetailPage = () => {
                     <div className="account__error">
                         ❌ Заказ не найден
                     </div>
-                    <Link href="/account/orders" className="account__back-link">
-                        ← Вернуться к заказам
+                    <Link href="/" className="account__back-link">
+                        ← На главную
                     </Link>
                 </div>
             </section>
@@ -157,40 +128,28 @@ const OrderDetailPage = () => {
     const statusInfo = getStatusBadge(order.status);
     const orderItems = order.line_items || [];
 
-    console.log('orderItems - ', orderItems);
-
-    const getProductSlug = async (productId) => {
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wc/v3/products/${productId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    }
-                }
-            );
-            const product = await response.json();
-            return product.slug;
-        } catch (err) {
-            console.error('Error fetching product slug:', err);
-            return productId;
-        }
-    };
-
     return (
         <section className="account-order">
             <div className="container account__container">
                 <section className="account__section">
                     <div className="account__container">
-                        <Link href="/account/orders" className="account__back-link">
-                            ← Вернуться к заказам
+                        <Link href="/" className="account__back-link">
+                            ← На главную
                         </Link>
 
                         {/* ЗАГОЛОВОК */}
+                        <div className="account__success-header" style={{ textAlign: 'center', lineHeight: '26px', marginBottom: '20px', padding: '20px' }}>
+                            <div style={{ fontSize: '48px', paddingBottom: '20px' }}>✅</div>
+                            <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>Заказ успешно оформлен!</h1>
+                            <p style={{ fontSize: '16px', color: '#666' }}>
+                                Благодарим за оказанное доверие! Номер вашего заказа: <strong>#{order.number}</strong>
+                            </p>
+                        </div>
+
                         <div className="account__header">
                             <h1 className="account__title">Заказ #{order.number}</h1>
                             <p className="account__subtitle">
-                                📅 {new Date(order.date_created).toLocaleDateString('ru-RU', {
+                                📅   {new Date(order.date_created).toLocaleDateString('ru-RU', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
@@ -199,14 +158,6 @@ const OrderDetailPage = () => {
                                 })}
                             </p>
                         </div>
-
-                        {order.payment_method === 'bacs' && invoiceUrl && (
-                            <h3 style={{ marginBottom: '20px' }}>
-                                <Link href={invoiceUrl} download>
-                                    📄 Скачать счёт на оплату
-                                </Link>
-                            </h3>
-                        )}
 
                         {/* СТАТУС И ИТОГО */}
                         <div className="account__order-summary">
@@ -219,7 +170,7 @@ const OrderDetailPage = () => {
                                 </span>
                             </div>
                             <div className="account__order-total">
-                                <span className="account__total-label">Итого:</span>
+                                <span className="account__total-label">Итог:</span>
                                 <span className="account__total-amount">
                                     {formatPriceForDisplay(order.total)}
                                 </span>
@@ -244,7 +195,7 @@ const OrderDetailPage = () => {
                                                 </div>
                                                 <div className="account__item-details">
                                                     <Link
-                                                        href={`/product/${item.slug}`}
+                                                        href={`/product/${item.slug || item.product_id}`}
                                                         className="account__item-name"
                                                     >
                                                         {item.name || 'Товар'}
@@ -308,17 +259,15 @@ const OrderDetailPage = () => {
                             {order.payment_method_title && (
                                 <div className="account__address-block">
                                     <h3 className="account__address-title">💳 Способ оплаты</h3>
-                                    <p className="aaccount__address-content">{order.payment_method_title}</p>
+                                    <p className="account__address-content">{order.payment_method_title}</p>
                                 </div>
                             )}
                         </div>
-
-
                     </div>
                 </section>
-            </div >
-        </section >
+            </div>
+        </section>
     );
 };
 
-export default OrderDetailPage;
+export default OrderSuccessPage;

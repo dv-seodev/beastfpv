@@ -1,22 +1,27 @@
 export async function GET(request, { params }) {
     const { orderId } = await params;
 
+
     console.log(`📍 GET /api/orders/${orderId}`);
+
 
     if (!orderId) {
         return Response.json({ error: 'Order ID required' }, { status: 400 });
     }
+
 
     try {
         const wooUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
         const wooUsername = process.env.WOOCOMMERCE_USERNAME;
         const wooPassword = process.env.WOOCOMMERCE_APP_PASSWORD;
 
+
         console.log('🔧 Config:', {
             wooUrl: wooUrl ? '✓' : '✗',
             wooUsername: wooUsername ? '✓' : '✗',
             wooPassword: wooPassword ? '✓' : '✗',
         });
+
 
         if (!wooUrl || !wooUsername || !wooPassword) {
             console.error('❌ Missing environment variables');
@@ -26,10 +31,13 @@ export async function GET(request, { params }) {
             );
         }
 
+
         const credentials = Buffer.from(`${wooUsername}:${wooPassword}`).toString('base64');
         const wooApiUrl = `${wooUrl}/wp-json/wc/v3/orders/${orderId}`;
 
+
         console.log('📡 Fetching order from:', wooApiUrl);
+
 
         const response = await fetch(wooApiUrl, {
             method: 'GET',
@@ -39,9 +47,12 @@ export async function GET(request, { params }) {
             },
         });
 
+
         console.log('📊 WooCommerce Status:', response.status);
 
+
         let data = await response.json();
+
 
         if (!response.ok) {
             console.error('❌ WooCommerce Error:', data);
@@ -51,16 +62,19 @@ export async function GET(request, { params }) {
             );
         }
 
+
         console.log(`✅ Order #${data.number} found with ${data.line_items?.length || 0} items`);
 
-        // 🎯 ОБОГАЩАЕМ ЗАКАЗ SLUG'ОМ
+
+        // 🎯 ОБОГАЩАЕМ ЗАКАЗ SLUG'ОМ (точно как в auth версии)
         if (data.line_items && data.line_items.length > 0) {
             const productIds = data.line_items.map((item) => item.product_id);
             console.log('📦 Loading slugs for products:', productIds);
 
+
             try {
-                // Запрашиваем все продукты одним запросом
                 const productsUrl = `${wooUrl}/wp-json/wc/v3/products?include=${productIds.join(',')}&per_page=${productIds.length}`;
+
 
                 const productsResponse = await fetch(productsUrl, {
                     method: 'GET',
@@ -70,21 +84,23 @@ export async function GET(request, { params }) {
                     },
                 });
 
+
                 if (productsResponse.ok) {
                     const products = await productsResponse.json();
 
-                    // Создаём карту id → slug
+
                     const slugMap = {};
                     products.forEach((product) => {
                         slugMap[product.id] = product.slug;
                         console.log(`✅ Slug for ${product.id}: ${product.slug}`);
                     });
 
-                    // Добавляем slug в каждый line_item
+
                     data.line_items = data.line_items.map((item) => ({
                         ...item,
                         slug: slugMap[item.product_id] || null,
                     }));
+
 
                     console.log('✅ Order enriched with slugs');
                 } else {
@@ -92,11 +108,19 @@ export async function GET(request, { params }) {
                 }
             } catch (slugError) {
                 console.warn('⚠️ Error loading slugs:', slugError.message);
-                // Если ошибка — заказ всё равно вернём, просто без slug
             }
         }
 
+
+        // Получаем URL счёта для BACS
+        const invoice_url = data.meta_data?.find(m => m.key === '_bacs_invoice_url')?.value;
+        if (invoice_url) {
+            console.log('📄 Invoice URL found:', invoice_url);
+            data.invoice_url = invoice_url;
+        }
+        console.log('asdasd')
         return Response.json(data);
+
 
     } catch (error) {
         console.error('❌ Server Error:', error.message);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import './New_items.scss';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
@@ -14,17 +14,24 @@ import 'swiper/css/pagination';
 import ProductListItem from "./ProductListElement";
 import OneClickModal from "./OneClickModal";
 
+// ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart вместо старого useCartStore
+import { useRestCart } from '../lib/hooks/useRestCart';
 import { useProductsList } from '../lib/ProductsListController';
 
 const NewItems = ({ products }) => {
-    const { addCartProduct, formatPrice } = useProductsList();
+    const { formatPrice } = useProductsList();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleAddCart = (product) => {
-        addCartProduct(product);
-    };
+    const { cart } = useRestCart();
 
+    // ✅ ИЗМЕНЕНИЕ: Вычисляем ID товаров в корзине один раз для всех ProductListItem
+    // Это предотвращает множественные запросы в каждом компоненте
+    const cartProductIds = new Set(
+        (cart?.items || []).map(item => item.product_id || item.id)
+    );
+
+    // ✅ ИЗМЕНЕНИЕ: Удаляем handleAddCart (больше не нужен, логика в ProductListItem)
     const handleOneClick = (product) => {
         setSelectedProduct(product);
         setIsModalOpen(true);
@@ -71,7 +78,8 @@ const NewItems = ({ products }) => {
                                     <div className="new-items__items-grid">
                                         <ProductListItem
                                             product={product}
-                                            onAddCart={handleAddCart}
+                                            // ✅ ИЗМЕНЕНИЕ: Пробрасываем вычисленный флаг isInCart
+                                            isInCart={cartProductIds.has(product.databaseId)}
                                             onOneClick={handleOneClick}
                                         />
                                     </div>

@@ -63,7 +63,7 @@ export function useAuth() {
             const { data, errors } = await client.mutate({
                 mutation: loginMutation,
                 variables: {
-                    username,    // ✅ переменные отдельно
+                    username,    // ✅ переменные отдельноыфыв
                     password
                 }
             });
