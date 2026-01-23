@@ -70,8 +70,6 @@ const Cart = () => {
   const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
 
 
-
-
   const paymentMethodsToRenderData = (methods) => {
     if (!methods || !Array.isArray(methods)) return {};
     const out = [];
@@ -95,10 +93,6 @@ const Cart = () => {
 
 
   const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
-
-  console.log('🔍 DEBUG shippingMethods:', shippingMethods);
-  console.log('🔍 DEBUG selectedShipping:', selectedShipping);
-  console.log('🔍 DEBUG selectedShippingMethod:', selectedShippingMethod);
 
   // Обработчики с мемоизацией и обработкой ошибок
   const handleQuantityChangeWrapper = useCallback(
@@ -185,6 +179,7 @@ const Cart = () => {
   useEffect(() => {
     if (paymentMethods?.length > 0 && !selectedPayment) {
       setSelectedPayment(paymentMethods[0].id);
+      console.log('selected payment', setSelectedPayment);
     }
   }, [paymentMethods, selectedPayment, setSelectedPayment]);
 
@@ -197,7 +192,7 @@ const Cart = () => {
 
     // Фильтруем видимые методы оплаты
     const visibleMethods = paymentMethods.filter((method) => {
-      if (isLocalPickup && method.id === "yookassa_widget") {
+      if (isLocalPickup && method.id === "yookassa_epl") {
         return false;
       }
       if (isCdek && method.id === "cod") {
@@ -205,6 +200,8 @@ const Cart = () => {
       }
       return true;
     });
+
+
 
 
     // Если выбранный метод больше не видим — сбрасываем на первый доступный
@@ -384,8 +381,9 @@ const Cart = () => {
 
 
                         // ✅ ТОЛЬКО ФИЛЬТРАЦИЯ - БЕЗ setState
+                        console.log(paymentMethods);
                         const visibleMethods = paymentMethods.filter((method) => {
-                          if (isLocalPickup && method.id === "yookassa_widget") {
+                          if (isLocalPickup && method.id === "yookassa_epl") {
                             return false;
                           }
                           if (isCdek && method.id === "cod") {

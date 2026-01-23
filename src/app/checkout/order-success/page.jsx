@@ -3,8 +3,8 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRestCart } from '../../lib/hooks/useRestCart';
-import wooRestApi from '../../lib/woo_rest_api/rest_api';
+import { useRestCart } from '../../../lib/hooks/useRestCart';
+import wooRestApi from '../../../lib/woo_rest_api/rest_api';
 import './page.scss';
 
 const OrderSuccess = () => {

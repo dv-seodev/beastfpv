@@ -168,6 +168,7 @@
     font-size: 16px;
     color: white;
     max-width: 485px;
+    cursor: pointer;
 
     @include respond-to("large") {
       height: 48px;
@@ -204,4 +205,14 @@
   grid-template-columns: 1fr 1fr;
   column-gap: 40px;
   display: grid;
+}
+
+.checkout__form-button-submit {
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.checkout__form-button-submit--loading {
+  background-color: #999; // цвет «во время оформления»
+  cursor: default;
+  opacity: 0.7;
 }

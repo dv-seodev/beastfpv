@@ -31,6 +31,7 @@ const Checkout = () => {
   const { data: homeData, loading: newProductsLoading } = useHomeData();
   const { selectedPayment, selectedShipping, getShippingMethods, cartInitialized } = useRestCart();
   const cart = useRestCart((state) => state.cart);
+  const [submitting, setSubmitting] = useState(false);
 
   // 🔽 АВТОРИЗАЦИЯ + ПРОФИЛЬ 
   const { token } = useAuth();
@@ -66,66 +67,69 @@ const Checkout = () => {
   };
 
   //Methods
-  const handleSubmitForm = (values) => {
+  const handleSubmitForm = async (values) => {
+    if (submitting) return;          // защита от двойных кликов
+    setSubmitting(true);
 
+    try {
+      const billingAddress = {
+        first_name: values.name.split(" ")[0] || "",
+        last_name: values.surname.split(" ")[0] || "",
+        company: "",
+        address_1: isPickup ? "САМОВЫВОЗ" : `${values.street} ${values.house}`,
+        address_2: "",
+        city: values.city || "Москва",
+        state: values.state || "Москва",
+        postcode: isPickup ? "119991" : values.postcode,
+        country: "RU",
+        email: values.email || "",
+        phone: values.phone || "",
+      };
 
-    const billingAddress = {
-      first_name: values.name.split(" ")[0] || "",
-      last_name: values.surname.split(" ")[0] || "",
-      company: "",
-      address_1: isPickup ? "САМОВЫВОЗ" : `${values.street} ${values.house}`,
-      address_2: "",
-      city: values.city || "Москва",
-      state: values.state || "Москва",
-      postcode: isPickup ? "119991" : values.postcode,
-      country: "RU",
-      email: values.email || "",
-      phone: values.phone || "",
-    };
+      const checkoutData = {
+        billing_address: { ...billingAddress },
+        shipping_address: { ...billingAddress },
+        customer_note: values.comments || "",
+        payment_method: selectedPayment || "",
+        payment_data: [],
+        shipping_lines: [],
+        extensions: {},
+      };
 
-    const checkoutData = {
-      billing_address: { ...billingAddress },
-      shipping_address: { ...billingAddress },
-      customer_note: values.comments || "",
-      payment_method: selectedPayment || "",
-      payment_data: [],
-      shipping_lines: [],
-      extensions: {},
-
-    };
-
-    if (selectedShippingMethod?.method == "official_cdek") {
-      checkoutData.shipping_lines.push({
-        method_id: selectedShippingMethod.id,
-        method_title: selectedShippingMethod.title,
-      });
-      if (cdekSelectedPoint) {
-        checkoutData.extensions.official_cdek = {
-          office_code: cdekSelectedPoint?.code || "",
-        };
+      if (selectedShippingMethod?.method === "official_cdek") {
+        checkoutData.shipping_lines.push({
+          method_id: selectedShippingMethod.id,
+          method_title: selectedShippingMethod.title,
+        });
+        if (cdekSelectedPoint) {
+          checkoutData.extensions.official_cdek = {
+            office_code: cdekSelectedPoint?.code || "",
+          };
+        }
       }
+
+      console.log("[Checkout Data]", checkoutData);
+
+      const result = await wooRestApi.createOrder(checkoutData);
+      console.log(result);
+      const orderId = result.order_id;
+      const redirectUrl = result.payment_result?.redirect_url;
+
+      if (result.payment_method === "cod" || result.payment_method === "bacs") {
+        router.push(`/checkout/order-success/${orderId}`);
+      }
+
+      if (result.payment_method === "yookassa_epl") {
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+      }
+    } catch (error) {
+      console.error("[Checkout Error]", error);
+      // тут можно показать тост/alert
+    } finally {
+      setSubmitting(false);          // вернём кнопку в нормальное состояние
     }
-    // Checkout method
-    console.log("[Checkout Data]", checkoutData);
-
-    wooRestApi
-      .createOrder(checkoutData)
-      .then((result) => {
-        console.log(result);
-        const orderId = result.order_id;
-        console.log('✅ Order created:', orderId);
-
-        if (result.payment_method === "cod" || result.payment_method === "bacs") {
-          router.push(`/order-success/${orderId}`);
-        } //else if (result.payment_method === "card") {
-        //   // Перейти на платёж → https://payment.gateway.com/...
-        //   window.location.href = result.payment_url;
-        // }
-
-      })
-      .catch((error) => {
-        console.error("[Checkout Error]", error);
-      });
   };
 
   const onCdekSelectedPVZ = (data) => {
@@ -247,8 +251,12 @@ const Checkout = () => {
               <br />
               <br />
 
-              <button type="submit" className="checkout__form-button-submit">
-                Оформить заказ
+              <button
+                type="submit"
+                className={`checkout__form-button-submit${submitting ? " checkout__form-button-submit--loading" : ""}`}
+                disabled={submitting}
+              >
+                {submitting ? "Заказ оформляется..." : "Оформить заказ"}
               </button>
             </form>
           )}

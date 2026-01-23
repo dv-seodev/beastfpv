@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import '../../account/page.scss';
+import '../../../account/page.scss';
 
 const OrderSuccessPage = () => {
     const router = useRouter();
