@@ -28,7 +28,6 @@ export default function RootLayout({ children }) {
 
   useEffect(() => {
     if (!cartInitialized) {
-      console.log("[RootLayout] Initialize cart");
       fetchCart();
     }
   }, [cartInitialized]);

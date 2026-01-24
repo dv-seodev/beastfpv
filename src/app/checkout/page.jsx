@@ -9,6 +9,7 @@ import { useRestCart } from "../../lib/hooks/useRestCart";
 import { Formik } from "formik";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Loader from "../../components/Loader";
 
 import {
   EmptyCheckoutState,
@@ -143,7 +144,11 @@ const Checkout = () => {
   RENDER SECTION
   ==================================================
   */
-  if (isLoading) return <EmptyCheckoutState title="Загрузка..." />;
+  if (isLoading) return (
+    <EmptyCartState>
+      <Loader label="Загружаем" />
+    </EmptyCartState>
+  );;
   if (cart.items.length === 0) return <EmptyCheckoutState title="Ваша корзина пуста" />;
 
   return (

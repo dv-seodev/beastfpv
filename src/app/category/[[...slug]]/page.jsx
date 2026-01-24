@@ -13,6 +13,7 @@ import LoadMore from "../../news/LoadMore";
 import { useBreadcrumbs } from "../../../lib/useBreadcrumbs";
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Loader from "../../../components/Loader";
 
 const Category_page = () => {
     const params = useParams();
@@ -46,7 +47,7 @@ const Category_page = () => {
     const [showAll, setShowAll] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false); // состояние мобильного фильтра
 
-    if (loading || filterLoading) return <div>Загрузка...</div>;
+    if (loading || filterLoading) return <Loader label="Загружаем" />;
     if (error) return <div>Ошибка: {error.message}</div>;
     if (filterError)
         return <div>Ошибка при загрузке фильтра: {filterError.message}</div>;

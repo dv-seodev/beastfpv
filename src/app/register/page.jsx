@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/useAuth';
 import './page.scss';
+import Loader from '../../components/Loader';
 
 const Register = () => {
     const router = useRouter();
@@ -167,7 +168,7 @@ const Register = () => {
             <section className="register">
                 <div className="container register__container">
                     <form className="register__form">
-                        <p style={{ textAlign: 'center' }}>⏳ Загрузка...</p>
+                        <Loader label="Загружаем" />
                     </form>
                 </div>
             </section>

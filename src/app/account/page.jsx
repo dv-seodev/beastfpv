@@ -8,6 +8,7 @@ import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
 import { useAuth } from "../../lib/useAuth";
 import { useAccountController } from "../../lib/AccountController";
+import Loader from "../../components/Loader";
 
 const Account = () => {
     const router = useRouter();
@@ -36,11 +37,11 @@ const Account = () => {
     }, [token, authLoading, router]);
 
     if (authLoading) {
-        return <div className="container" style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка...</div>;
+        return <Loader label="Загружаем" />;
     }
 
     if (!token) return null;
-    if (dataLoading) return <div className="container" style={{ padding: '20px' }}>Загрузка данных...</div>;
+    if (dataLoading) return <Loader label="Загружаем" />;
 
     const { new_products } = data || {};
 

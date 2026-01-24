@@ -2,6 +2,7 @@ import Link from "next/link";
 import './page.scss';
 import Breadcrumbs from "../category/[[...slug]]/Breadcrumbs";
 import LoadMore from "./LoadMore";
+import Loader from "../../components/Loader";
 
 const newspagePage = () => {
     return (

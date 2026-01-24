@@ -14,13 +14,12 @@ import Contact_us from "../components/Contact_us";
 import Actions from "../components/Actions";
 import Categories from "../components/Categories";
 import { useHomeData } from "../lib/HomePageDataContoller";
-import { useRestCart } from "../lib/hooks/useRestCart";
-import { useEffect } from "react";
+import Loader from "../components/Loader";
 
 export default function Home() {
   const { data, loading, error } = useHomeData();
 
-  if (loading) return <div>Загрузка...</div>;
+  if (loading) return <Loader label="Загрузаем" />;
   if (error) return <div>Ошибка: {error.message}</div>;
   if (!data) return <div>Нет данных</div>;
 

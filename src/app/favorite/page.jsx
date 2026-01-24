@@ -7,6 +7,7 @@ import ProductListItem from "../../components/ProductListElement";
 import { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import api from "../../lib/api";
+import Loader from "../../components/Loader";
 
 const FavoritePage = () => {
     const [isMounted, setIsMounted] = useState(false);
@@ -57,9 +58,7 @@ const FavoritePage = () => {
         return (
             <section className="popular-products favoritepage">
                 <div className="container popular-products__container favoritepage__container">
-                    <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                        Загрузка избранного...
-                    </div>
+                    <Loader label="Загружаем" />
                 </div>
             </section>
         );

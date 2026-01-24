@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import '../page.scss';
 import { useAuth } from "../../../lib/useAuth";
+import Loader from "../../../components/Loader";
 
 const OrdersPage = () => {
     const router = useRouter();
@@ -57,7 +58,7 @@ const OrdersPage = () => {
     };
 
     if (authLoading) {
-        return <div className="container" style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка...</div>;
+        return <Loader label="Загружаем" />;
     }
 
     if (!token) {
@@ -170,7 +171,7 @@ const OrdersPage = () => {
                     )}
 
                     {loading ? (
-                        <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Загрузка заказов...</div>
+                        <Loader label="Загружаем" />
                     ) : orders.length === 0 ? (
                         <div style={{
                             padding: '20px',

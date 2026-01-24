@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../../lib/useAuth';
 import Link from 'next/link';
 import '../../page.scss';
+import Loader from '../../../../components/Loader';
 
 const OrderDetailPage = () => {
     const router = useRouter();
@@ -16,7 +17,7 @@ const OrderDetailPage = () => {
     const [invoiceUrl, setInvoiceUrl] = useState(null);
 
     useEffect(() => {
-        if (authLoading) return;
+        if (authLoading) return <Loader label="Загружаем" />;
         if (!user) {
             router.push('/login');
             return;

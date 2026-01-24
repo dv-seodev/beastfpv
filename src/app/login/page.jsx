@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../lib/useAuth';
 import './page.scss';
+import Loader from '../../components/Loader';
 
 const Login = () => {
     const router = useRouter();
@@ -143,7 +144,7 @@ const Login = () => {
             <section className="login">
                 <div className="container login__container">
                     <form className="login__form">
-                        <p style={{ textAlign: 'center' }}>⏳ Загрузка...</p>
+                        <Loader label="Загружаем" />
                     </form>
                 </div>
             </section>

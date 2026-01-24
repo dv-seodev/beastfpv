@@ -1,0 +1,53 @@
+.cart-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 0;
+    min-height: 40vh; // чтобы не прыгала высота при загрузке
+}
+
+.cart-loader__graphics {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.cart-loader__drone {
+    width: 260px;
+    height: auto;
+}
+
+.cart-loader .blade {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: cart-drone-spin 0.6s linear infinite;
+}
+
+.cart-loader__text {
+    font-family: sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #999;
+    animation: cart-loader-blink 1.2s linear infinite;
+}
+
+@keyframes cart-drone-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes cart-loader-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.15;
+    }
+}

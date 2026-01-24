@@ -26,6 +26,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import client from "../../../lib/ApolloClient";
 import { useCustomGql } from "../../../lib/useCustomGql";
 import restApi from "../../../lib/woo_rest_api/rest_api";
+import Loader from "../../../components/Loader";
 // ✅ ИЗМЕНЕНИЕ: Удаляем неиспользуемый импорт useRestCart (был дублирован)
 
 
@@ -131,7 +132,7 @@ const Product_cart = () => {
         }
     }, [isMounted, product?.databaseId, isInFavorites]);
 
-    if (loading || homeLoading) return <div>Загрузка...</div>;
+    if (loading || homeLoading) return <Loader label="Загрузаем" />;
     if (error) return <div>Ошибка товара: {error.message}</div>;
     if (homeError) return <div>Ошибка данных: {homeError.message}</div>;
     if (!product) return <div>Товар не найден</div>;

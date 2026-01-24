@@ -18,6 +18,7 @@ import {
 import { title } from "process";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
 import { useState } from "react";
+import Loader from "../../components/Loader";
 
 
 const EmptyCartState = ({ title, children }) => (
@@ -219,7 +220,11 @@ const Cart = () => {
 
 
   if (isLoading) {
-    return <EmptyCartState title="Загрузка..." />;
+    return (
+      <EmptyCartState>
+        <Loader label="Загружаем" />
+      </EmptyCartState>
+    );
   }
 
 
