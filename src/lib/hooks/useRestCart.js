@@ -40,6 +40,7 @@ export const useRestCart = create(
           try {
             const cartData = await restApi.getCart();
             set({ cart: cartData, loading: false, cartInitialized: true });
+            await get().ensureShippingSelected();
           } catch (err) {
             console.error("❌ Ошибка при загрузке корзины:", err);
             set({ loading: false });
@@ -74,6 +75,40 @@ export const useRestCart = create(
 
             throw err;
           }
+        },
+
+        ensureShippingSelected: async () => {
+          const cart = get().cart;
+          const rates = cart?.shipping_rates;
+
+          if (!rates || !Array.isArray(rates) || rates.length === 0) return;
+
+          const pkg = rates[0]; // если у тебя 1 пакет доставки (чаще всего так)
+          const list = pkg?.shipping_rates || [];
+          if (list.length === 0) return;
+
+          // если сервер уже выбрал — просто синхронизируем selectedShipping в state
+          const serverSelected = list.find((r) => r.selected)?.rate_id;
+          if (serverSelected) {
+            if (get().selectedShipping !== serverSelected) {
+              set({ selectedShipping: serverSelected });
+            }
+            return;
+          }
+
+          // сервер НЕ выбрал — выбираем сами (prefer: сохранённый выбранный → иначе первый)
+          const preferred = get().selectedShipping;
+          const rateId =
+            preferred && list.some((r) => r.rate_id === preferred)
+              ? preferred
+              : list[0].rate_id;
+
+          const newCart = await restApi.selectShippingRate(pkg.package_id, rateId);
+
+          set({
+            cart: newCart,
+            selectedShipping: rateId,
+          });
         },
 
         handleRemoveItem: async (itemKey) => {
@@ -149,7 +184,7 @@ export const useRestCart = create(
           const packageId = rates[0].package_id;
           try {
             const newCart = await restApi.selectShippingRate(packageId, rateId);
-            set({ cart: newCart });
+            set({ cart: newCart, selectedShipping: rateId });
           } catch (err) {
             console.error("❌ Ошибка при выборе способа доставки:", err);
           }

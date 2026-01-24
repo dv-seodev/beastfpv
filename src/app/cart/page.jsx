@@ -32,10 +32,8 @@ const EmptyCartState = ({ title, children }) => (
   </section>
 );
 
-
 const Cart = () => {
   const { data, loading } = useHomeData();
-
 
   const {
     selectedShipping,
@@ -58,6 +56,9 @@ const Cart = () => {
     setupShippingRate,
   } = useRestCart();
 
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   const { methods: paymentMethods } = usePaymentMethods();
 

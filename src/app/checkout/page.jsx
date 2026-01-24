@@ -114,9 +114,11 @@ const Checkout = () => {
       console.log(result);
       const orderId = result.order_id;
       const redirectUrl = result.payment_result?.redirect_url;
+      const orderKey = result.order_key;
+      console.log('orderKey - ', orderKey);
 
       if (result.payment_method === "cod" || result.payment_method === "bacs") {
-        router.push(`/checkout/order-success/${orderId}`);
+        router.push(`/checkout/order-success/${orderId}?order_key=${encodeURIComponent(orderKey)}`);
       }
 
       if (result.payment_method === "yookassa_epl") {

@@ -1,18 +1,13 @@
-'use client';
+'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import '../../../account/page.scss';
-import { useAuth } from '../../../../lib/useAuth';
 
 const OrderSuccessPage = () => {
     const router = useRouter();
     const params = useParams();
-    const searchParams = useSearchParams();
-
-    const { token, isHydrated, isAuthenticated } = useAuth();
-
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,47 +15,35 @@ const OrderSuccessPage = () => {
 
     useEffect(() => {
         if (!params.orderId) return;
-        if (!isHydrated) return;
+        fetchOrderDetails();
+    }, [params.orderId]);
 
-        const orderKey = searchParams.get('order_key') || searchParams.get('key');
 
-        // нет ключа и не залогинен → уводим на логин
-        if (!orderKey && !isAuthenticated) {
-            // const next = `${window.location.pathname}${window.location.search}`;
-            router.push(`/login/`);
-            return;
-        }
-
-        fetchOrderDetails(orderKey);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [params.orderId, isHydrated, token, searchParams]);
-
-    const fetchOrderDetails = async (orderKey) => {
+    const fetchOrderDetails = async () => {
         try {
             setLoading(true);
             setError(null);
 
             const orderId = params.orderId;
 
-            const url = orderKey
-                ? `/api/orders/${orderId}?order_key=${encodeURIComponent(orderKey)}`
-                : `/api/orders/${orderId}`;
-
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers.Authorization = `Bearer ${token}`;
-
-            const response = await fetch(url, { method: 'GET', headers });
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
             if (!response.ok) {
-                if (response.status === 404) throw new Error('Заказ не найден');
-                if (response.status === 401) throw new Error('Нужно войти в аккаунт');
-                if (response.status === 403) throw new Error('Нет доступа к этому заказу');
+                if (response.status === 404) {
+                    throw new Error('Заказ не найден');
+                }
                 throw new Error(`Ошибка загрузки: ${response.status}`);
             }
 
             const order = await response.json();
             setOrder(order);
 
+            // ✅ если BACS и сервер прислал invoice_url — сохраняем
             if (order.payment_method === 'bacs' && order.invoice_url) {
                 setInvoiceUrl(order.invoice_url);
             }
