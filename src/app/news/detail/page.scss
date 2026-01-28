@@ -1,0 +1,147 @@
+@import '../../styles/breakpoints.scss';
+@import '../../styles/mixins.scss';
+
+.newsdetail {
+    &__container {
+        padding-top: 10px;
+        width: 100%;
+    }
+
+    &__date {
+        padding-bottom: 30px;
+    }
+
+    &__header {
+        padding-bottom: 40px;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 60px;
+
+        @include respond-to('ipad') {
+            font-size: 24px;
+            line-height: 28px;
+        }
+    }
+
+    &__banner {
+        width: 100%;
+        object-fit: cover;
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+
+            @include respond-to('medium') {
+                border-radius: 0px;
+                height: 200px;
+                object-fit: cover;
+                object-position: center bottom;
+            }
+
+        }
+    }
+
+    &__textarea {
+        padding-top: 40px;
+        padding-bottom: 40px;
+
+        @include respond-to('ipad') {
+            column-count: 1;
+        }
+
+        p {
+            padding-bottom: 10px
+        }
+    }
+
+    &__wrapper {
+        display: flex;
+        gap: 40px;
+
+        @include respond-to('ipad') {
+            flex-direction: column;
+        }
+    }
+
+    &__leftarea {
+        max-width: 1150px;
+    }
+
+    &__card {
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 0px;
+        max-width: 100%;
+
+        @include respond-from('ipad') {
+            max-width: 396px;
+        }
+
+
+        background-clip: padding-box;
+    }
+
+    &__card-image {
+        width: 100%;
+        max-width: 100%;
+        max-height: 150px;
+        height: auto;
+
+        @include respond-range(950px, 1050px) {
+            max-height: none;
+        }
+
+        @include respond-range(450px, 600px) {
+            max-height: none;
+        }
+
+        a {
+            display: flex;
+        }
+    }
+
+    &__card-image-img {
+        width: 100%;
+        object-fit: contain;
+        z-index: 100;
+    }
+
+    &__card-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: left;
+        gap: 20px;
+        padding: 30px;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border: 1px solid var(--news-item-border);
+
+        @include respond-to('ipad') {
+            padding: 20px;
+        }
+    }
+
+    &__card-header {
+        font-size: 16px;
+
+        @include respond-to('ipad') {
+            font-size: 14px;
+        }
+    }
+
+    &__card-date {
+        font-size: 16px;
+
+        @include respond-to('ipad') {
+            font-size: 12px;
+        }
+    }
+
+    &__other-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+}

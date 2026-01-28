@@ -19,3 +19,17 @@ h2 {
         line-height: 28px;
     }
 }
+
+h3 {
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 38px;
+    letter-spacing: 0%;
+    margin-bottom: 30px;
+
+    @include mx.respond-to('ipad') {
+        font-size: 20px;
+        margin-bottom: 22px;
+        line-height: 24px;
+    }
+}

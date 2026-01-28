@@ -19,7 +19,7 @@ import Loader from "../components/Loader";
 export default function Home() {
   const { data, loading, error } = useHomeData();
 
-  if (loading) return <Loader label="Загрузаем" />;
+  if (loading) return <Loader label="Загружаем" />;
   if (error) return <div>Ошибка: {error.message}</div>;
   if (!data) return <div>Нет данных</div>;
 
