@@ -1,5 +1,3 @@
-
-forgot_password_route_no_nodemailer.js
 import { NextResponse } from 'next/server';
 
 const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL;

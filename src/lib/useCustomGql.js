@@ -12,13 +12,13 @@ export const useCustomGql = () => {
   const getCartQuery = api.getCart();
 
   // Реактивный хук - для использования на верхнем уровне компонента
-  const getCart = () => {
-    const result = useQuery(getCartQuery, {
+  const useCartQuery = (options = {}) => {
+    return useQuery(getCartQuery, {
       errorPolicy: "all",
       fetchPolicy: "cache-and-network",
       notifyOnNetworkStatusChange: true,
+      ...options,
     });
-    return result;
   };
 
   // Прямой запрос - для использования в обработчиках событий
@@ -33,7 +33,7 @@ export const useCustomGql = () => {
   };
 
   return {
-    getCart, // Для реактивного использования (хук)
+    useCartQuery, // Для реактивного использования (хук)
     fetchCart, // Для прямого запроса (по событию)
   };
 };

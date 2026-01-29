@@ -1,4 +1,5 @@
 "use client";
+// export const dynamic = "force-dynamic";
 
 import "./page.scss";
 import NewItems from "../../components/New_items";
@@ -145,9 +146,9 @@ const Checkout = () => {
   ==================================================
   */
   if (isLoading) return (
-    <EmptyCartState>
+    <EmptyCheckoutState>
       <Loader label="Загружаем" />
-    </EmptyCartState>
+    </EmptyCheckoutState>
   );;
   if (cart.items.length === 0) return <EmptyCheckoutState title="Ваша корзина пуста" />;
 

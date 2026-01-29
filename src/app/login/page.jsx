@@ -9,7 +9,7 @@ import Loader from '../../components/Loader';
 
 const Login = () => {
     const router = useRouter();
-    const searchParams = useSearchParams();
+    // const searchParams = useSearchParams();
     const { user, token, isHydrated, loading: authLoading, login, error: authError } = useAuth();
 
     const [formData, setFormData] = useState({
@@ -30,12 +30,11 @@ const Login = () => {
 
     // ✅ Сообщение об успешной регистрации
     useEffect(() => {
-        const registered = searchParams.get('registered');
-        if (registered === 'true') {
+        const sp = new URLSearchParams(window.location.search);
+        if (sp.get('registered') === 'true') {
             setSuccessMessage('✅ Регистрация прошла успешно! Теперь вы можете войти в систему.');
-            console.log('✅ Показываем сообщение об успешной регистрации');
         }
-    }, [searchParams]);
+    }, []);
 
     // ✅ ИЗМЕНЕНИЕ: Функция для расшифровки кодов ошибок
     const getDetailedErrorMessage = (errorCode, errorText) => {
