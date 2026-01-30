@@ -132,7 +132,7 @@ const Product_cart = () => {
         }
     }, [isMounted, product?.databaseId, isInFavorites]);
 
-    if (loading || homeLoading) return <Loader label="Загрузаем" />;
+    if (loading || homeLoading) return <Loader label="Загружаем" />;
     if (error) return <div>Ошибка товара: {error.message}</div>;
     if (homeError) return <div>Ошибка данных: {homeError.message}</div>;
     if (!product) return <div>Товар не найден</div>;
