@@ -1,42 +1,137 @@
-"use client";
+import HomePageClient from "./HomePageClient";
 
-import "./styles/globals.scss";
-import "./styles/typography.scss";
+export const dynamic = 'force-static';
+export const revalidate = false;
 
-import SwipeSlider from "../components/Slider";
-import PopularProducts from "../components/Popular_products";
-import NewItems from "../components/New_items";
-import Advantages from "../components/Advantages";
-import News from "../components/News";
-import WhyUs from "../components/WhyUs";
-import Brands from "../components/Brands";
-import Contact_us from "../components/Contact_us";
-import Actions from "../components/Actions";
-import Categories from "../components/Categories";
-import { useHomeData } from "../lib/HomePageDataContoller";
-import Loader from "../components/Loader";
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
-export default function Home() {
-  const { data, loading, error } = useHomeData();
+const HOME_QUERY = `
+  query HomeData($newSlug: String!, $popSlug: String!, $parentId: Int!) {
+    newProducts: products(first: 10, where: { category: $newSlug }) {
+      nodes {
+        id
+        databaseId
+        name
+        description
+        slug
+        ... on SimpleProduct {
+          price
+          regularPrice
+          salePrice
+          stockQuantity
+          stockStatus
+        }
+        ... on VariableProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        ... on ExternalProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        ... on GroupProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        image {
+          sourceUrl
+        }
+      }
+    }
+    popProducts: products(first: 8, where: { category: $popSlug }) {
+      nodes {
+        id
+        databaseId
+        name
+        description
+        slug
+        ... on SimpleProduct {
+          price
+          regularPrice
+          salePrice
+          stockQuantity
+          stockStatus
+        }
+        ... on VariableProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        ... on ExternalProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        ... on GroupProduct {
+          price
+          regularPrice
+          salePrice
+        }
+        image {
+          sourceUrl
+        }
+      }
+    }
+    categories: productCategories(first: 12, where: { parent: $parentId }) {
+      nodes {
+        id
+        link
+        name
+        slug
+        image {
+          sourceUrl
+        }
+      }
+    }
+  }
+`;
 
-  if (loading) return <Loader label="Загружаем" />;
-  if (error) return <div>Ошибка: {error.message}</div>;
-  if (!data) return <div>Нет данных</div>;
+async function fetchGraphQL(query, variables) {
+  if (!GRAPHQL_URL) {
+    throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
+  }
 
-  const { new_products, pop_products, cats_list } = data;
+  const response = await fetch(GRAPHQL_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+    cache: 'force-cache',
+  });
 
-  return (
-    <div>
-      <SwipeSlider />
-      <Categories categories={cats_list} />
-      <PopularProducts products={pop_products} />
-      <Actions />
-      <NewItems products={new_products} />
-      <Advantages />
-      <News />
-      <WhyUs />
-      <Brands />
-      <Contact_us />
-    </div>
-  );
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.status}`);
+  }
+
+  const json = await response.json();
+
+  if (json.errors && json.errors.length > 0) {
+    const message = json.errors[0]?.message || 'GraphQL error';
+    throw new Error(message);
+  }
+
+  return json.data;
+}
+
+async function fetchHomeData() {
+  const data = await fetchGraphQL(HOME_QUERY, {
+    newSlug: '10-inch',
+    popSlug: 'akkumulyatory',
+    parentId: 20,
+  });
+
+  return {
+    new_products: data?.newProducts?.nodes || [],
+    pop_products: data?.popProducts?.nodes || [],
+    cats_list: data?.categories?.nodes || [],
+  };
+}
+
+export default async function Home() {
+  const data = await fetchHomeData();
+  return <HomePageClient data={data} />;
 }

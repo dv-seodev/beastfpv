@@ -1,37 +1,19 @@
 'use client';
 
-import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import './page.scss';
 import NewItems from "../../../components/New_items";
 import Breadcrumbs from "../../category/[[...slug]]/Breadcrumbs";
-import React, { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/effect-coverflow';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import { Navigation, Thumbs } from "swiper/modules";
+import { useState, useEffect } from "react";
 import Tabs from "./Tabs";
-import { useProductData } from "../../../lib/ProductCartDataController";
-import { useParams } from 'next/navigation';
-import { useHomeData } from "../../../lib/HomePageDataContoller";
 import { useProductsList } from '../../../lib/ProductsListController';
 import { useFavoriteStore } from '../../../stores/favoriteStore';
 // ✅ ИЗМЕНЕНИЕ: Заменяем старый useCartStore на новый useRestCart
 import { useRestCart } from '../../../lib/hooks/useRestCart';
 import ProductGallery from "./ProductGallery";
-import api from "../../../lib/api";
-import { useQuery, useMutation } from "@apollo/client";
-import client from "../../../lib/ApolloClient";
-import { useCustomGql } from "../../../lib/useCustomGql";
 import restApi from "../../../lib/woo_rest_api/rest_api";
-import Loader from "../../../components/Loader";
-// ✅ ИЗМЕНЕНИЕ: Удаляем неиспользуемый импорт useRestCart (был дублирован)
 
 
-const Product_cart = () => {
-    const [thumbsSwiper, setThumbsSwiper] = useState(null);
+const Product_cart = ({ product, homeData }) => {
     const [quantity, setQuantity] = useState(1);
     const [isMounted, setIsMounted] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
@@ -48,16 +30,10 @@ const Product_cart = () => {
         handleRemoveItem,
     } = useRestCart();
 
-    const { addCartProduct, formatPrice } = useProductsList();
+    const { formatPrice } = useProductsList();
 
     // ✅ ИЗМЕНЕНИЕ: Используем только методы получения и удаления из избранного
     const { addItem: addToFavorites, removeItem: removeFromFavorites, isInFavorites } = useFavoriteStore;
-
-    const params = useParams();
-    const slug = params.slug;
-
-    const { data: product, loading, error } = useProductData(slug);
-    const { data: homeData, loading: homeLoading, error: homeError } = useHomeData();
 
     useEffect(() => {
         setIsMounted(true);
@@ -132,13 +108,10 @@ const Product_cart = () => {
         }
     }, [isMounted, product?.databaseId, isInFavorites]);
 
-    if (loading || homeLoading) return <Loader label="Загружаем" />;
-    if (error) return <div>Ошибка товара: {error.message}</div>;
-    if (homeError) return <div>Ошибка данных: {homeError.message}</div>;
     if (!product) return <div>Товар не найден</div>;
     if (!homeData) return <div>Данные не найдены</div>;
 
-    const { new_products, pop_products, cats_list } = homeData;
+    const { new_products } = homeData;
 
     const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK' || product.stockQuantity === 0;
 

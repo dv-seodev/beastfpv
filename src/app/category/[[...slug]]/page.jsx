@@ -1,140 +1,198 @@
-'use client';
-
-import Breadcrumbs from "./Breadcrumbs";
-import FAQ from "./FAQ";
-import Filter from "./Filter";
-import Filter_mobile from "./Filter-mobile";
-import Products from "./Products";
 import './page.scss';
-import Link from "next/link";
-import { useCategoryData } from "../../../lib/CategoryPageController";
-import { useFilterData } from "../../../lib/useFilterData";
-import LoadMore from "../../news/LoadMore";
-import { useBreadcrumbs } from "../../../lib/useBreadcrumbs";
-import { useSearchParams, useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import Loader from "../../../components/Loader";
+import { Suspense } from 'react';
+import CategoryPageClient from "./CategoryPageClient";
 
-const Category_page = () => {
-    const params = useParams();
-    const searchParams = useSearchParams();
-    const router = useRouter();
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const revalidate = false;
 
-    const slugArray = params.slug || [];
-    const currentSlug =
-        slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
+const PAGE_SIZE = 18;
+const CATEGORY_PRODUCTS_LIMIT = 200;
 
-    const currentPage = Number(searchParams.get('page') || '1');
-
-    // данные категории + все товары
-    const {
-        data,
-        loading,
-        error,
-        pageSize,
-    } = useCategoryData(currentSlug);
-
-    // фильтр
-    const {
-        categories,
-        loading: filterLoading,
-        error: filterError,
-    } = useFilterData();
-
-    const breadcrumbPath = useBreadcrumbs(data?.category, categories);
-
-    // локальный флаг "показать все товары"
-    const [showAll, setShowAll] = useState(false);
-    const [isFilterOpen, setIsFilterOpen] = useState(false); // состояние мобильного фильтра
-
-    if (loading || filterLoading) return <Loader label="Загружаем" />;
-    if (error) return <div>Ошибка: {error.message}</div>;
-    if (filterError)
-        return <div>Ошибка при загрузке фильтра: {filterError.message}</div>;
-    if (!currentSlug) return <div>Выберите категорию</div>;
-    if (!data) return <div>Категория не найдена</div>;
-
-    const totalCount = data.totalCount;
-    const allProducts = data.allProducts;
-
-    const totalPages = Math.ceil(totalCount / pageSize);
-
-    // обычная порционная выборка (для режима без showAll)
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pageProducts = allProducts.slice(startIndex, endIndex);
-
-    // что рендерим: либо текущую страницу, либо все
-    const productsToRender = showAll ? allProducts : pageProducts;
-
-    // показывать ли блок LoadMore (кнопка + пагинация)
-    const shouldShowLoadMoreBlock =
-        totalCount > pageSize && !showAll;
-
-    const handleChangePage = (page) => {
-        if (showAll) return; // в режиме "все товары" перелистывание страниц не нужно
-        if (page < 1 || page > totalPages || page === currentPage) return;
-
-        if (page === 1) {
-            router.push(`/category/${currentSlug}`);
-        } else {
-            router.push(`/category/${currentSlug}?page=${page}`);
+const CATEGORY_QUERY = `
+    query GetCategoryPage($slugId: ID!, $slugStr: String!, $first: Int!) {
+        productCategory(id: $slugId, idType: SLUG) {
+            id
+            name
+            slug
+            description
+            link
+            count
         }
-    };
+        products(first: $first, where: { category: $slugStr }) {
+            nodes {
+                id
+                databaseId
+                name
+                description
+                slug
+                ... on SimpleProduct {
+                    price
+                    regularPrice
+                    salePrice
+                    stockQuantity
+                    stockStatus
+                }
+                ... on VariableProduct {
+                    price
+                    regularPrice
+                    salePrice
+                }
+                ... on ExternalProduct {
+                    price
+                    regularPrice
+                    salePrice
+                }
+                ... on GroupProduct {
+                    price
+                    regularPrice
+                    salePrice
+                }
+                image {
+                    sourceUrl
+                }
+            }
+        }
+    }
+`;
 
-    const handleShowAll = () => {
-        // просто включаем режим "все товары", URL не меняем
-        setShowAll(true);
-    };
+const CATEGORIES_QUERY = `
+    query GetProductCategories {
+        productCategories(first: 100, where: { hideEmpty: false, exclude: [19] }) {
+            nodes {
+                id
+                databaseId
+                name
+                slug
+                parent {
+                    node {
+                        id
+                        databaseId
+                        name
+                        slug
+                    }
+                }
+                children(first: 50) {
+                    nodes {
+                        id
+                        databaseId
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    }
+`;
 
-    const handleOpenFilter = () => {
-        setIsFilterOpen(true);
-    };
+async function fetchGraphQL(query, variables) {
+    if (!GRAPHQL_URL) {
+        throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
+    }
 
-    const handleCloseFilter = () => {
-        setIsFilterOpen(false);
-    };
+    const response = await fetch(GRAPHQL_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query, variables }),
+        cache: 'force-cache',
+    });
 
-    return (
-        <div className="category-page">
-            <Filter_mobile
-                categories={categories}
-                isOpen={isFilterOpen}
-                onClose={handleCloseFilter}
-            />
-            <div className="container category-page__container">
-                <Breadcrumbs categoryPath={breadcrumbPath} />
-                <div className="category-page__wrapper">
-                    <button
-                        type="button"
-                        className="filter-mob"
-                        onClick={handleOpenFilter}
-                    >
-                        <img src="/images/filter-mobile.svg" alt="Filter" />
-                        <span>Фильтр</span>
-                    </button>
+    if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.status}`);
+    }
 
-                    {/* ПЕРЕДАЁМ КАТЕГОРИИ В ФИЛЬТР */}
-                    <Filter categories={categories} />
+    const json = await response.json();
 
-                    <Products
-                        categoryName={data.category?.name}
-                        products={productsToRender}
-                    />
-                </div>
+    if (json.errors && json.errors.length > 0) {
+        const message = json.errors[0]?.message || 'GraphQL error';
+        throw new Error(message);
+    }
 
-                {shouldShowLoadMoreBlock && (
-                    <LoadMore
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onChangePage={handleChangePage}
-                        onShowAll={handleShowAll}
-                    />
-                )}
-            </div>
-            <FAQ />
-        </div>
-    );
+    return json.data;
+}
+
+const formatCategories = (rawCategories) => {
+    return (rawCategories || [])
+        .filter(cat => !cat.parent?.node)
+        .map(category => {
+            const subcategories = category.children?.nodes?.map(child => ({
+                id: child.databaseId,
+                name: child.name,
+                slug: child.slug,
+                href: `/category/${category.slug}/${child.slug}`,
+            })) || [];
+
+            return {
+                id: category.databaseId,
+                name: category.name,
+                slug: category.slug,
+                href: `/category/${category.slug}`,
+                subcategories,
+            };
+        })
+        .filter(cat => cat.name !== 'Misc' && cat.name !== 'Uncategorized');
 };
 
-export default Category_page;
+async function fetchCategories() {
+    const data = await fetchGraphQL(CATEGORIES_QUERY, {});
+    return formatCategories(data?.productCategories?.nodes || []);
+}
+
+async function fetchCategoryData(slug) {
+    const data = await fetchGraphQL(CATEGORY_QUERY, {
+        slugId: slug,
+        slugStr: slug,
+        first: CATEGORY_PRODUCTS_LIMIT,
+    });
+
+    const category = data?.productCategory || null;
+    const allProducts = data?.products?.nodes || [];
+    const totalCount = category?.count || allProducts.length;
+
+    return category
+        ? {
+            category,
+            allProducts,
+            totalCount,
+        }
+        : null;
+}
+
+export async function generateStaticParams() {
+    const categories = await fetchCategories();
+    const params = [{ slug: [] }];
+
+    categories.forEach((category) => {
+        if (category?.slug) {
+            params.push({ slug: [category.slug] });
+        }
+        (category.subcategories || []).forEach((sub) => {
+            if (category?.slug && sub?.slug) {
+                params.push({ slug: [category.slug, sub.slug] });
+            }
+        });
+    });
+
+    return params;
+}
+
+export default async function Page({ params }) {
+    const slugArray = params?.slug || [];
+    const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
+
+    const categories = await fetchCategories();
+    const data = currentSlug ? await fetchCategoryData(currentSlug) : null;
+
+    return (
+        <Suspense fallback={null}>
+            <CategoryPageClient
+                data={data}
+                categories={categories}
+                pageSize={PAGE_SIZE}
+            />
+        </Suspense>
+    );
+}
