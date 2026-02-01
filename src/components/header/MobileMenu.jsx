@@ -64,14 +64,14 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
+                        href="/category/popular/"
                         onClick={onClose}
                     >
                         Хиты продаж
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/"
+                        href="/category/new/"
                         onClick={onClose}
                     >
                         Новинки

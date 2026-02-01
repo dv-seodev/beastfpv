@@ -106,8 +106,8 @@ const Header = () => {
                                         <Link className="header__links-item-submenu" href="/category/accessory/usiliteli-signala-dlya-fpv-dronov/">Усилители сигнала</Link>
                                     </div>
                                 </div>
-                                <Link className="header__links-item-nav" href="/">Хиты продаж</Link>
-                                <Link className="header__links-item-nav" href="/">Новинки</Link>
+                                <Link className="header__links-item-nav" href="/category/new/">Хиты продаж</Link>
+                                <Link className="header__links-item-nav" href="/category/popular/">Новинки</Link>
                             </nav>
                         </div>
                     </div>
