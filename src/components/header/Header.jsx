@@ -60,7 +60,7 @@ const Header = () => {
                 <div className="container header__container">
                     <div className="header__logo">
                         <Link href="/">
-                            <img src="/icons-header/logo.svg" className="header__image-logo" alt="beastfpv.ru - логотип" />
+                            <img src="/icons-header/logo.png" className="header__image-logo" alt="beastfpv.ru - логотип" />
                         </Link>
                     </div>
                     <div className="header__main-menu">
