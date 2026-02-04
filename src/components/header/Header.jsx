@@ -31,12 +31,26 @@ const Header = () => {
     const hasFavorites = favoriteCount > 0;
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
     // const hasFavorites = isHydrated && curIds.length > 0;
 
     // Закрываем меню при клике на ссылку
     const handleMenuClose = () => {
         setMobileMenuOpen(false);
+    };
+
+    const handleSearchToggle = (e) => {
+        e?.preventDefault();
+        setMobileSearchOpen((prev) => {
+            const next = !prev;
+            if (next) setMobileMenuOpen(false);
+            return next;
+        });
+    };
+
+    const handleSearchClose = () => {
+        setMobileSearchOpen(false);
     };
 
     return (
@@ -130,17 +144,54 @@ const Header = () => {
                                 alt="favorite"
                             />
                         </Link>
-                        <Link className='icon-action header__mobile-visible' href=""><img src="/icons-header/search-mobile.svg" alt={"search-icon"} /></Link>
+                        <button
+                            className='icon-action header__mobile-visible header__search-toggle'
+                            type="button"
+                            onClick={handleSearchToggle}
+                            aria-label="Открыть поиск"
+                        >
+                            <img src="/icons-header/search-mobile.svg" alt={"search-icon"} />
+                        </button>
                         <CartIcon />
                         <Link
                             className='icon-action menu-mobile-icon header__mobile-visible'
                             href=""
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setMobileMenuOpen((prev) => {
+                                    const next = !prev;
+                                    if (next) setMobileSearchOpen(false);
+                                    return next;
+                                });
+                            }}
                         >
                             <img src="/icons-header/menu-mobile.svg" alt={"menu"} />
                         </Link>
                         <AccountIcon />
                     </div>
+                </div>
+            </div>
+
+            {mobileSearchOpen && (
+                <div className="mobile-search__overlay" onClick={handleSearchClose} />
+            )}
+            <div className={`mobile-search ${mobileSearchOpen ? 'mobile-search--open' : ''}`}>
+                <div className="mobile-search__header">
+                    <button
+                        className="mobile-search__close"
+                        type="button"
+                        onClick={handleSearchClose}
+                        aria-label="Закрыть поиск"
+                    >
+                        <img
+                            className="icon-cross-mobile"
+                            src="/icons-header/cross-black.svg"
+                            alt="close"
+                        />
+                    </button>
+                </div>
+                <div className="mobile-search__content">
+                    <SearchLine isMobile onClose={handleSearchClose} isOpen={mobileSearchOpen} />
                 </div>
             </div>
 

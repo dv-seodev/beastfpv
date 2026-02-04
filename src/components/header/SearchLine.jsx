@@ -1,31 +1,23 @@
-// const SearchLine = () => {
-//     return (
-//         <div className="header__search">
-//             <input className="header__search-input" type="text" placeholder="Введите запрос"></input>
-//             <button className="header__search-button">
-//                 <img src="/icons-header/search.svg" alt={"search"} />
-//             </button>
-//         </div>
-//     );
-// }
-
-// export default SearchLine;
-
-
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchProducts } from '../../lib/useSearchProducts';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useProductsList } from '../../lib/ProductsListController';
 
-const SearchLine = () => {
+const SearchLine = ({ isMobile = false, onClose, isOpen = true }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showResults, setShowResults] = useState(false);
     const { search, products, loading, error } = useSearchProducts();
     const router = useRouter();
     const { addCartProduct, formatPrice } = useProductsList();
+
+    useEffect(() => {
+        if (isOpen === false) {
+            setShowResults(false);
+        }
+    }, [isOpen]);
 
     // Поиск при вводе
     const handleSearchChange = (e) => {
@@ -46,6 +38,7 @@ const SearchLine = () => {
             if (searchTerm.trim().length >= 2) {
                 router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
                 setShowResults(false);
+                if (onClose) onClose();
             }
         }
     };
@@ -55,6 +48,7 @@ const SearchLine = () => {
         router.push(`/product/${slug}`);
         setShowResults(false);
         setSearchTerm('');
+        if (onClose) onClose();
     };
 
     // Клик на кнопку поиска
@@ -62,11 +56,12 @@ const SearchLine = () => {
         if (searchTerm.trim().length >= 2) {
             router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
             setShowResults(false);
+            if (onClose) onClose();
         }
     };
 
     return (
-        <div className="header__search" style={{ position: 'relative' }}>
+        <div className={`header__search ${isMobile ? 'header__search--mobile' : ''}`} style={{ position: 'relative' }}>
             <input
                 className="header__search-input"
                 type="text"
@@ -74,6 +69,7 @@ const SearchLine = () => {
                 value={searchTerm}
                 onChange={handleSearchChange}
                 onKeyPress={handleSearchSubmit}
+                autoFocus={isMobile}
             />
             <button
                 className="header__search-button"
@@ -83,7 +79,7 @@ const SearchLine = () => {
             </button>
 
             {/* ВЫПАДАЮЩИЕ РЕЗУЛЬТАТЫ */}
-            {showResults && searchTerm.trim().length >= 2 && (
+            {showResults && searchTerm.trim().length >= 2 && isOpen !== false && (
                 <div className="header__search-results">
                     {loading && <div className="search-result-item">Загрузка...</div>}
                     {error && <div className="search-result-item">Ошибка поиска</div>}
