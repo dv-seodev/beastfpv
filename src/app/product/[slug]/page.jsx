@@ -175,7 +175,11 @@ const HOME_QUERY = `
 
 const PRODUCT_SLUGS_QUERY = `
     query ProductSlugs($after: String) {
-        products(first: 100, after: $after) {
+        products(
+            first: 300,
+            after: $after,
+            where: { orderby: [{ field: DATE, order: ASC }] }
+        ) {
             nodes {
                 slug
             }
@@ -183,11 +187,12 @@ const PRODUCT_SLUGS_QUERY = `
                 hasNextPage
                 endCursor
             }
+            found
         }
     }
 `;
 
-async function fetchGraphQL(query, variables) {
+async function fetchGraphQL(query, variables, fetchOptions = {}) {
     if (!GRAPHQL_URL) {
         throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
     }
@@ -199,6 +204,7 @@ async function fetchGraphQL(query, variables) {
         },
         body: JSON.stringify({ query, variables }),
         cache: 'force-cache',
+        ...fetchOptions,
     });
 
     if (!response.ok) {
@@ -287,6 +293,7 @@ const formatProductData = (rawData) => {
 
     return {
         id: product.id,
+        productType: product.__typename,
         name: product.name,
         slug: product.slug,
         databaseId: product.databaseId,
@@ -338,13 +345,17 @@ async function fetchAllProductSlugs() {
     const slugs = [];
     let hasNextPage = true;
     let after = null;
+    let page = 0;
 
     while (hasNextPage) {
-        const data = await fetchGraphQL(PRODUCT_SLUGS_QUERY, { after });
+        page += 1;
+        const data = await fetchGraphQL(PRODUCT_SLUGS_QUERY, { after }, { cache: 'no-store' });
         const connection = data?.products;
         const nodes = connection?.nodes || [];
         const pageInfo = connection?.pageInfo;
+        const found = connection?.found;
 
+        const pageSlugs = nodes.map((node) => node?.slug).filter(Boolean);
         nodes.forEach((node) => {
             if (node?.slug) slugs.push(node.slug);
         });
@@ -353,6 +364,7 @@ async function fetchAllProductSlugs() {
         after = pageInfo?.endCursor || null;
     }
 
+    const uniqueCount = new Set(slugs).size;
     return slugs;
 }
 
@@ -362,7 +374,8 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }) {
-    const slugParam = params?.slug;
+    const resolvedParams = await params;
+    const slugParam = resolvedParams?.slug;
     const slug = Array.isArray(slugParam) ? slugParam.join('/') : slugParam;
 
     const product = await fetchProductBySlug(slug);
