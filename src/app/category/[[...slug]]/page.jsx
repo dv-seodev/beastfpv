@@ -58,8 +58,8 @@ const CATEGORY_QUERY = `
 `;
 
 const CATEGORIES_QUERY = `
-    query GetProductCategories {
-        productCategories(first: 100, where: { hideEmpty: false, exclude: [19] }) {
+    query GetProductCategories($after: String) {
+        productCategories(first: 100, after: $after, where: { hideEmpty: false }) {
             nodes {
                 id
                 databaseId
@@ -73,14 +73,10 @@ const CATEGORIES_QUERY = `
                         slug
                     }
                 }
-                children(first: 50) {
-                    nodes {
-                        id
-                        databaseId
-                        name
-                        slug
-                    }
-                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
             }
         }
     }
@@ -114,31 +110,93 @@ async function fetchGraphQL(query, variables) {
     return json.data;
 }
 
-const formatCategories = (rawCategories) => {
-    return (rawCategories || [])
-        .filter(cat => !cat.parent?.node)
-        .map(category => {
-            const subcategories = category.children?.nodes?.map(child => ({
-                id: child.databaseId,
-                name: child.name,
-                slug: child.slug,
-                href: `/category/${category.slug}/${child.slug}`,
-            })) || [];
-
-            return {
-                id: category.databaseId,
-                name: category.name,
-                slug: category.slug,
-                href: `/category/${category.slug}`,
-                subcategories,
-            };
-        })
-        .filter(cat => cat.name !== 'Misc' && cat.name !== 'Uncategorized');
+const isExcludedCategory = (cat) => {
+    return cat?.name === 'Misc' || cat?.name === 'Uncategorized';
 };
 
+const buildCategoryTree = (rawCategories) => {
+    const bySlug = new Map();
+    const childrenByParent = new Map();
+
+    rawCategories.forEach((cat) => {
+        if (!cat?.slug || isExcludedCategory(cat)) return;
+        bySlug.set(cat.slug, cat);
+
+        const parentSlug = cat.parent?.node?.slug;
+        if (parentSlug) {
+            if (!childrenByParent.has(parentSlug)) {
+                childrenByParent.set(parentSlug, []);
+            }
+            childrenByParent.get(parentSlug).push(cat);
+        }
+    });
+
+    const topLevel = rawCategories.filter(
+        (cat) => cat?.slug && !cat.parent?.node && !isExcludedCategory(cat)
+    );
+
+    return topLevel.map((category) => {
+        const subcategories = (childrenByParent.get(category.slug) || []).map((child) => ({
+            id: child.databaseId,
+            name: child.name,
+            slug: child.slug,
+            href: `/category/${category.slug}/${child.slug}`,
+        }));
+
+        return {
+            id: category.databaseId,
+            name: category.name,
+            slug: category.slug,
+            href: `/category/${category.slug}`,
+            subcategories,
+        };
+    });
+};
+
+const buildSlugPath = (cat, bySlug) => {
+    const path = [];
+    const visited = new Set();
+    let current = cat;
+
+    while (current && current.slug && !visited.has(current.slug)) {
+        visited.add(current.slug);
+        path.unshift(current.slug);
+
+        const parentSlug = current.parent?.node?.slug;
+        current = parentSlug ? bySlug.get(parentSlug) : null;
+    }
+
+    return path;
+};
+
+async function fetchAllCategoriesRaw() {
+    const all = [];
+    let hasNextPage = true;
+    let after = null;
+
+    while (hasNextPage) {
+        const data = await fetchGraphQL(CATEGORIES_QUERY, { after });
+        const connection = data?.productCategories;
+        const nodes = connection?.nodes || [];
+        const pageInfo = connection?.pageInfo;
+
+        all.push(...nodes);
+
+        hasNextPage = Boolean(pageInfo?.hasNextPage);
+        after = pageInfo?.endCursor || null;
+
+        if (hasNextPage && !after) {
+            // защита от бесконечного цикла
+            hasNextPage = false;
+        }
+    }
+
+    return all;
+}
+
 async function fetchCategories() {
-    const data = await fetchGraphQL(CATEGORIES_QUERY, {});
-    return formatCategories(data?.productCategories?.nodes || []);
+    const raw = await fetchAllCategoriesRaw();
+    return buildCategoryTree(raw);
 }
 
 async function fetchCategoryData(slug) {
@@ -162,25 +220,25 @@ async function fetchCategoryData(slug) {
 }
 
 export async function generateStaticParams() {
-    const categories = await fetchCategories();
+    const raw = await fetchAllCategoriesRaw();
+    const filtered = raw.filter((cat) => cat?.slug && !isExcludedCategory(cat));
+    const bySlug = new Map(filtered.map((cat) => [cat.slug, cat]));
+
     const params = [{ slug: [] }];
 
-    categories.forEach((category) => {
-        if (category?.slug) {
-            params.push({ slug: [category.slug] });
+    filtered.forEach((cat) => {
+        const path = buildSlugPath(cat, bySlug);
+        if (path.length > 0) {
+            params.push({ slug: path });
         }
-        (category.subcategories || []).forEach((sub) => {
-            if (category?.slug && sub?.slug) {
-                params.push({ slug: [category.slug, sub.slug] });
-            }
-        });
     });
 
     return params;
 }
 
 export default async function Page({ params }) {
-    const slugArray = params?.slug || [];
+    const resolvedParams = await params;
+    const slugArray = resolvedParams?.slug || [];
     const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
 
     const categories = await fetchCategories();

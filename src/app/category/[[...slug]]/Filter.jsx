@@ -15,13 +15,15 @@ const Filter = ({ categories = [] }) => {
         );
     }
 
+    const visibleCategories = categories.filter((category) => category.id !== 19);
+
     return (
         <div className="filter">
             <div className="filter__item">
                 <div className="filter__item-header">Категории товаров</div>
 
                 {/* ДИНАМИЧЕСКИЕ КАТЕГОРИИ */}
-                {categories.map((category) => (
+                {visibleCategories.map((category) => (
                     <details key={category.id} className="filter__categories">
                         <summary className="filter__categories-title">
                             {category.name}
