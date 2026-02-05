@@ -195,8 +195,12 @@ query GetCategories {
 
   fetchSearchingProducts: () => {
     return gql`
-      query SearchProducts {
-        products(first: 5000) {
+      query SearchProducts($after: String) {
+        products(
+          first: 100,
+          after: $after,
+          where: { orderby: [{ field: DATE, order: ASC }] }
+        ) {
           nodes {
             id
             databaseId
@@ -212,6 +216,10 @@ query GetCategories {
             ... on VariableProduct {
               price
             }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
           }
         }
       }

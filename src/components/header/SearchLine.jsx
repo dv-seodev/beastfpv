@@ -32,16 +32,16 @@ const SearchLine = ({ isMobile = false, onClose, isOpen = true }) => {
         }
     };
 
-    // Нажатие на Enter
-    const handleSearchSubmit = (e) => {
-        if (e.key === 'Enter') {
-            if (searchTerm.trim().length >= 2) {
-                router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
-                setShowResults(false);
-                if (onClose) onClose();
-            }
-        }
-    };
+    // // Нажатие на Enter
+    // const handleSearchSubmit = (e) => {
+    //     if (e.key === 'Enter') {
+    //         if (searchTerm.trim().length >= 2) {
+    //             router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    //             setShowResults(false);
+    //             if (onClose) onClose();
+    //         }
+    //     }
+    // };
 
     // Клик на товар из результатов
     const handleProductClick = (slug) => {
@@ -51,14 +51,14 @@ const SearchLine = ({ isMobile = false, onClose, isOpen = true }) => {
         if (onClose) onClose();
     };
 
-    // Клик на кнопку поиска
-    const handleSearchButtonClick = () => {
-        if (searchTerm.trim().length >= 2) {
-            router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
-            setShowResults(false);
-            if (onClose) onClose();
-        }
-    };
+    // // Клик на кнопку поиска
+    // const handleSearchButtonClick = () => {
+    //     if (searchTerm.trim().length >= 2) {
+    //         router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    //         setShowResults(false);
+    //         if (onClose) onClose();
+    //     }
+    // };
 
     return (
         <div className={`header__search ${isMobile ? 'header__search--mobile' : ''}`} style={{ position: 'relative' }}>
@@ -68,12 +68,11 @@ const SearchLine = ({ isMobile = false, onClose, isOpen = true }) => {
                 placeholder="Введите запрос"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                onKeyPress={handleSearchSubmit}
                 autoFocus={isMobile}
             />
             <button
                 className="header__search-button"
-                onClick={handleSearchButtonClick}
+            // onClick={handleSearchButtonClick}
             >
                 <img src="/icons-header/search.svg" alt="search" />
             </button>
@@ -81,7 +80,6 @@ const SearchLine = ({ isMobile = false, onClose, isOpen = true }) => {
             {/* ВЫПАДАЮЩИЕ РЕЗУЛЬТАТЫ */}
             {showResults && searchTerm.trim().length >= 2 && isOpen !== false && (
                 <div className="header__search-results">
-                    {loading && <div className="search-result-item">Загрузка...</div>}
                     {error && <div className="search-result-item">Ошибка поиска</div>}
                     {!loading && products.length === 0 && <div className="search-result-item">Товары не найдены</div>}
 
