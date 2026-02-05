@@ -346,7 +346,7 @@ const Cart = () => {
               <h3 className="cart__price-heading">Сумма заказа</h3>
               <div className="cart__price-wrapper">
                 <div className="cart__price-one cart__price-underline">
-                  <span className="cart__price-name">Подитог:</span>
+                  <span className="cart__price-name">Подытог:</span>
                   <span className="cart__price-numb">{formatPriceForDisplay(baseTotal)}</span>
                 </div>
 
