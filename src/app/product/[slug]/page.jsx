@@ -44,6 +44,20 @@ const PRODUCT_QUERY = `
                     id
                     name
                     slug
+                    parent {
+                        node {
+                            id
+                            name
+                            slug
+                            parent {
+                                node {
+                                    id
+                                    name
+                                    slug
+                                }
+                            }
+                        }
+                    }
                 }
             }
             metaData {

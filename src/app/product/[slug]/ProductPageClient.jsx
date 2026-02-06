@@ -115,11 +115,36 @@ const Product_cart = ({ product, homeData }) => {
 
     const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK' || product.stockQuantity === 0;
 
+    const buildCategoryChain = (categories) => {
+        if (!Array.isArray(categories) || categories.length === 0) return [];
+
+        const chains = categories.map((category) => {
+            const chain = [];
+            const seen = new Set();
+            let current = category;
+
+            while (current && current.slug && !seen.has(current.slug)) {
+                seen.add(current.slug);
+                chain.unshift({ name: current.name, slug: current.slug });
+                current = current.parent?.node;
+            }
+
+            return chain;
+        });
+
+        chains.sort((a, b) => b.length - a.length);
+        return chains[0] || [];
+    };
+
+    const categoryChain = buildCategoryChain(product?.categories);
+
     const breadcrumbPath = [
         { name: 'Главная', href: '/' },
-        { name: 'Каталог', href: '/' },
-        { name: product?.categories?.[0]?.name || 'Категория', href: `/category/${product?.categories?.[0]?.slug}` },
-        { name: product?.name, href: null, isCurrent: true }
+        ...categoryChain.map((category, index) => ({
+            name: category.name,
+            href: `/category/${categoryChain.slice(0, index + 1).map((item) => item.slug).join('/')}`,
+        })),
+        { name: product?.name, href: null, isCurrent: true },
     ];
 
     const handleToggleFavorite = () => {
