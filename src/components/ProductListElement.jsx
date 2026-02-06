@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useProductsList } from "../lib/ProductsListController";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import restApi from "../lib/woo_rest_api/rest_api";
 // ✅ ИЗМЕНЕНИЕ: Заменяем старый useCartStore на новый useRestCart
@@ -16,6 +16,8 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   // ✅ ИЗМЕНЕНИЕ: Локальное состояние inCart инициализируется пропсом
   const [inCart, setInCart] = useState(isInCart);
+  const addToCartTimerRef = useRef(null);
+  const pendingAddRef = useRef(false);
 
   // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart вместо старого useCartStore
   const { updateCart } = useRestCart();
@@ -30,6 +32,15 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
     setInCart(isInCart);
   }, [isInCart]);
 
+  useEffect(() => {
+    return () => {
+      if (addToCartTimerRef.current) {
+        clearTimeout(addToCartTimerRef.current);
+      }
+      pendingAddRef.current = false;
+    };
+  }, []);
+
   // ✨ Проверка: товар в наличии или нет
   const isOutOfStock =
     product.stockStatus === "OUT_OF_STOCK" || product.stockQuantity === 0;
@@ -38,7 +49,15 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
   const imageUrl = product?.image?.sourceUrl || "/images/placeholder.jpg";
 
   // ✅ ИЗМЕНЕНИЕ: Переделан метод добавления товара в корзину с использованием REST API
-  const handleAddToCart = async () => {
+  const commitAddToCart = async () => {
+    if (!pendingAddRef.current) return;
+    pendingAddRef.current = false;
+
+    if (addToCartTimerRef.current) {
+      clearTimeout(addToCartTimerRef.current);
+      addToCartTimerRef.current = null;
+    }
+
     try {
       setIsAddingToCart(true);
 
@@ -57,10 +76,26 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
       console.log("✅ Товар успешно добавлен в корзину листинга");
     } catch (err) {
       console.error("❌ Ошибка при добавлении в корзину:", err);
+      setInCart(false);
       alert("❌ Ошибка при добавлении товара в корзину");
     } finally {
       setIsAddingToCart(false);
     }
+  };
+
+  const scheduleAddToCart = () => {
+    pendingAddRef.current = true;
+    if (addToCartTimerRef.current) {
+      clearTimeout(addToCartTimerRef.current);
+    }
+    addToCartTimerRef.current = setTimeout(() => {
+      commitAddToCart();
+    }, 1000);
+  };
+
+  const handleAddToCart = () => {
+    setInCart(true); // мгновенно показываем "в корзине"
+    scheduleAddToCart();
   };
 
   // ✅ Переход в корзину
@@ -106,6 +141,7 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
             className={`new-items__cart-button button ${inCart ? "cart-added" : ""
               }`}
             onClick={handleCartButtonClick}
+            onBlur={commitAddToCart}
             disabled={isAddingToCart}
             type="button"
             // ✅ ИЗМЕНЕНИЕ: Подсказка меняется в зависимости от состояния
@@ -115,7 +151,6 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
               cursor: isAddingToCart ? "not-allowed" : "pointer",
             }}
           >
-            {isAddingToCart ? "⏳" : ""}
           </button>
         )}
       </div>

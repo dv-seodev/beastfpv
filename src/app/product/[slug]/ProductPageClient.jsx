@@ -172,21 +172,24 @@ const Product_cart = ({ product, homeData }) => {
     };
 
     const handleAddToCart = async () => {
-        try {
-            setIsAddingToCart(true);
+        if (isAddingToCart || isInCart) return;
 
+        // Оптимистично меняем состояние сразу
+        setIsInCart(true);
+        setQuantity(1);
+        setIsAddingToCart(true);
+
+        try {
             const newCart = await restApi.addToCart({
                 id: product.databaseId,
                 quantity: 1,
             });
 
             useRestCart.getState().updateCart(newCart);
-            setQuantity(1);
-            setIsInCart(true);
-
             console.log("✅ Товар успешно добавлен в корзину");
         } catch (err) {
             console.error("❌ Ошибка при добавлении в корзину:", err);
+            setIsInCart(false);
             alert("❌ Ошибка при добавлении товара в корзину");
         } finally {
             setIsAddingToCart(false);
