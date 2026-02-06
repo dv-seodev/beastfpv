@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import NewItems from "../../../components/New_items";
 import Breadcrumbs from "../../category/[[...slug]]/Breadcrumbs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Tabs from "./Tabs";
 import { useProductsList } from '../../../lib/ProductsListController';
 import { useFavoriteStore } from '../../../stores/favoriteStore';
@@ -22,6 +22,11 @@ const Product_cart = ({ product, homeData }) => {
     const [isInCart, setIsInCart] = useState(false);
     const router = useRouter();
 
+    const debounceTimerRef = useRef(null);
+    const pendingActionRef = useRef(null);
+    const isUpdatingRef = useRef(false);
+    const DEBOUNCE_MS = 2000;
+
     // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart hook вместо старого useCartStore
     const {
         cart,
@@ -39,6 +44,18 @@ const Product_cart = ({ product, homeData }) => {
         setIsMounted(true);
     }, []);
 
+    useEffect(() => {
+        isUpdatingRef.current = isUpdating;
+    }, [isUpdating]);
+
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
+
     // ✅ ИЗМЕНЕНИЕ: Загружаем корзину при монтировании
     useEffect(() => {
         if (isMounted) {
@@ -49,7 +66,6 @@ const Product_cart = ({ product, homeData }) => {
     // ✅ ИЗМЕНЕНИЕ: Проверяем наличие товара в корзине через REST данные
     useEffect(() => {
         if (isMounted && product?.databaseId && cart?.items) {
-            // Ищем товар в корзине по databaseId или id
             const foundItem = cart.items.find(item =>
                 item.product_id === product.databaseId ||
                 item.id === product.databaseId
@@ -67,7 +83,6 @@ const Product_cart = ({ product, homeData }) => {
     useEffect(() => {
         if (!isMounted || !product?.databaseId) return;
 
-        // Функция для обновления состояния товара в корзине
         const updateCartState = () => {
             const cartItems = useRestCart.getState().cart?.items || [];
             const foundItem = cartItems.find(item =>
@@ -82,10 +97,9 @@ const Product_cart = ({ product, homeData }) => {
             console.log(`🛒 Товар ${product.name} в корзине (обновлено):`, itemQuantity > 0);
         };
 
-        // Подписываемся на изменения состояния корзины
         const unsubscribe = useRestCart.subscribe(
             (state) => state.cart?.items,
-            (items) => {
+            () => {
                 updateCartState();
             }
         );
@@ -157,21 +171,16 @@ const Product_cart = ({ product, homeData }) => {
         }
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Переделана функция добавления товара в корзину с использованием REST API
     const handleAddToCart = async () => {
         try {
             setIsAddingToCart(true);
 
-            // Добавляем товар в корзину через REST API
             const newCart = await restApi.addToCart({
                 id: product.databaseId,
                 quantity: 1,
             });
 
-            // ✅ ИЗМЕНЕНИЕ: Обновляем состояние REST корзины вместо GraphQL
             useRestCart.getState().updateCart(newCart);
-
-            // ✅ ИЗМЕНЕНИЕ: Устанавливаем количество = 1 (только что добавили)
             setQuantity(1);
             setIsInCart(true);
 
@@ -188,7 +197,6 @@ const Product_cart = ({ product, homeData }) => {
         router.push('/cart/');
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Получаем текущий товар из REST корзины
     const getCartItemForProduct = () => {
         const cartItems = useRestCart.getState().cart?.items || [];
         return cartItems.find(item =>
@@ -197,89 +205,116 @@ const Product_cart = ({ product, homeData }) => {
         );
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Переделана функция увеличения количества с использованием REST API
-    const handleIncreaseQuantity = async () => {
-        if (isUpdating) return;
+    const normalizeQuantity = (value) => {
+        if (!Number.isFinite(value)) return 1;
+        return Math.max(1, Math.floor(value));
+    };
 
-        const newQuantity = quantity + 1;
-        setQuantity(newQuantity);
+    const commitPendingAction = async () => {
+        if (isUpdatingRef.current) {
+            debounceTimerRef.current = setTimeout(commitPendingAction, 300);
+            return;
+        }
+
+        const action = pendingActionRef.current;
+        if (!action) return;
+
+        pendingActionRef.current = null;
+
+        if (action.type === 'remove') {
+            await handleRemoveFromCart();
+            return;
+        }
+
+        await updateQuantity(action.quantity);
+    };
+
+    const scheduleAction = (action) => {
+        pendingActionRef.current = action;
+
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        debounceTimerRef.current = setTimeout(() => {
+            commitPendingAction();
+        }, DEBOUNCE_MS);
+    };
+
+    const updateQuantity = async (nextQuantity) => {
+        if (isUpdatingRef.current) return;
+
         setIsUpdating(true);
 
         try {
-            console.log(`📦 Увеличиваем количество товара ${product.name} на ${newQuantity}`);
-
             const cartItem = getCartItemForProduct();
-
             if (!cartItem?.key) {
                 console.warn('⚠️ Товар не найден в корзине');
-                setQuantity(quantity);
                 setIsUpdating(false);
                 return;
             }
 
-            // ✅ ИЗМЕНЕНИЕ: Используем REST API для обновления количества
-            await handleQuantityChange(cartItem.key, newQuantity);
-
-            console.log("✅ Количество обновлено");
+            await handleQuantityChange(cartItem.key, nextQuantity);
         } catch (err) {
-            console.error("❌ Ошибка при увеличении количества:", err);
-            setQuantity(quantity);
+            console.error("❌ Ошибка при изменении количества:", err);
             alert('❌ Ошибка при изменении количества');
         } finally {
             setIsUpdating(false);
         }
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Переделана функция уменьшения количества с использованием REST API
-    const handleDecreaseQuantity = async () => {
-        if (isUpdating) return;
+    const handleQuantityInputChange = (e) => {
+        const rawValue = e.target.value;
+        const parsed = parseInt(rawValue, 10);
+        const nextQuantity = normalizeQuantity(parsed);
 
-        if (quantity > 1) {
-            const newQuantity = quantity - 1;
-            setQuantity(newQuantity);
-            setIsUpdating(true);
+        setQuantity(nextQuantity);
+        scheduleAction({ type: 'update', quantity: nextQuantity });
+    };
 
-            try {
-                console.log(`📦 Уменьшаем количество товара ${product.name} на ${newQuantity}`);
+    const handleQuantityCommit = () => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
 
-                const cartItem = getCartItemForProduct();
+        if (!pendingActionRef.current) {
+            const current = normalizeQuantity(Number(quantity));
+            pendingActionRef.current = { type: 'update', quantity: current };
+        }
 
-                if (!cartItem?.key) {
-                    console.warn('⚠️ Товар не найден в корзине');
-                    setQuantity(quantity);
-                    setIsUpdating(false);
-                    return;
-                }
+        commitPendingAction();
+    };
 
-                // ✅ ИЗМЕНЕНИЕ: Используем REST API для обновления количества
-                await handleQuantityChange(cartItem.key, newQuantity);
-
-                console.log("✅ Количество обновлено");
-            } catch (err) {
-                console.error("❌ Ошибка при уменьшении количества:", err);
-                setQuantity(quantity);
-                alert('❌ Ошибка при изменении количества');
-            } finally {
-                setIsUpdating(false);
-            }
-        } else if (quantity === 1) {
-            // ✅ ИЗМЕНЕНИЕ: Если количество 1, удаляем товар
-            await handleRemoveFromCart();
+    const handleQuantityKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleQuantityCommit();
         }
     };
 
-    // ✅ ИЗМЕНЕНИЕ: Переделана функция удаления товара с использованием REST API
+    const handleIncreaseQuantity = () => {
+        const newQuantity = normalizeQuantity(quantity + 1);
+        setQuantity(newQuantity);
+        scheduleAction({ type: 'update', quantity: newQuantity });
+    };
+
+    const handleDecreaseQuantity = () => {
+        if (quantity > 1) {
+            const newQuantity = normalizeQuantity(quantity - 1);
+            setQuantity(newQuantity);
+            scheduleAction({ type: 'update', quantity: newQuantity });
+        } else {
+            scheduleAction({ type: 'remove' });
+        }
+    };
+
     const handleRemoveFromCart = async () => {
-        if (isUpdating) return;
+        if (isUpdatingRef.current) return;
 
         setIsUpdating(true);
 
         try {
-            console.log('🗑️ Удаляем товар из корзины');
-
             const cartItem = getCartItemForProduct();
-
-            console.log('🔍 Найденный товар:', cartItem);
 
             if (!cartItem?.key) {
                 console.warn('⚠️ Товар не найден в корзине или нет key');
@@ -289,20 +324,14 @@ const Product_cart = ({ product, homeData }) => {
                 return;
             }
 
-            console.log('🗑️ Удаляем товар с key:', cartItem.key);
-
-            // ✅ ИЗМЕНЕНИЕ: Используем REST API для удаления товара
             await handleRemoveItem(cartItem.key);
 
             setIsInCart(false);
             setQuantity(1);
-            console.log("✅ Товар удален из корзины");
         } catch (err) {
             console.error("❌ Ошибка при удалении товара:", err);
 
-            // ✅ ИЗМЕНЕНИЕ: FALLBACK - получаем свежие данные корзины при ошибке
             try {
-                console.log('🔄 Получаем свежие данные корзины...');
                 await fetchCart();
 
                 const cartItems = useRestCart.getState().cart?.items || [];
@@ -313,12 +342,6 @@ const Product_cart = ({ product, homeData }) => {
 
                 setIsInCart(!!stillInCart);
                 setQuantity(1);
-
-                if (stillInCart) {
-                    console.log('⚠️ Товар всё ещё в корзине');
-                } else {
-                    console.log('✅ Товар успешно удален');
-                }
             } catch (refreshErr) {
                 console.error("❌ Ошибка при обновлении корзины:", refreshErr);
                 alert('❌ Ошибка при удалении товара');
@@ -368,7 +391,6 @@ const Product_cart = ({ product, homeData }) => {
                             </div>
                         </div>
 
-                        {/* ✅ ИЗМЕНЕНИЕ: Логика отображения кнопок теперь основана на REST корзине */}
                         {isOutOfStock ? (
                             <div className="product-card__out-of-stock">
                                 <span className="product-card__out-of-stock-text">Временно нет в наличии</span>
@@ -408,7 +430,9 @@ const Product_cart = ({ product, homeData }) => {
                                         type="number"
                                         min="1"
                                         value={quantity}
-                                        onChange={handleQuantityChange}
+                                        onChange={handleQuantityInputChange}
+                                        onBlur={handleQuantityCommit}
+                                        onKeyDown={handleQuantityKeyDown}
                                         disabled={isUpdating}
                                     />
                                     <button

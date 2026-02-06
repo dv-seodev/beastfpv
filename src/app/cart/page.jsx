@@ -1,8 +1,7 @@
 "use client";
 
-
 import Link from "next/link";
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useRef, useState } from "react";
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
@@ -15,9 +14,7 @@ import {
   transformRestPaymentMethods,
   handleCartError,
 } from "../../lib/utils/cart";
-import { title } from "process";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
-import { useState } from "react";
 import Loader from "../../components/Loader";
 
 
@@ -63,14 +60,11 @@ const Cart = () => {
 
   const { methods: paymentMethods } = usePaymentMethods();
 
-
   const items = cart?.items || [];
   const totals = cart?.totals || {};
   const coupons = cart?.coupons || [];
 
-
   const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
-
 
   const paymentMethodsToRenderData = (methods) => {
     if (!methods || !Array.isArray(methods)) return {};
@@ -82,10 +76,7 @@ const Cart = () => {
     return out;
   };
 
-
-  // Преобразование данных с мемоизацией
   const shippingMethods = getShippingMethods();
-
 
   const cartItems = useMemo(() => transformRestCartItems(items), [items]);
   const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
@@ -93,10 +84,8 @@ const Cart = () => {
   const appliedCoupon = useMemo(() => coupons?.[0], [coupons]);
   const hasAppliedCoupon = !!appliedCoupon;
 
-
   const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
 
-  // Обработчики с мемоизацией и обработкой ошибок
   const handleQuantityChangeWrapper = useCallback(
     async (itemKey, newQuantity) => {
       try {
@@ -107,7 +96,6 @@ const Cart = () => {
     },
     [handleQuantityChange]
   );
-
 
   const handleRemoveItemWrapper = useCallback(
     async (itemKey) => {
@@ -120,7 +108,6 @@ const Cart = () => {
     [handleRemoveItem]
   );
 
-
   const handleClearCartWrapper = useCallback(async () => {
     try {
       await handleClearCart();
@@ -129,7 +116,6 @@ const Cart = () => {
     }
   }, [handleClearCart]);
 
-
   const handleApplyCoupon = useCallback(async () => {
     try {
       await applyCoupon(couponCode);
@@ -137,7 +123,6 @@ const Cart = () => {
       // Ошибка уже обработана в useRestCart
     }
   }, [applyCoupon, couponCode]);
-
 
   const handleRemoveCoupon = useCallback(async () => {
     if (!appliedCoupon) return;
@@ -148,17 +133,15 @@ const Cart = () => {
     }
   }, [removeCoupon, appliedCoupon]);
 
-
   const handleImageError = useCallback((e) => {
     e.target.src = "/images/product_image.jpg";
   }, []);
 
-
   const onDeliveryMethodChange = useCallback(async (method) => {
     try {
       setShippingMethodUpdating(true);
-      setSelectedShipping(method.id);           // ← React state ✅
-      await setupShippingRate(method.id);       // ← Сервер ✅
+      setSelectedShipping(method.id);
+      await setupShippingRate(method.id);
     } catch (err) {
       handleCartError(err, "❌ Ошибка при выборе способа доставки");
     } finally {
@@ -166,18 +149,6 @@ const Cart = () => {
     }
   }, [setSelectedShipping, setupShippingRate]);
 
-
-  // // Инициализация способов доставки
-  // useEffect(() => {
-  //   console.log('📍 Effect triggered:', {
-  //     shippingMethodsLength: shippingMethods?.length,
-  //     selectedShippingId: selectedShipping,
-  //     shouldInitialize: !selectedShipping && shippingMethods?.length > 0,
-  //   });
-  // }, [shippingMethods, selectedShipping]);
-
-
-  // Инициализация способов оплаты
   useEffect(() => {
     if (paymentMethods?.length > 0 && !selectedPayment) {
       setSelectedPayment(paymentMethods[0].id);
@@ -185,14 +156,11 @@ const Cart = () => {
     }
   }, [paymentMethods, selectedPayment, setSelectedPayment]);
 
-
   useEffect(() => {
     const shippingMethod = selectedShippingMethod?.method || "";
     const isLocalPickup = shippingMethod.includes("pickup");
     const isCdek = shippingMethod.includes("cdek");
 
-
-    // Фильтруем видимые методы оплаты
     const visibleMethods = paymentMethods.filter((method) => {
       if (isLocalPickup && method.id === "yookassa_epl") {
         return false;
@@ -203,21 +171,171 @@ const Cart = () => {
       return true;
     });
 
-
-
-
-    // Если выбранный метод больше не видим — сбрасываем на первый доступный
     if (visibleMethods.length > 0 && !visibleMethods.find(m => m.id === selectedPayment)) {
       setSelectedPayment(visibleMethods[0].id);
     }
   }, [selectedShippingMethod, paymentMethods, selectedPayment, setSelectedPayment]);
 
-
-  // Состояния загрузки
   const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
   const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
   const isDisabled = cartLoading;
 
+  // --- Debounce logic for quantity changes ---
+  const [localQuantities, setLocalQuantities] = useState({});
+  const debounceTimersRef = useRef({});
+  const pendingActionsRef = useRef({});
+  const DEBOUNCE_MS = 2000;
+
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimersRef.current).forEach((timer) => {
+        if (timer) clearTimeout(timer);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    setLocalQuantities((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      const itemKeys = new Set(displayItems.map((i) => i.key));
+
+      displayItems.forEach((item) => {
+        const pending = pendingActionsRef.current[item.key];
+        if (!pending) {
+          if (next[item.key] !== item.quantity) {
+            next[item.key] = item.quantity;
+            changed = true;
+          }
+        } else if (next[item.key] === undefined) {
+          next[item.key] = item.quantity;
+          changed = true;
+        }
+      });
+
+      Object.keys(next).forEach((key) => {
+        if (!itemKeys.has(key)) {
+          delete next[key];
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [displayItems]);
+
+  const clearItemTimer = (itemKey) => {
+    const timer = debounceTimersRef.current[itemKey];
+    if (timer) {
+      clearTimeout(timer);
+      delete debounceTimersRef.current[itemKey];
+    }
+  };
+
+  const commitItemAction = async (itemKey, fallbackQuantity = null) => {
+    clearItemTimer(itemKey);
+    const action = pendingActionsRef.current[itemKey];
+    if (action) {
+      delete pendingActionsRef.current[itemKey];
+      if (action.type === "remove") {
+        await handleRemoveItemWrapper(itemKey);
+      } else if (action.type === "update") {
+        await handleQuantityChangeWrapper(itemKey, action.quantity);
+      }
+      return;
+    }
+
+    if (fallbackQuantity !== null) {
+      await handleQuantityChangeWrapper(itemKey, fallbackQuantity);
+    }
+  };
+
+  const scheduleItemAction = (itemKey, action) => {
+    pendingActionsRef.current[itemKey] = action;
+    clearItemTimer(itemKey);
+
+    debounceTimersRef.current[itemKey] = setTimeout(() => {
+      commitItemAction(itemKey);
+    }, DEBOUNCE_MS);
+  };
+
+  const normalizeQuantity = (value) => {
+    if (!Number.isFinite(value)) return null;
+    return Math.max(1, Math.floor(value));
+  };
+
+  const getDisplayQuantity = (item) => {
+    const val = localQuantities[item.key];
+    if (val === '' || val === undefined || val === null) return item.quantity;
+    const parsed = parseInt(val, 10);
+    return Number.isFinite(parsed) ? parsed : item.quantity;
+  };
+
+  const handleQuantityInputChange = (item, rawValue) => {
+    if (rawValue === '') {
+      setLocalQuantities((prev) => ({ ...prev, [item.key]: '' }));
+      clearItemTimer(item.key);
+      delete pendingActionsRef.current[item.key];
+      return;
+    }
+
+    const parsed = parseInt(rawValue, 10);
+    const nextQuantity = normalizeQuantity(parsed);
+    if (nextQuantity === null) return;
+
+    setLocalQuantities((prev) => ({ ...prev, [item.key]: nextQuantity }));
+    scheduleItemAction(item.key, { type: 'update', quantity: nextQuantity });
+  };
+
+  const handleQuantityCommit = (item) => {
+    clearItemTimer(item.key);
+
+    const raw = localQuantities[item.key];
+    const parsed = parseInt(raw, 10);
+    const nextQuantity = normalizeQuantity(parsed);
+
+    if (nextQuantity === null) {
+      setLocalQuantities((prev) => ({ ...prev, [item.key]: item.quantity }));
+      delete pendingActionsRef.current[item.key];
+      return;
+    }
+
+    if (nextQuantity === item.quantity) {
+      delete pendingActionsRef.current[item.key];
+      return;
+    }
+
+    pendingActionsRef.current[item.key] = { type: 'update', quantity: nextQuantity };
+    commitItemAction(item.key);
+  };
+
+  const handleQuantityKeyDown = (item, e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleQuantityCommit(item);
+    }
+  };
+
+  const handleIncreaseQuantity = (item) => {
+    const current = getDisplayQuantity(item);
+    const newQuantity = normalizeQuantity(current + 1);
+    setLocalQuantities((prev) => ({ ...prev, [item.key]: newQuantity }));
+    scheduleItemAction(item.key, { type: 'update', quantity: newQuantity });
+  };
+
+  const handleDecreaseQuantity = (item) => {
+    const current = getDisplayQuantity(item);
+    const newQuantity = normalizeQuantity(current - 1);
+
+    if (newQuantity < 1) {
+      scheduleItemAction(item.key, { type: 'remove' });
+      return;
+    }
+
+    setLocalQuantities((prev) => ({ ...prev, [item.key]: newQuantity }));
+    scheduleItemAction(item.key, { type: 'update', quantity: newQuantity });
+  };
+  // --- end debounce logic ---
 
   if (isLoading) {
     return (
@@ -227,11 +345,9 @@ const Cart = () => {
     );
   }
 
-
   if (!data) {
     return <EmptyCartState title="Нет данных" />;
   }
-
 
   if (displayItems.length === 0) {
     return (
@@ -256,7 +372,6 @@ const Cart = () => {
       <div className="container cart__container">
         <h1 className="cart__header">Корзина</h1>
 
-
         <div className="cart__wrapper">
           {/* ЛЕВАЯ ЧАСТЬ - ТОВАРЫ */}
           <div className="cart__items">
@@ -269,7 +384,6 @@ const Cart = () => {
                 <span></span>
                 <span></span>
               </div>
-
 
               {displayItems.map((item) => (
                 <div key={item.key} className="cart__product-item">
@@ -285,28 +399,31 @@ const Cart = () => {
                       <div className="cart__product-quantity">
                         <button
                           className="button cart__product-minus"
-                          onClick={() => {
-                            if (item.quantity === 1) {
-                              handleRemoveItemWrapper(item.key);
-                            } else {
-                              handleQuantityChangeWrapper(item.key, item.quantity - 1);
-                            }
-                          }}
+                          onClick={() => handleDecreaseQuantity(item)}
                           disabled={isDisabled}
                           title={
                             cartLoading
                               ? "Обновление..."
-                              : item.quantity === 1
+                              : getDisplayQuantity(item) === 1
                                 ? "Удалить товар"
                                 : "Уменьшить количество"
                           }
                         >
                           <img src="/images/minus.svg" alt="Уменьшить" />
                         </button>
-                        <input className="cart__product-count" value={item.quantity} readOnly />
+                        <input
+                          className="cart__product-count"
+                          type="number"
+                          min="1"
+                          value={localQuantities[item.key] ?? item.quantity}
+                          onChange={(e) => handleQuantityInputChange(item, e.target.value)}
+                          onBlur={() => handleQuantityCommit(item)}
+                          onKeyDown={(e) => handleQuantityKeyDown(item, e)}
+                          disabled={isDisabled}
+                        />
                         <button
                           className="button cart__product-plus"
-                          onClick={() => handleQuantityChangeWrapper(item.key, item.quantity + 1)}
+                          onClick={() => handleIncreaseQuantity(item)}
                           disabled={isDisabled}
                           title={cartLoading ? "Обновление..." : "Увеличить количество"}
                         >
@@ -328,7 +445,6 @@ const Cart = () => {
               ))}
             </div>
 
-
             <button
               type="button"
               className="cart__clear-button cart__coupon-submit"
@@ -338,7 +454,6 @@ const Cart = () => {
               {cartLoading ? "⏳ Очищаем..." : "Очистить корзину"}
             </button>
           </div>
-
 
           {/* ПРАВАЯ ЧАСТЬ - СУММА И МЕТОДЫ */}
           <div className={`cart__right-section ${shippingMethodUpdating ? "is-updating" : ""}`}>
@@ -350,8 +465,6 @@ const Cart = () => {
                   <span className="cart__price-numb">{formatPriceForDisplay(baseTotal)}</span>
                 </div>
 
-
-                {/* ПРИМЕНЁННЫЙ КУПОН */}
                 {appliedCoupon && (
                   <div className="cart__price-discount cart__price-underline">
                     <span className="cart__price-name">Промокод ({appliedCoupon.code}):</span>
@@ -360,7 +473,6 @@ const Cart = () => {
                     </span>
                   </div>
                 )}
-
 
                 {couponMessage && (
                   <div
@@ -374,8 +486,6 @@ const Cart = () => {
                   </div>
                 )}
 
-
-                {/* СПОСОБ ОПЛАТЫ */}
                 <div className="cart__price-shipping">
                   <span className="cart__price-name">Способы оплаты:</span>
                   <div className="cart__checkbox-wrapper">
@@ -385,8 +495,6 @@ const Cart = () => {
                         const isLocalPickup = shippingMethod.includes("pickup");
                         const isCdek = shippingMethod.includes("cdek");
 
-
-                        // ✅ ТОЛЬКО ФИЛЬТРАЦИЯ - БЕЗ setState
                         console.log(paymentMethods);
                         const visibleMethods = paymentMethods.filter((method) => {
                           if (isLocalPickup && method.id === "yookassa_epl") {
@@ -398,8 +506,6 @@ const Cart = () => {
                           return true;
                         });
 
-
-                        // ✅ ТОЛЬКО РЕНДЕР - БЕЗ логики
                         return visibleMethods.map((method) => (
                           <div key={method.id} className="cart__checkbox-main">
                             <input
@@ -423,8 +529,6 @@ const Cart = () => {
                   </div>
                 </div>
 
-
-                {/* СПОСОБ ДОСТАВКИ */}
                 <div className="cart__price-shipping">
                   <span className="cart__price-name">Способы доставки:</span>
                   <div className="cart__checkbox-wrapper">
@@ -453,7 +557,6 @@ const Cart = () => {
                   </div>
                 </div>
 
-
                 <div className="cart__price-final">
                   <span className="cart__price-name price-bold">Итого:</span>
                   <span className="cart__price-numb">{formatPriceForDisplay(finalTotal)}</span>
@@ -461,14 +564,12 @@ const Cart = () => {
               </div>
             </div>
 
-
             <form
               className="cart__form"
               onSubmit={(e) => {
                 e.preventDefault();
               }}
             >
-              {/* БЛОК С КУПОНОМ */}
               <div className="cart__coupon-apply">
                 <input
                   className="cart__coupon-input"
@@ -489,7 +590,6 @@ const Cart = () => {
                 </button>
               </div>
 
-
               <Link
                 href="/checkout"
                 className="cart__form-button-submit"
@@ -506,12 +606,10 @@ const Cart = () => {
           </div>
         </div>
 
-
         <NewItems products={data.new_products} />
       </div>
     </section>
   );
 };
-
 
 export default Cart;

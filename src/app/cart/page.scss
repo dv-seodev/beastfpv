@@ -236,8 +236,12 @@
     max-width: 45px;
     max-height: 30px;
     color: var(--black);
-    padding: 10px;
+    padding-left: 12px;
     text-align: center;
+
+    @include respond-to("ipad") {
+      padding-left: 0px;
+    }
   }
 
   &__price-heading {
@@ -339,6 +343,7 @@
     &.is-updating {
       opacity: 0.5;
       pointer-events: none !important;
+
       * {
         cursor: not-allowed !important;
         pointer-events: none !important;

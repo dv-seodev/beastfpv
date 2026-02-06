@@ -391,8 +391,12 @@
         border-radius: 4px;
         max-width: 45px;
         color: var(--black);
-        padding: 10px;
+        padding-left: 12px;
         text-align: center;
+
+        @include respond-to('ipad') {
+            padding-left: 0px;
+        }
     }
 
     .swiper-container {
