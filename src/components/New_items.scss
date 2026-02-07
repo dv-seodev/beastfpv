@@ -197,6 +197,7 @@
         background-color: var(--white);
         border-radius: 4px;
         text-align: center;
+        max-width: 440px;
 
         @include mx.respond-to('ipad') {
             font-size: 14px;

@@ -106,7 +106,8 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
 
   // ✨ Обработчик для предзаказа
   const handlePreOrder = () => {
-    onOneClick(product);
+    if (!onOneClick) return;
+    onOneClick(product, { isPreorder: isOutOfStock });
   };
 
   const handleFavoriteClick = (event) => {
@@ -164,11 +165,6 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
         className="new-items__one-click button"
         type="button"
         onClick={handlePreOrder}
-        disabled={isOutOfStock}
-        style={{
-          opacity: isOutOfStock ? 0.5 : 1,
-          cursor: isOutOfStock ? "not-allowed" : "pointer",
-        }}
       >
         {isOutOfStock ? "Оформить предзаказ" : "Купить в один клик"}
       </button>

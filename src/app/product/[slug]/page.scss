@@ -201,6 +201,14 @@
 
 
             }
+
+            .product-card__out-of-stock-inline {
+                color: var(--red);
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 22px;
+                align-self: center;
+            }
         }
 
         &-favourite {
@@ -525,4 +533,9 @@
 
 .half-stars .rating-group input:hover~label svg {
     fill: #EBEBEB;
+}
+
+.product-card__out-of-stock-inline {
+    color: var(--red);
+    font-weight: 600;
 }

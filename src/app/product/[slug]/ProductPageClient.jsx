@@ -11,6 +11,7 @@ import { useFavoriteStore } from '../../../stores/favoriteStore';
 import { useRestCart } from '../../../lib/hooks/useRestCart';
 import ProductGallery from "./ProductGallery";
 import restApi from "../../../lib/woo_rest_api/rest_api";
+import OneClickModal from "../../../components/OneClickModal";
 
 
 const Product_cart = ({ product, homeData }) => {
@@ -20,6 +21,7 @@ const Product_cart = ({ product, homeData }) => {
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isInCart, setIsInCart] = useState(false);
+    const [isPreorderModalOpen, setIsPreorderModalOpen] = useState(false);
     const router = useRouter();
 
     const debounceTimerRef = useRef(null);
@@ -198,6 +200,10 @@ const Product_cart = ({ product, homeData }) => {
 
     const handleGoToCart = () => {
         router.push('/cart/');
+    };
+
+    const handlePreorderClick = () => {
+        setIsPreorderModalOpen(true);
     };
 
     const getCartItemForProduct = () => {
@@ -394,10 +400,18 @@ const Product_cart = ({ product, homeData }) => {
                             </div>
                         </div>
 
+                        {isOutOfStock && (
+                            <span className="product-card__out-of-stock-inline">Временно нет в наличии</span>
+                        )}
+
                         {isOutOfStock ? (
-                            <div className="product-card__out-of-stock">
-                                <span className="product-card__out-of-stock-text">Временно нет в наличии</span>
-                            </div>
+                            <button
+                                className="new-items__one-click button"
+                                type="button"
+                                onClick={handlePreorderClick}
+                            >
+                                Оформить предзаказ
+                            </button>
                         ) : !isInCart ? (
                             <button
                                 className="product-card__order-button button"
@@ -518,6 +532,12 @@ const Product_cart = ({ product, homeData }) => {
                     <Tabs product={product} />
                 )}
             </div>
+            <OneClickModal
+                product={product}
+                isOpen={isPreorderModalOpen}
+                onClose={() => setIsPreorderModalOpen(false)}
+                isPreorder
+            />
             <NewItems products={new_products} />
         </section>
     );

@@ -1,16 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatPhoneNumber } from '../lib/phoneMask'; // ✨ ДОБАВЛЯЕМ ИМПОРТ
 
-export default function OneClickModal({ product, isOpen, onClose }) {
+const getProductNameForForm = (product, isPreorder) => {
+    const name = product?.name || '';
+    if (!name) return '';
+    return isPreorder ? `Предзаказ - ${name}` : name;
+};
+
+export default function OneClickModal({ product, isOpen, onClose, isPreorder = false }) {
     const [formData, setFormData] = useState({
-        product_name: product?.name || '',
+        product_name: getProductNameForForm(product, isPreorder),
         name: '',
         phone: '',
         agree: false,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            product_name: getProductNameForForm(product, isPreorder),
+        }));
+    }, [product, isPreorder]);
 
     if (!isOpen) return null;
 
@@ -71,7 +84,12 @@ export default function OneClickModal({ product, isOpen, onClose }) {
             if (!response.ok) throw new Error('Ошибка при отправке');
 
             alert('✅ Спасибо! Мы свяжемся с вами в ближайшее время');
-            setFormData({ product_name: product?.name || '', name: '', phone: '', agree: false });
+            setFormData({
+                product_name: getProductNameForForm(product, isPreorder),
+                name: '',
+                phone: '',
+                agree: false,
+            });
             setTimeout(onClose, 1500);
         } catch (err) {
             console.error('Ошибка:', err);

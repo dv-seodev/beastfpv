@@ -22,6 +22,7 @@ const NewItems = ({ products }) => {
     const { formatPrice } = useProductsList();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPreorder, setIsPreorder] = useState(false);
 
     const { cart } = useRestCart();
 
@@ -32,8 +33,9 @@ const NewItems = ({ products }) => {
     );
 
     // ✅ ИЗМЕНЕНИЕ: Удаляем handleAddCart (больше не нужен, логика в ProductListItem)
-    const handleOneClick = (product) => {
+    const handleOneClick = (product, options = {}) => {
         setSelectedProduct(product);
+        setIsPreorder(!!options.isPreorder);
         setIsModalOpen(true);
     };
 
@@ -101,6 +103,7 @@ const NewItems = ({ products }) => {
                     product={selectedProduct}
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
+                    isPreorder={isPreorder}
                 />
             )}
         </>
