@@ -252,9 +252,9 @@ const Register = () => {
                         Уже есть аккаунт?{' '}
                         <Link href="/login/">Войти</Link>
                     </p><br />
-                    <p className="login__signup">
+                    <p className="register__login">
                         Забыли пароль?{' '}
-                        <Link href="/register/">Восстановить</Link>
+                        <Link href="/password-recovery/">Восстановить</Link>
                     </p>
                 </form>
             </div>

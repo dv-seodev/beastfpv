@@ -166,4 +166,22 @@
             }
         }
     }
+
+    &__signup {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        padding-bottom: 0 !important;
+        font-weight: normal !important;
+
+        a {
+            color: var(--basket-button-color);
+            text-decoration: none;
+            font-weight: 600;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
 }
