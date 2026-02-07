@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import restApi from "../lib/woo_rest_api/rest_api";
 // ✅ ИЗМЕНЕНИЕ: Заменяем старый useCartStore на новый useRestCart
 import { useRestCart } from "../lib/hooks/useRestCart";
+import { isInFavorites, toggleFavorite } from "../stores/favoriteStore";
 
 // ✅ ИЗМЕНЕНИЕ: Добавляем пропс isInCart (вычисляется в родителе)
 function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
@@ -15,7 +16,10 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
   const [isMounted, setIsMounted] = useState(false);
   // ✅ ИЗМЕНЕНИЕ: Локальное состояние inCart инициализируется пропсом
   const [inCart, setInCart] = useState(isInCart);
+  const [isFavorite, setIsFavorite] = useState(false);
   const addInFlightRef = useRef(false);
+  const favoriteProductId = product.databaseId || product.id;
+  const favoriteProduct = { ...product, databaseId: favoriteProductId };
 
   // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart вместо старого useCartStore
   const { updateCart } = useRestCart();
@@ -29,6 +33,20 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
   useEffect(() => {
     setInCart(isInCart);
   }, [isInCart]);
+
+  useEffect(() => {
+    const updateFavorite = () => {
+      setIsFavorite(isInFavorites(favoriteProductId));
+    };
+
+    updateFavorite();
+    if (typeof window !== "undefined") {
+      window.addEventListener("favoritesChanged", updateFavorite);
+      return () => {
+        window.removeEventListener("favoritesChanged", updateFavorite);
+      };
+    }
+  }, [favoriteProductId]);
 
   // ✨ Проверка: товар в наличии или нет
   const isOutOfStock =
@@ -91,8 +109,28 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
     onOneClick(product);
   };
 
+  const handleFavoriteClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleFavorite(favoriteProduct);
+    setIsFavorite(isInFavorites(favoriteProductId));
+  };
+
   return (
     <div key={product.id} className="new-items__item popular-products__item">
+      <button
+        type="button"
+        className={`product-favorite-button ${isFavorite ? "is-favorite" : ""}`}
+        aria-pressed={isFavorite}
+        aria-label={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
+        title={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
+        onClick={handleFavoriteClick}
+      >
+        <img
+          src={isFavorite ? "/icons-header/heart-red.svg" : "/images/favorites.svg"}
+          alt=""
+        />
+      </button>
       <Link href={`/product/${product.slug}`}>
         <img src={imageUrl} alt={product.name} />
       </Link>

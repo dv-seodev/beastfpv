@@ -464,11 +464,8 @@ const Product_cart = ({ product, homeData }) => {
                                 }}
                             >
                                 <img
-                                    src="/images/favorites.svg"
-                                    alt="add to favourite"
-                                    style={{
-                                        filter: isFavorite ? 'invert(24%) sepia(79%) saturate(1234%) hue-rotate(343deg) brightness(105%) contrast(97%)' : 'none',
-                                    }}
+                                    src={isFavorite ? "/icons-header/heart-red.svg" : "/images/favorites.svg"}
+                                    alt={isFavorite ? "favorite" : "add to favourite"}
                                 />
                             </button>
                             <button

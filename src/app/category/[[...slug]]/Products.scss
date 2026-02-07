@@ -76,6 +76,41 @@
 
     }
 
+    .product-favorite-button {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 22px;
+        height: 22px;
+        border: none;
+        background: transparent;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+
+        @include mx.respond-to('phone') {
+            top: 8px;
+            left: 8px;
+        }
+
+        &:hover {
+            transform: translateY(-1px);
+        }
+
+        img {
+            width: 22px;
+            height: 20px;
+            display: block;
+        }
+    }
+
+    .product-favorite-button:not(.is-favorite) img {
+        opacity: 0.5;
+    }
+
     &__name {
         font-size: 16px;
         line-height: 125%;
