@@ -5,6 +5,21 @@ export const dynamicParams = false; // только пререндеренные
 export const revalidate = 60;
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
+const RESERVED_SLUGS = new Set([
+    'account',
+    'actions',
+    'api',
+    'cart',
+    'category',
+    'checkout',
+    'contacts',
+    'favorite',
+    'login',
+    'news',
+    'password-recovery',
+    'product',
+    'register',
+]);
 
 const PAGE_QUERY = `
   query PageByUri($uri: String!) {
@@ -65,7 +80,7 @@ async function fetchAllPageSlugs() {
         const pageInfo = connection?.pageInfo;
 
         nodes.forEach((node) => {
-            if (node?.slug) slugs.push(node.slug);
+            if (node?.slug && !RESERVED_SLUGS.has(node.slug)) slugs.push(node.slug);
         });
 
         hasNextPage = Boolean(pageInfo?.hasNextPage);
@@ -83,7 +98,7 @@ export async function generateStaticParams() {
 export default async function Page({ params }) {
     const resolvedParams = await params;
     const slug = resolvedParams?.slug;
-    if (!slug) return notFound();
+    if (!slug || RESERVED_SLUGS.has(slug)) return notFound();
 
     const uri = `/${slug}/`;
     const page = await fetchPageByUri(uri);

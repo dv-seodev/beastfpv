@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
     if (!cartInitialized) {
       fetchCart();
     }
-  }, [cartInitialized]);
+  }, [cartInitialized, fetchCart]);
 
   return (
     <html lang="ru">

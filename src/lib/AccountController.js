@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './useAuth';
 
@@ -38,23 +38,7 @@ export function useAccountController() {
         }
     });
 
-    useEffect(() => {
-        if (token && isHydrated) {
-            fetchProfile();
-        }
-    }, [token, isHydrated]);
-
-    useEffect(() => {
-        if (message) {
-            const timer = setTimeout(() => {
-                setMessage(null);
-            }, 3000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [message]);
-
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         if (!token) return;
 
         try {
@@ -83,7 +67,23 @@ export function useAccountController() {
         } finally {
             setProfileLoading(false);
         }
-    };
+    }, [token, logout, router]);
+
+    useEffect(() => {
+        if (token && isHydrated) {
+            fetchProfile();
+        }
+    }, [token, isHydrated, fetchProfile]);
+
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => {
+                setMessage(null);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     const updateFormDataFromProfile = (data) => {
         setFormData({
