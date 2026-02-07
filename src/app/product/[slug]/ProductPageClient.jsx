@@ -313,7 +313,11 @@ const Product_cart = ({ product, homeData }) => {
             setQuantity(newQuantity);
             scheduleAction({ type: 'update', quantity: newQuantity });
         } else {
-            scheduleAction({ type: 'remove' });
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+            pendingActionRef.current = null;
+            void handleRemoveFromCart();
         }
     };
 
@@ -321,22 +325,21 @@ const Product_cart = ({ product, homeData }) => {
         if (isUpdatingRef.current) return;
 
         setIsUpdating(true);
+        // Optimistic UI: сразу показываем, что товара нет в корзине
+        setIsInCart(false);
+        setQuantity(1);
 
         try {
             const cartItem = getCartItemForProduct();
 
             if (!cartItem?.key) {
                 console.warn('⚠️ Товар не найден в корзине или нет key');
-                setIsInCart(false);
-                setQuantity(1);
                 setIsUpdating(false);
                 return;
             }
 
             await handleRemoveItem(cartItem.key);
 
-            setIsInCart(false);
-            setQuantity(1);
         } catch (err) {
             console.error("❌ Ошибка при удалении товара:", err);
 
@@ -350,7 +353,7 @@ const Product_cart = ({ product, homeData }) => {
                 );
 
                 setIsInCart(!!stillInCart);
-                setQuantity(1);
+                setQuantity(stillInCart?.quantity || 1);
             } catch (refreshErr) {
                 console.error("❌ Ошибка при обновлении корзины:", refreshErr);
                 alert('❌ Ошибка при удалении товара');
@@ -416,13 +419,13 @@ const Product_cart = ({ product, homeData }) => {
                             <button
                                 className="product-card__order-button button"
                                 onClick={handleAddToCart}
-                                disabled={isAddingToCart || isUpdating}
+                                disabled={isAddingToCart}
                                 style={{
-                                    opacity: (isAddingToCart || isUpdating) ? 0.6 : 1,
-                                    cursor: (isAddingToCart || isUpdating) ? 'not-allowed' : 'pointer',
+                                    opacity: isAddingToCart ? 0.6 : 1,
+                                    cursor: isAddingToCart ? 'not-allowed' : 'pointer',
                                 }}
                             >
-                                {isAddingToCart ? 'Добавляю...' : 'Купить'}
+                                {isAddingToCart ? 'Обновляем' : 'Купить'}
                             </button>
                         ) : (
                             <div className="product-card__incart-wrapper">
