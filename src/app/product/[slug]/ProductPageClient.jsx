@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import NewItems from "../../../components/New_items";
 import Breadcrumbs from "../../category/[[...slug]]/Breadcrumbs";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Tabs from "./Tabs";
 import { useProductsList } from '../../../lib/ProductsListController';
 import { useFavoriteStore } from '../../../stores/favoriteStore';
@@ -27,6 +27,7 @@ const Product_cart = ({ product, homeData }) => {
     const debounceTimerRef = useRef(null);
     const pendingActionRef = useRef(null);
     const isUpdatingRef = useRef(false);
+    const optimisticActionRef = useRef(null);
     const DEBOUNCE_MS = 2000;
 
     // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart hook вместо старого useCartStore
@@ -65,21 +66,46 @@ const Product_cart = ({ product, homeData }) => {
         }
     }, [isMounted, fetchCart]);
 
-    // ✅ ИЗМЕНЕНИЕ: Проверяем наличие товара в корзине через REST данные
-    useEffect(() => {
-        if (isMounted && product?.databaseId && cart?.items) {
-            const foundItem = cart.items.find(item =>
-                item.product_id === product.databaseId ||
-                item.id === product.databaseId
-            );
+    const syncCartState = useCallback((cartItems = []) => {
+        if (!product?.databaseId) return;
 
+        const foundItem = cartItems.find(item =>
+            item.product_id === product.databaseId ||
+            item.id === product.databaseId
+        );
+
+        if (foundItem) {
+            if (optimisticActionRef.current === 'remove') {
+                return;
+            }
             const itemQuantity = foundItem?.quantity || 0;
             setIsInCart(itemQuantity > 0);
             setQuantity(itemQuantity > 0 ? itemQuantity : 1);
-
+            if (optimisticActionRef.current === 'add') {
+                optimisticActionRef.current = null;
+            }
             console.log(`📦 Товар ${product.name} в корзине:`, itemQuantity > 0, 'количество:', itemQuantity);
+            return;
         }
-    }, [isMounted, product?.databaseId, product?.name, cart?.items]);
+
+        if (optimisticActionRef.current === 'add') {
+            return;
+        }
+
+        setIsInCart(false);
+        setQuantity(1);
+
+        if (optimisticActionRef.current === 'remove') {
+            optimisticActionRef.current = null;
+        }
+    }, [product?.databaseId, product?.name]);
+
+    // ✅ ИЗМЕНЕНИЕ: Проверяем наличие товара в корзине через REST данные
+    useEffect(() => {
+        if (isMounted && cart?.items) {
+            syncCartState(cart.items);
+        }
+    }, [isMounted, cart?.items, syncCartState]);
 
     // ✅ ИЗМЕНЕНИЕ: Подписываемся на изменения корзины через Zustand store
     useEffect(() => {
@@ -87,16 +113,7 @@ const Product_cart = ({ product, homeData }) => {
 
         const updateCartState = () => {
             const cartItems = useRestCart.getState().cart?.items || [];
-            const foundItem = cartItems.find(item =>
-                item.product_id === product.databaseId ||
-                item.id === product.databaseId
-            );
-
-            const itemQuantity = foundItem?.quantity || 0;
-            setIsInCart(itemQuantity > 0);
-            setQuantity(itemQuantity > 0 ? itemQuantity : 1);
-
-            console.log(`🛒 Товар ${product.name} в корзине (обновлено):`, itemQuantity > 0);
+            syncCartState(cartItems);
         };
 
         const unsubscribe = useRestCart.subscribe(
@@ -107,7 +124,7 @@ const Product_cart = ({ product, homeData }) => {
         );
 
         return () => unsubscribe();
-    }, [isMounted, product?.databaseId, product?.name]);
+    }, [isMounted, product?.databaseId, syncCartState]);
 
     // ✅ ИЗМЕНЕНИЕ: Используем существующую логику для избранного (без изменений)
     useEffect(() => {
@@ -177,6 +194,7 @@ const Product_cart = ({ product, homeData }) => {
         if (isAddingToCart || isInCart) return;
 
         // Оптимистично меняем состояние сразу
+        optimisticActionRef.current = 'add';
         setIsInCart(true);
         setQuantity(1);
         setIsAddingToCart(true);
@@ -188,9 +206,11 @@ const Product_cart = ({ product, homeData }) => {
             });
 
             useRestCart.getState().updateCart(newCart);
+            optimisticActionRef.current = null;
             console.log("✅ Товар успешно добавлен в корзину");
         } catch (err) {
             console.error("❌ Ошибка при добавлении в корзину:", err);
+            optimisticActionRef.current = null;
             setIsInCart(false);
             alert("❌ Ошибка при добавлении товара в корзину");
         } finally {
@@ -325,6 +345,7 @@ const Product_cart = ({ product, homeData }) => {
         if (isUpdatingRef.current) return;
 
         setIsUpdating(true);
+        optimisticActionRef.current = 'remove';
         // Optimistic UI: сразу показываем, что товара нет в корзине
         setIsInCart(false);
         setQuantity(1);
@@ -339,9 +360,11 @@ const Product_cart = ({ product, homeData }) => {
             }
 
             await handleRemoveItem(cartItem.key);
+            optimisticActionRef.current = null;
 
         } catch (err) {
             console.error("❌ Ошибка при удалении товара:", err);
+            optimisticActionRef.current = null;
 
             try {
                 await fetchCart();
