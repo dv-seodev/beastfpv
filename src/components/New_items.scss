@@ -34,11 +34,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 8px 12px;
+        padding: 8px 8px;
         background-color: #f5f5f5;
         border: 1px solid #d0d0d0;
         border-radius: 4px;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
         min-height: 47px;
         color: #999;
@@ -152,8 +152,8 @@
         font-size: 24px;
         font-weight: 700;
 
-        @include mx.respond-to('ipad') {
-            font-size: 16px;
+        @include mx.respond-to('laptop-mdpi') {
+            font-size: 18px;
         }
     }
 
@@ -170,7 +170,7 @@
         border-radius: 4px;
         border: none;
 
-        @include mx.respond-to('ipad') {
+        @include mx.respond-to('laptop-mdpi') {
             min-width: 39px;
             min-height: 33px;
 

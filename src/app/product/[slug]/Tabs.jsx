@@ -31,24 +31,24 @@ const Tabs = ({ product = {} }) => {
                 <div role="tabpanel"><span >Tab 3 content</span></div>
 
                 <label role="tab">
-                    <input type="radio" name="resp-tab" /><span>Аксессуары</span>
+                    <input type="radio" name="resp-tab" /><span>Инструкции</span>
                 </label>
                 <div role="tabpanel"><span >Tab 3 content</span></div>
 
-                <label role="tab">
+                {/* <label role="tab">
                     <input type="radio" name="resp-tab" /><span>Сертификаты</span>
                 </label>
-                <div role="tabpanel"><span >Tab 3 content</span></div>
+                <div role="tabpanel"><span >Tab 3 content</span></div> */}
 
                 <label role="tab">
                     <input type="radio" name="resp-tab" /><span>Оплата и доставка</span>
                 </label>
                 <div role="tabpanel"><span >Tab 3 content</span></div>
 
-                <label role="tab">
+                {/* <label role="tab">
                     <input type="radio" name="resp-tab" /><span>Отзывы</span>
                 </label>
-                <div role="tabpanel"><span >Tab 3 content</span></div>
+                <div role="tabpanel"><span >Tab 3 content</span></div> */}
             </div>
         </div>
     );
