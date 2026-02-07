@@ -5,9 +5,10 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import ProductPageClient from "./ProductPageClient";
 
-export const dynamic = 'force-static';
 export const dynamicParams = false;
-export const revalidate = false;
+export const dynamic = process.env.NODE_ENV === "development" ? "force-dynamic" : "force-static";
+export const revalidate = process.env.NODE_ENV === "development" ? 0 : false;
+
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 

@@ -13,11 +13,9 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
   const router = useRouter();
   const { formatPrice } = useProductsList();
   const [isMounted, setIsMounted] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   // ✅ ИЗМЕНЕНИЕ: Локальное состояние inCart инициализируется пропсом
   const [inCart, setInCart] = useState(isInCart);
-  const addToCartTimerRef = useRef(null);
-  const pendingAddRef = useRef(false);
+  const addInFlightRef = useRef(false);
 
   // ✅ ИЗМЕНЕНИЕ: Используем новый useRestCart вместо старого useCartStore
   const { updateCart } = useRestCart();
@@ -32,15 +30,6 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
     setInCart(isInCart);
   }, [isInCart]);
 
-  useEffect(() => {
-    return () => {
-      if (addToCartTimerRef.current) {
-        clearTimeout(addToCartTimerRef.current);
-      }
-      pendingAddRef.current = false;
-    };
-  }, []);
-
   // ✨ Проверка: товар в наличии или нет
   const isOutOfStock =
     product.stockStatus === "OUT_OF_STOCK" || product.stockQuantity === 0;
@@ -50,17 +39,10 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
 
   // ✅ ИЗМЕНЕНИЕ: Переделан метод добавления товара в корзину с использованием REST API
   const commitAddToCart = async () => {
-    if (!pendingAddRef.current) return;
-    pendingAddRef.current = false;
-
-    if (addToCartTimerRef.current) {
-      clearTimeout(addToCartTimerRef.current);
-      addToCartTimerRef.current = null;
-    }
+    if (addInFlightRef.current) return;
+    addInFlightRef.current = true;
 
     try {
-      setIsAddingToCart(true);
-
       // ✅ Добавляем товар в корзину через REST API
       const newCart = await restApi.addToCart({
         id: product.databaseId,
@@ -79,23 +61,13 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
       setInCart(false);
       alert("❌ Ошибка при добавлении товара в корзину");
     } finally {
-      setIsAddingToCart(false);
+      addInFlightRef.current = false;
     }
-  };
-
-  const scheduleAddToCart = () => {
-    pendingAddRef.current = true;
-    if (addToCartTimerRef.current) {
-      clearTimeout(addToCartTimerRef.current);
-    }
-    addToCartTimerRef.current = setTimeout(() => {
-      commitAddToCart();
-    }, 1000);
   };
 
   const handleAddToCart = () => {
     setInCart(true); // мгновенно показываем "в корзине"
-    scheduleAddToCart();
+    void commitAddToCart();
   };
 
   // ✅ Переход в корзину
@@ -141,15 +113,9 @@ function ProductListItem({ product, isInCart, onAddCart, onOneClick }) {
             className={`new-items__cart-button button ${inCart ? "cart-added" : ""
               }`}
             onClick={handleCartButtonClick}
-            onBlur={commitAddToCart}
-            disabled={isAddingToCart}
             type="button"
             // ✅ ИЗМЕНЕНИЕ: Подсказка меняется в зависимости от состояния
             title={inCart ? "Перейти в корзину" : "Добавить в корзину"}
-            style={{
-              opacity: isAddingToCart ? 0.6 : 1,
-              cursor: isAddingToCart ? "not-allowed" : "pointer",
-            }}
           >
           </button>
         )}
