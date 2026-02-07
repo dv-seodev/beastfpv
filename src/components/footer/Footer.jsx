@@ -20,7 +20,7 @@ const Footer = () => {
 
                 </div>
                 <div className="footer__social footer__navy">
-                    <span className="footer__links-header">ИП Габитов Радик Альфердович </span>
+                    <span className="footer__links-header">ИП Габитов Р.А. </span>
                     <nav className="footer__popular-links footer__links_navy">
                         <div className="footer__links-item">
                             ИНН 024200325133<br /><br />

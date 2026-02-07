@@ -17,6 +17,7 @@ import Contact_us from "../components/Contact_us";
 import MobileMenu from "../components/header/MobileMenu";
 import Actions from "../components/Actions";
 import Categories from "../components/Categories";
+import ScrollToTop from "../components/ScrollToTop";
 import client from "../lib/ApolloClient";
 import { ApolloProvider } from "@apollo/client/react";
 import ApolloProviderWrapper from "../components/ApolloProvider";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }) {
             <div className="app_footer">
               <Footer />
             </div>
+            <ScrollToTop />
           </div>
         </ApolloProviderWrapper>
       </body>
