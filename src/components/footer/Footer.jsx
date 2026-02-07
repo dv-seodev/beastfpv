@@ -20,19 +20,19 @@ const Footer = () => {
 
                 </div>
                 <div className="footer__social footer__navy">
-                    <span className="footer__links-header">ООО "Солидарность"</span>
+                    <span className="footer__links-header">ИП Габитов Радик Альфердович </span>
                     <nav className="footer__popular-links footer__links_navy">
                         <div className="footer__links-item">
-                            ИНН/КПП 9717145101/771701001<br /><br />
-                            ОГРН 1207700010506<br /><br />
-                            Все права защищены © 2024
+                            ИНН 024200325133<br /><br />
+                            ОГРНИП 324508100570973<br /><br />
+                            Все права защищены © 2026
                         </div>
                     </nav>
                     <div className="footer__social-links footer__links_navy">
-                        <Link className="icon-link" href="/favorite/"><img src="/icons-footer/facebook_black.png" /></Link>
-                        <Link className="icon-link" href=""><img src="/icons-footer/twitch_black.png" /></Link>
-                        <Link className="icon-link" href=""><img src="/icons-footer/twitter_black.png" /></Link>
-                        <Link className="icon-link" href=""><img src="/icons-footer/youtube_black.png" /></Link>
+                        <Link className="icon-link" href="https://t.me/beastfpvru"><img src="/icons-footer/telegram.png" /></Link>
+                        <Link className="icon-link" href="https://rutube.ru/channel/67240062/"><img src="/icons-footer/rutube.png" /></Link>
+                        <Link className="icon-link" href="https://www.youtube.com/channel/UCY60hCnMpLRtBqQCj-a6xtg"><img src="/icons-footer/youtube.png" /></Link>
+
                     </div>
                 </div>
                 <div className="footer__contacts-info footer__navy">

@@ -80,8 +80,8 @@
         position: absolute;
         top: 12px;
         left: 12px;
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border: none;
         background: transparent;
         padding: 0;
@@ -91,7 +91,7 @@
         cursor: pointer;
         transition: transform 0.15s ease;
 
-        @include mx.respond-to('phone') {
+        @include respond-to('phone') {
             top: 8px;
             left: 8px;
         }
@@ -101,14 +101,14 @@
         }
 
         img {
-            width: 22px;
+            width: 20px;
             height: 20px;
             display: block;
         }
     }
 
     .product-favorite-button:not(.is-favorite) img {
-        opacity: 0.5;
+        opacity: 0.6;
     }
 
     &__name {
