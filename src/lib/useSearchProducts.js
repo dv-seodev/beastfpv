@@ -12,7 +12,6 @@ export const useSearchProducts = () => {
     const [fetchAllProducts, { data, loading, error, fetchMore, called }] = useLazyQuery(
         api.fetchSearchingProducts(),
         {
-            variables: { after: null },
             notifyOnNetworkStatusChange: true,
         }
     );
@@ -81,7 +80,7 @@ export const useSearchProducts = () => {
         setSearchTerm(term);
         if (term.trim().length >= 2 && !called) {
             console.log('[search] start fetching catalog...');
-            fetchAllProducts();
+            fetchAllProducts({ variables: { after: null } });
         }
     };
 
