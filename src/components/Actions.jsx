@@ -88,17 +88,15 @@ const Actions = () => {
 
                 <div className="actions__wrapper">
                     {actions.map((item) => (
-                        <Link href={`/actions/${item.slug}`}>
-                            <div key={item.id} className="actions__item">
-                                <img
-                                    src={item.featuredImage?.node?.sourceUrl || "/images/actions/action_1.png"}
-                                    alt={item.title || "action"}
-                                />
-
-                                {/* <div className="actions__text">{item.title}</div> */}
-
-                            </div>
-                        </Link>
+                        <div key={item.id} className="actions__item">
+                            <img
+                                src={item.featuredImage?.node?.sourceUrl || "/images/actions/action_1.png"}
+                                alt={item.title || "action"}
+                            />
+                            <Link href={`/actions/${item.slug}`}>
+                                <div className="actions__text">{item.title}</div>
+                            </Link>
+                        </div>
                     ))}
                 </div>
                 <div className="link__show-all mobile-show">
