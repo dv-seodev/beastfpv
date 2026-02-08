@@ -41,7 +41,7 @@ const PopularProducts = ({ products }) => {
                 <div className="container popular-products__container">
                     <div className="popular-products__header">
                         <h2>Популярные товары</h2>
-                        <Link className="link__show-all desktop-show" href="/">
+                        <Link className="link__show-all desktop-show" href="/category/popular/">
                             <span>Смотреть все</span>
                         </Link>
                     </div>
@@ -57,7 +57,7 @@ const PopularProducts = ({ products }) => {
                         ))}
                     </div>
                     <div className="link__show-all mobile-show">
-                        <Link href="/">
+                        <Link href="/category/popular/">
                             <span className="show-all">Все популярные</span>
                         </Link>
                     </div>

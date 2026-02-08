@@ -15,7 +15,10 @@ const Filter = ({ categories = [] }) => {
         );
     }
 
-    const visibleCategories = categories.filter((category) => category.id !== 19);
+    const visibleCategories = categories.filter((category) => {
+        const slug = (category.slug || '').toLowerCase();
+        return category.id !== 19 && slug !== 'new' && slug !== 'popular';
+    });
 
     return (
         <div className="filter">

@@ -40,8 +40,8 @@
 
     &__items-grid {
         display: grid;
-        grid-template-columns: auto auto auto;
-        gap: 32px;
+        grid-template-columns: 33% 33% 33%;
+        gap: 30px;
 
         @include respond-to('large') {
             grid-template-columns: auto auto;

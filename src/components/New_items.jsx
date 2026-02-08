@@ -45,7 +45,7 @@ const NewItems = ({ products }) => {
                 <div className="container new-items__container">
                     <div className="new-items__header">
                         <h2>Новинки</h2>
-                        <Link className="link__show-all desktop-show" href="/">
+                        <Link className="link__show-all desktop-show" href="/category/new/">
                             <span>Все новинки</span>
                         </Link>
                     </div>
@@ -90,7 +90,7 @@ const NewItems = ({ products }) => {
                         </Swiper>
                     </section>
                     <div className="link__show-all mobile-show">
-                        <Link href="/">
+                        <Link href="/category/new/">
                             <span className="show-all">Все новинки</span>
                         </Link>
                     </div>
