@@ -29,6 +29,7 @@
         flex-grow: 1;
         gap: 32px;
         padding-bottom: 30px;
+        flex-wrap: wrap;
 
         @include respond-to('ipad') {
             flex-direction: column;
@@ -109,7 +110,7 @@
 
     &__item-2 {
         display: grid;
-        grid-template-columns: auto auto auto auto;
+        grid-template-columns: 25% 25% 25% 25%;
         gap: 30px;
         max-width: 100%;
 
@@ -133,7 +134,7 @@
         max-width: 100%;
 
         @include respond-from('ipad') {
-            max-width: 396px;
+            max-width: 376px;
         }
 
 
@@ -143,7 +144,7 @@
     &__card-image {
         width: 100%;
         max-width: 100%;
-        max-height: 150px;
+        max-height: 180px;
         height: auto;
 
         @include respond-range(950px, 1050px) {
@@ -162,6 +163,12 @@
     &__card-image-img {
         width: 100%;
         object-fit: contain;
+        min-height: 180px;
+        max-height: 180px;
+        border: 1px solid var(--news-item-border);
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        border-bottom: 0px;
         z-index: 100;
     }
 
@@ -174,9 +181,11 @@
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
         border: 1px solid var(--news-item-border);
+        min-height: 151px;
 
         @include respond-to('ipad') {
             padding: 20px;
+            min-height: 120px;
         }
     }
 

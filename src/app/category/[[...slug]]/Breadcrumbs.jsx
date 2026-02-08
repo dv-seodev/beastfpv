@@ -6,7 +6,6 @@ const Breadcrumbs = ({ categoryPath = [] }) => {
     // Если не передали путь, используем дефолтные значения
     const breadcrumbs = categoryPath.length > 0 ? categoryPath : [
         { name: 'Главная', href: '/' },
-        { name: 'Каталог', href: '/category' },
         { name: 'FPV', href: '/category/fpv' },
         { name: 'FPV-дроны', href: null, isCurrent: true }
     ];

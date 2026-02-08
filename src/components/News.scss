@@ -35,6 +35,7 @@
         flex-direction: row;
         flex-grow: 1;
         gap: 32px;
+        flex-wrap: wrap;
 
         @include mx.respond-to('ipad') {
             flex-direction: column;
@@ -113,21 +114,41 @@
 
     }
 
+    &__item-2 {
+        display: grid;
+        grid-template-columns: 25% 25% 25% 25%;
+        gap: 30px;
+        max-width: 100%;
+
+        @include mx.respond-to('ipad') {
+            gap: 14px;
+            grid-template-columns: auto auto;
+        }
+
+        @include mx.respond-to('phone') {
+            gap: 14px;
+            grid-template-columns: auto;
+        }
+    }
+
     &__card {
         border-radius: 8px;
         display: flex;
         flex-direction: column;
         gap: 0px;
         max-width: 100%;
-
-
         background-clip: padding-box;
+
+        @include mx.respond-from('ipad') {
+            max-width: 376px;
+        }
     }
 
     &__card-image {
         width: 100%;
         max-width: 100%;
-        max-height: 150px;
+        min-height: 180px;
+        max-height: 180px;
         height: auto;
 
         @include mx.respond-range(950px, 1050px) {
@@ -146,7 +167,14 @@
     &__card-image-img {
         width: 100%;
         object-fit: contain;
-        z-index: 100;
+        border-bottom: 0;
+        min-height: 180px;
+        max-height: 180px;
+        border: 1px solid var(--news-item-border);
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        border-bottom: 0px;
+        width: 100%;
     }
 
     &__card-text {
@@ -158,9 +186,11 @@
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
         border: 1px solid var(--news-item-border);
+        min-height: 151px;
 
         @include mx.respond-to('ipad') {
             padding: 20px;
+            min-height: 120px;
         }
     }
 
