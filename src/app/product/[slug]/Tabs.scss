@@ -222,6 +222,21 @@
     color: var(--gray);
 }
 
+.tabs-related {
+    .new-items__container {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .new-items__header {
+        display: none;
+    }
+
+    .mobile-show {
+        display: none;
+    }
+}
+
 
 @media screen and (max-width: 600px) {
 
@@ -300,4 +315,8 @@
         // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
         border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
     }
+}
+
+.product-card__char-tabs .new-items__container {
+    padding: 0px;
 }

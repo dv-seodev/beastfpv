@@ -44,6 +44,11 @@
         color: #999;
         text-align: center;
         cursor: default;
+
+        @include mx.respond-to('ipad') {
+            font-size: 10px;
+            padding: 2px 4px;
+        }
     }
 
     &__items-grid {

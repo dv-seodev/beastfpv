@@ -1,7 +1,9 @@
 import './Tabs.scss'
+import NewItems from "../../../components/New_items";
 
 const Tabs = ({ product = {} }) => {
     const manualFiles = Array.isArray(product.manualFiles) ? product.manualFiles : [];
+    const relatedProducts = Array.isArray(product.relatedProducts) ? product.relatedProducts : [];
 
     const renderHTML = (htmlString) => {
         return (
@@ -61,6 +63,21 @@ const Tabs = ({ product = {} }) => {
         );
     };
 
+    const renderRelatedProducts = () => {
+        if (!relatedProducts.length) {
+            return (
+                <div className="tabs-manuals tabs-manuals--empty">
+                    <span>Сопутствующие товары не добавлены.</span>
+                </div>
+            );
+        }
+        return (
+            <div className="tabs-related">
+                <NewItems products={relatedProducts} />
+            </div>
+        );
+    };
+
     return (
         <div className="product-card__char-tabs">
             <div role="tablist" className="max-sm:vertical">
@@ -83,7 +100,7 @@ const Tabs = ({ product = {} }) => {
                 <label role="tab">
                     <input type="radio" name="resp-tab" /><span>Сопутствующие товары</span>
                 </label>
-                <div role="tabpanel"><span >Tab 3 content</span></div>
+                <div role="tabpanel">{renderRelatedProducts()}</div>
 
                 <label role="tab">
                     <input type="radio" name="resp-tab" /><span>Оплата и доставка</span>
