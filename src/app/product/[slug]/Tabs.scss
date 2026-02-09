@@ -86,7 +86,7 @@
     display: block;
     width: 100%;
     position: relative;
-    z-index: -1;
+    z-index: 1;
     padding-top: 50px;
     line-height: 130%;
 }
@@ -135,6 +135,91 @@
 .vertical[role="tablist"]>label[role="tab"]:has(input:checked)+[role="tabpanel"]:last-of-type {
     // border-bottom: var(--tab-border-width) solid var(--tab-border-color);
     border-radius: 0 0 var(--tab-label-radius) var(--tab-label-radius);
+}
+
+.tabs-manuals {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tabs-manuals__hint {
+    margin: 0;
+    font-size: 14px;
+    color: var(--gray);
+}
+
+.tabs-manuals__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @include respond-to('ipad') {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tabs-manuals__item {
+    border: 1px solid var(--gray);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.tabs-manuals__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+}
+
+.tabs-manuals__name-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tabs-manuals__name {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.tabs-manuals__meta {
+    font-size: 12px;
+    color: var(--gray);
+    line-height: 1.2;
+}
+
+.tabs-manuals__download {
+    min-width: 110px;
+    text-align: center;
+    padding: 9px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    background-color: #3988ac;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.tabs-manuals__download:hover {
+    opacity: 0.9;
+}
+
+.tabs-manuals__unavailable {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+.tabs-manuals--empty {
+    border: 1px dashed var(--gray);
+    border-radius: 10px;
+    padding: 16px;
+    color: var(--gray);
 }
 
 

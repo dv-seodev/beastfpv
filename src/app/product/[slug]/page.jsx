@@ -104,6 +104,21 @@ const PRODUCT_QUERY = `
     }
 `;
 
+const MEDIA_ITEM_BY_ID_QUERY = `
+    query MediaItemById($id: ID!) {
+        mediaItem(id: $id, idType: DATABASE_ID) {
+            id
+            databaseId
+            title
+            sourceUrl
+            mediaItemUrl
+            mediaDetails {
+                file
+            }
+        }
+    }
+`;
+
 const HOME_QUERY = `
     query HomeData($newSlug: String!, $popSlug: String!, $parentId: Int!) {
         newProducts: products(first: 10, where: { category: $newSlug }) {
@@ -279,7 +294,64 @@ const parseCharacteristics = (htmlString) => {
     return characteristics;
 };
 
-const formatProductData = (rawData) => {
+const MANUAL_META_KEYS = [
+    'manual_file',
+    'manual_file2',
+    'manual_file3',
+    'manual_file4',
+    'manual_file5',
+    'manual_file_2',
+    'manual_file_3',
+    'manual_file_4',
+    'manual_file_5',
+];
+
+const extractManualIds = (metaDataArray = []) => {
+    if (!Array.isArray(metaDataArray)) return [];
+
+    const ids = [];
+    for (const key of MANUAL_META_KEYS) {
+        const value = metaDataArray.find((item) => item?.key === key)?.value;
+        const id = Number.parseInt(value, 10);
+        if (Number.isFinite(id) && id > 0 && !ids.includes(id)) {
+            ids.push(id);
+        }
+    }
+
+    return ids;
+};
+
+async function fetchManualFilesByIds(ids = []) {
+    if (!Array.isArray(ids) || ids.length === 0) return [];
+
+    const files = await Promise.all(
+        ids.map(async (id) => {
+            try {
+                const data = await fetchGraphQL(MEDIA_ITEM_BY_ID_QUERY, { id });
+                const media = data?.mediaItem;
+                const url = media?.sourceUrl || media?.mediaItemUrl;
+
+                if (!url) return null;
+
+                const filePath = media?.mediaDetails?.file || '';
+                const fileName = filePath ? filePath.split('/').pop() : '';
+
+                return {
+                    id: media?.databaseId || id,
+                    title: media?.title || fileName || `Инструкция ${id}`,
+                    url,
+                    fileName,
+                };
+            } catch (error) {
+                return null;
+            }
+        })
+    );
+
+    return files.filter(Boolean);
+}
+
+const formatProductData = (rawData, manualFiles = []) => {
     if (!rawData?.product) return null;
 
     const product = rawData.product;
@@ -334,12 +406,15 @@ const formatProductData = (rawData) => {
         metaData: metaData,
         hasDiscount: hasDiscount,
         discountPercent: discountPercent,
+        manualFiles,
     };
 };
 
 async function fetchProductBySlug(slug) {
     const data = await fetchGraphQL(PRODUCT_QUERY, { slug });
-    return formatProductData(data);
+    const manualIds = extractManualIds(data?.product?.metaData || []);
+    const manualFiles = await fetchManualFilesByIds(manualIds);
+    return formatProductData(data, manualFiles);
 }
 
 async function fetchHomeData() {
