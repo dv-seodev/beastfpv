@@ -1,12 +1,14 @@
 import './page.scss';
 import { Suspense } from 'react';
 import CategoryPageClient from "./CategoryPageClient";
+import YoastJsonLd from "../../../components/YoastJsonLd";
+import { buildMetadataFromYoast } from "../../../lib/yoastMetadata";
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;
 export const revalidate = false;
 
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || process.env.NEXT_PUBLIC_GRAPHQL_URL;
 const PAGE_SIZE = 18;
 const CATEGORY_PRODUCTS_LIMIT = 200;
 
@@ -52,6 +54,22 @@ const CATEGORY_QUERY = `
                 image {
                     sourceUrl
                 }
+            }
+        }
+    }
+`;
+
+const CATEGORY_SEO_QUERY = `
+    query CategorySeo($slugId: ID!) {
+        productCategory(id: $slugId, idType: SLUG) {
+            id
+            name
+            slug
+            seo {
+                title
+                metaDesc
+                canonical
+                fullHead
             }
         }
     }
@@ -219,6 +237,17 @@ async function fetchCategoryData(slug) {
         : null;
 }
 
+async function fetchCategorySeo(slug) {
+    if (!slug) return null;
+
+    try {
+        const data = await fetchGraphQL(CATEGORY_SEO_QUERY, { slugId: slug });
+        return data?.productCategory?.seo || null;
+    } catch (_) {
+        return null;
+    }
+}
+
 export async function generateStaticParams() {
     const raw = await fetchAllCategoriesRaw();
     const filtered = raw.filter((cat) => cat?.slug && !isExcludedCategory(cat));
@@ -236,21 +265,63 @@ export async function generateStaticParams() {
     return params;
 }
 
+export async function generateMetadata({ params }) {
+    const resolvedParams = await params;
+    const slugArray = resolvedParams?.slug || [];
+    const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
+    const fallbackPath = slugArray.length > 0
+        ? `/category/${slugArray.join('/')}/`
+        : '/category/';
+
+    if (!currentSlug) {
+        return buildMetadataFromYoast(null, {
+            fallbackTitle: 'Каталог - beastfpv.ru',
+            fallbackDescription: 'Каталог - beastfpv.ru',
+            fallbackPath,
+            defaultType: 'website',
+        });
+    }
+
+    try {
+        const seo = await fetchCategorySeo(currentSlug);
+
+        return buildMetadataFromYoast(seo, {
+            fallbackTitle: 'Категория - beastfpv.ru',
+            fallbackDescription: 'Категория - beastfpv.ru',
+            fallbackPath,
+            defaultType: 'website',
+        });
+    } catch (_) {
+        return buildMetadataFromYoast(null, {
+            fallbackTitle: 'Категория - beastfpv.ru',
+            fallbackDescription: 'Категория - beastfpv.ru',
+            fallbackPath,
+            defaultType: 'website',
+        });
+    }
+}
+
 export default async function Page({ params }) {
     const resolvedParams = await params;
     const slugArray = resolvedParams?.slug || [];
     const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
 
-    const categories = await fetchCategories();
-    const data = currentSlug ? await fetchCategoryData(currentSlug) : null;
+    const [categories, data, categorySeo] = await Promise.all([
+        fetchCategories(),
+        currentSlug ? fetchCategoryData(currentSlug) : null,
+        currentSlug ? fetchCategorySeo(currentSlug) : null,
+    ]);
 
     return (
-        <Suspense fallback={null}>
-            <CategoryPageClient
-                data={data}
-                categories={categories}
-                pageSize={PAGE_SIZE}
-            />
-        </Suspense>
+        <>
+            <YoastJsonLd fullHead={categorySeo?.fullHead} />
+            <Suspense fallback={null}>
+                <CategoryPageClient
+                    data={data}
+                    categories={categories}
+                    pageSize={PAGE_SIZE}
+                />
+            </Suspense>
+        </>
     );
 }

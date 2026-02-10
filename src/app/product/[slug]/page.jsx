@@ -4,6 +4,8 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import ProductPageClient from "./ProductPageClient";
+import YoastJsonLd from "../../../components/YoastJsonLd";
+import { buildMetadataFromYoast } from "../../../lib/yoastMetadata";
 
 export const dynamicParams = false;
 export const dynamic = "force-static";
@@ -67,6 +69,12 @@ const PRODUCT_QUERY = `
                 key
                 value
             }
+            seo {
+                title
+                metaDesc
+                canonical
+                fullHead
+            }
             ... on ProductWithPricing {
                 price
                 regularPrice
@@ -101,6 +109,20 @@ const PRODUCT_QUERY = `
                 price
                 regularPrice
                 salePrice
+            }
+        }
+    }
+`;
+
+const PRODUCT_SEO_QUERY = `
+    query ProductSeoBySlug($slug: ID!) {
+        product(id: $slug, idType: SLUG) {
+            name
+            seo {
+                title
+                metaDesc
+                canonical
+                fullHead
             }
         }
     }
@@ -643,6 +665,7 @@ const formatProductData = (rawData, manualFiles = [], relatedProducts = []) => {
         metaData: metaData,
         hasDiscount: hasDiscount,
         discountPercent: discountPercent,
+        seo: product.seo || null,
         manualFiles,
         relatedProducts,
     };
@@ -714,6 +737,40 @@ export async function generateStaticParams() {
     return slugs.map((slug) => ({ slug }));
 }
 
+export async function generateMetadata({ params }) {
+    const resolvedParams = await params;
+    const slugParam = resolvedParams?.slug;
+    const slug = Array.isArray(slugParam) ? slugParam.join('/') : slugParam;
+
+    if (!slug) {
+        return buildMetadataFromYoast(null, {
+            fallbackTitle: 'Товар - beastfpv.ru',
+            fallbackDescription: 'Товар - beastfpv.ru',
+            fallbackPath: '/product/',
+            defaultType: 'article',
+        });
+    }
+
+    try {
+        const data = await fetchGraphQL(PRODUCT_SEO_QUERY, { slug });
+        const product = data?.product;
+
+        return buildMetadataFromYoast(product?.seo, {
+            fallbackTitle: `${product?.name || 'Товар'} - beastfpv.ru`,
+            fallbackDescription: `${product?.name || 'Товар'} - beastfpv.ru`,
+            fallbackPath: `/product/${slug}/`,
+            defaultType: 'article',
+        });
+    } catch (_) {
+        return buildMetadataFromYoast(null, {
+            fallbackTitle: 'Товар - beastfpv.ru',
+            fallbackDescription: 'Товар - beastfpv.ru',
+            fallbackPath: `/product/${slug}/`,
+            defaultType: 'article',
+        });
+    }
+}
+
 export default async function Page({ params }) {
     const resolvedParams = await params;
     const slugParam = resolvedParams?.slug;
@@ -730,6 +787,9 @@ export default async function Page({ params }) {
     }
 
     return (
-        <ProductPageClient product={product} homeData={homeData} />
+        <>
+            <YoastJsonLd fullHead={product?.seo?.fullHead} />
+            <ProductPageClient product={product} homeData={homeData} />
+        </>
     );
 }

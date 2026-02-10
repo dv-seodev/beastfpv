@@ -1,9 +1,11 @@
 import HomePageClient from "./HomePageClient";
+import YoastJsonLd from "../components/YoastJsonLd";
+import { buildMetadataFromYoast } from "../lib/yoastMetadata";
 
 export const dynamic = 'force-static';
 export const revalidate = false;
 
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || process.env.NEXT_PUBLIC_GRAPHQL_URL;
 
 const HOME_QUERY = `
   query HomeData($newSlug: String!, $popSlug: String!, $parentId: Int!) {
@@ -89,6 +91,24 @@ const HOME_QUERY = `
   }
 `;
 
+const HOME_SEO_QUERY = `
+  query HomeSeo {
+    nodeByUri(uri: "/") {
+      __typename
+      ... on Page {
+        id
+        title
+        seo {
+          title
+          metaDesc
+          canonical
+          fullHead
+        }
+      }
+    }
+  }
+`;
+
 async function fetchGraphQL(query, variables) {
   if (!GRAPHQL_URL) {
     throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
@@ -131,7 +151,41 @@ async function fetchHomeData() {
   };
 }
 
+async function fetchHomeSeo() {
+  try {
+    const data = await fetchGraphQL(HOME_SEO_QUERY, {});
+    return data?.nodeByUri?.seo || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+export async function generateMetadata() {
+  try {
+    const seo = await fetchHomeSeo();
+    return buildMetadataFromYoast(seo, {
+      fallbackTitle: "Главная - beastfpv.ru",
+      fallbackDescription: "Главная - beastfpv.ru",
+      fallbackPath: "/",
+      defaultType: "website",
+    });
+  } catch (_) {
+    return buildMetadataFromYoast(null, {
+      fallbackTitle: "Главная - beastfpv.ru",
+      fallbackDescription: "Главная - beastfpv.ru",
+      fallbackPath: "/",
+      defaultType: "website",
+    });
+  }
+}
+
 export default async function Home() {
-  const data = await fetchHomeData();
-  return <HomePageClient data={data} />;
+  const [data, seo] = await Promise.all([fetchHomeData(), fetchHomeSeo()]);
+
+  return (
+    <>
+      <YoastJsonLd fullHead={seo?.fullHead} />
+      <HomePageClient data={data} />
+    </>
+  );
 }
