@@ -61,7 +61,7 @@ const Header = () => {
                     <nav className="header__about-links">
                         <Link className="header__links-item" href="/">Бонусы и скидки</Link>
                         <Link className="header__links-item" href="/">Доставка и оплата</Link>
-                        <Link className="header__links-item" href="/">Гарантия и возврат</Link>
+                        <Link className="header__links-item" href="/garantijnye-obyazatelstva/">Гарантия и возврат</Link>
                         <Link className="header__links-item" href="/contacts/">Контакты</Link>
                     </nav>
                     <div className="header__contacts_info">

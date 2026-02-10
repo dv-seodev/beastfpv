@@ -7,6 +7,22 @@ export const revalidate = 60;
 const GRAPHQL_URL = "https://beastfpv.ru/graphql";
 const ACTIONS_CATEGORY_SLUG = "actions";
 
+export const metadata = {
+    title: "Акции - beastfpv.ru",
+    description: "Акции - beastfpv.ru",
+    alternates: {
+        canonical: "https://beastfpv.ru/actions/",
+    },
+    openGraph: {
+        title: "Акции - beastfpv.ru",
+        description: "Акции - beastfpv.ru",
+        url: "https://beastfpv.ru/actions/",
+        siteName: "beastfpv.ru",
+        locale: "ru_RU",
+        type: "website",
+    },
+};
+
 const POSTS_QUERY = `
   query LatestActions($after: String, $categoryName: String!) {
     posts(

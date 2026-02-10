@@ -7,6 +7,22 @@ export const revalidate = 60;
 const GRAPHQL_URL = "https://beastfpv.ru/graphql";
 const NEWS_CATEGORY_SLUG = "news";
 
+export const metadata = {
+    title: "Новости - beastfpv.ru",
+    description: "Новости - beastfpv.ru",
+    alternates: {
+        canonical: "https://beastfpv.ru/news/",
+    },
+    openGraph: {
+        title: "Новости - beastfpv.ru",
+        description: "Новости - beastfpv.ru",
+        url: "https://beastfpv.ru/news/",
+        siteName: "beastfpv.ru",
+        locale: "ru_RU",
+        type: "website",
+    },
+};
+
 const POSTS_QUERY = `
   query LatestPosts($after: String, $categoryName: String!) {
     posts(

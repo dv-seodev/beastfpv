@@ -2,6 +2,22 @@ import Link from "next/link";
 import './page.scss';
 import Breadcrumbs from "../category/[[...slug]]/Breadcrumbs";
 
+export const metadata = {
+    title: "Контакты - beastfpv.ru",
+    description: "Контакты - beastfpv.ru",
+    alternates: {
+        canonical: "https://beastfpv.ru/contacts/",
+    },
+    openGraph: {
+        title: "Контакты - beastfpv.ru",
+        description: "Контакты - beastfpv.ru",
+        url: "https://beastfpv.ru/contacts/",
+        siteName: "beastfpv.ru",
+        locale: "ru_RU",
+        type: "website",
+    },
+};
+
 const Contacts = () => {
     return (
         <section className="contacts">

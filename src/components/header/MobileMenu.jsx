@@ -95,7 +95,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item mobile-heading"
-                        href="/"
+                        href="/garantijnye-obyazatelstva/"
                         onClick={onClose}
                     >
                         Гарантия и возврат
