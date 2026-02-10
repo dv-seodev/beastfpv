@@ -23,6 +23,8 @@ import { ApolloProvider } from "@apollo/client/react";
 import ApolloProviderWrapper from "../components/ApolloProvider";
 import { useRestCart } from "../lib/hooks/useRestCart";
 import { useEffect } from "react";
+import YandexMetrika from "../components/YandexMetrika";
+import { Suspense } from "react";
 
 export default function RootLayout({ children }) {
   const { fetchCart, cartInitialized } = useRestCart();
@@ -47,6 +49,17 @@ export default function RootLayout({ children }) {
       </head>
       <body className={``}>
         <Script src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" charSet="utf-8" strategy="beforeInteractive" />
+        <Script id="metrika-counter" strategy="afterInteractive">
+          {`(function(m,e,t,r,i,k,a){m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+          m[i].l=1*new Date();
+          for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+          k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)     })
+          (window, document,'script','https://mc.yandex.ru/metrika/tag.js', 'ym');      ym(96745068, 'init', {webvisor:true, trackHash:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+        `}
+        </Script>
+        <Suspense fallback={<></>}>
+          <YandexMetrika />
+        </Suspense>
         <ApolloProviderWrapper>
           <div className="app_wrapper">
             <div className="app_header">
