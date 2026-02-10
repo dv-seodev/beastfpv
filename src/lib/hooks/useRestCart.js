@@ -2,6 +2,40 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import restApi from "../woo_rest_api/rest_api";
 
+let paymentSyncInFlight = null;
+let paymentSyncInFlightMethod = null;
+let lastPaymentSyncMethod = null;
+let lastPaymentSyncAt = 0;
+let fetchCartInFlight = null;
+
+const extractCartFromPaymentResponse = (response) => {
+  if (!response || typeof response !== "object") return null;
+  if (Array.isArray(response.items) && response.totals) return response;
+  if (response.__experimentalCart && Array.isArray(response.__experimentalCart.items)) {
+    return response.__experimentalCart;
+  }
+  if (response.cart && Array.isArray(response.cart.items)) {
+    return response.cart;
+  }
+  if (response.data?.cart && Array.isArray(response.data.cart.items)) {
+    return response.data.cart;
+  }
+  return null;
+};
+
+const isSoftPaymentSyncError = (response) => {
+  const code = response?.code ? String(response.code).toLowerCase() : "";
+  const message = response?.message ? String(response.message).toLowerCase() : "";
+  if (!code) return false;
+  if (code === "rest_no_route") return true;
+  if (code === "wc_session_missing") return true;
+  if (code.startsWith("woocommerce_rest_")) return true;
+  if (code.startsWith("woocommerce_rest_checkout_")) return true;
+  if (message.includes("billing_address")) return true;
+  if (message.includes("wc session is not available")) return true;
+  return false;
+};
+
 const defaultCartState = {
   cart: {
     items: [],
@@ -36,15 +70,30 @@ export const useRestCart = create(
         updateCart: (cartData) => set({ cart: cartData, loading: false }),
 
         fetchCart: async () => {
-          set({ loading: true });
-          try {
-            const cartData = await restApi.getCart();
-            set({ cart: cartData, loading: false, cartInitialized: true });
-            await get().ensureShippingSelected();
-          } catch (err) {
-            console.error("❌ Ошибка при загрузке корзины:", err);
-            set({ loading: false });
+          if (fetchCartInFlight) {
+            return fetchCartInFlight;
           }
+
+          const run = (async () => {
+            set({ loading: true });
+            try {
+              const cartData = await restApi.getCart();
+              set({ cart: cartData, loading: false, cartInitialized: true });
+              await get().ensureShippingSelected();
+              return cartData;
+            } catch (err) {
+              console.error("❌ Ошибка при загрузке корзины:", err);
+              set({ loading: false });
+              throw err;
+            } finally {
+              if (fetchCartInFlight === run) {
+                fetchCartInFlight = null;
+              }
+            }
+          })();
+
+          fetchCartInFlight = run;
+          return run;
         },
 
         setSelectedShipping: (shippingId) => {
@@ -53,6 +102,76 @@ export const useRestCart = create(
 
         setSelectedPayment: (paymentId) => {
           set({ selectedPayment: paymentId });
+        },
+
+        syncSelectedPayment: async (paymentId) => {
+          if (!paymentId) return;
+
+          const recentSyncWindowMs = 2000;
+          if (
+            lastPaymentSyncMethod === paymentId &&
+            Date.now() - lastPaymentSyncAt < recentSyncWindowMs
+          ) {
+            return get().cart;
+          }
+
+          if (paymentSyncInFlight) {
+            if (paymentSyncInFlightMethod === paymentId) {
+              return paymentSyncInFlight;
+            }
+            try {
+              await paymentSyncInFlight;
+            } catch (_) {
+              // ignore previous sync error and continue with the latest requested method
+            }
+          }
+
+          // Optimistic local state for immediate UI feedback.
+          set({ selectedPayment: paymentId });
+
+          const run = (async () => {
+            const currentCart = get().cart || {};
+            const response = await restApi.setCartPaymentMethod(paymentId, {
+              billingAddress: currentCart.billing_address,
+              shippingAddress: currentCart.shipping_address,
+            });
+
+            const cartFromResponse = extractCartFromPaymentResponse(response);
+            if (cartFromResponse) {
+              set({ cart: cartFromResponse });
+              return cartFromResponse;
+            }
+
+            if (response?.code) {
+              if (isSoftPaymentSyncError(response)) {
+                const cartData = await restApi.getCart();
+                set({ cart: cartData });
+                return cartData;
+              }
+
+              throw new Error(response.message || "Ошибка при выборе способа оплаты");
+            }
+
+            // Fallback for custom endpoint responses like { ok: true }.
+            const cartData = await restApi.getCart();
+            set({ cart: cartData });
+            return cartData;
+          })();
+
+          paymentSyncInFlight = run;
+          paymentSyncInFlightMethod = paymentId;
+
+          try {
+            const result = await run;
+            lastPaymentSyncMethod = paymentId;
+            lastPaymentSyncAt = Date.now();
+            return result;
+          } finally {
+            if (paymentSyncInFlight === run) {
+              paymentSyncInFlight = null;
+              paymentSyncInFlightMethod = null;
+            }
+          }
         },
 
         setCouponCode: (code) => {

@@ -6,12 +6,11 @@ import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
 import { useRestCart } from "../../lib/hooks/useRestCart";
+import restApi from "../../lib/woo_rest_api/rest_api";
 import { formatPriceForDisplay, parsePrice } from "../../lib/utils/price";
 import { getProductUrl, getProductImage } from "../../lib/utils/product";
 import {
   transformRestCartItems,
-  transformRestShippingMethods,
-  transformRestPaymentMethods,
   handleCartError,
 } from "../../lib/utils/cart";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
@@ -54,8 +53,12 @@ const Cart = () => {
     setupShippingRate,
   } = useRestCart();
 
+  const syncSelectedPayment = useRestCart((state) => state.syncSelectedPayment);
+
   useEffect(() => {
-    fetchCart();
+    fetchCart().catch(() => {
+      // Ошибка уже логируется в store.
+    });
   }, [fetchCart]);
 
   const { methods: paymentMethods } = usePaymentMethods();
@@ -65,18 +68,11 @@ const Cart = () => {
   const coupons = cart?.coupons || [];
 
   const [shippingMethodUpdating, setShippingMethodUpdating] = useState(false);
-
-  const paymentMethodsToRenderData = (methods) => {
-    if (!methods || !Array.isArray(methods)) return {};
-    const out = [];
-    methods.map((key, index) => {
-      const info = paymentMethodsInfo[key];
-      if (info) out.push({ ...info, key });
-    });
-    return out;
-  };
-
-  const shippingMethods = getShippingMethods();
+  const [paymentMethodUpdating, setPaymentMethodUpdating] = useState(false);
+  const hasInitialPaymentSyncRef = useRef(false);
+  const paymentSyncInFlightRef = useRef(false);
+  const lastRequestedPaymentRef = useRef(null);
+  const shippingMethods = useMemo(() => getShippingMethods(), [getShippingMethods, cart?.shipping_rates]);
 
   const cartItems = useMemo(() => transformRestCartItems(items), [items]);
   const baseTotal = useMemo(() => (totals?.total_items ? parsePrice(totals.total_items) : 0), [totals?.total_items]);
@@ -85,6 +81,18 @@ const Cart = () => {
   const hasAppliedCoupon = !!appliedCoupon;
 
   const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
+  const shippingMethodCode = selectedShippingMethod?.method || "";
+  const isLocalPickup = shippingMethodCode.includes("pickup");
+  const isCdek = shippingMethodCode.includes("cdek");
+
+  const visiblePaymentMethods = useMemo(() => {
+    if (!Array.isArray(paymentMethods)) return [];
+    return paymentMethods.filter((method) => {
+      if (isLocalPickup && method.id === "yookassa_epl") return false;
+      if (isCdek && method.id === "cod") return false;
+      return true;
+    });
+  }, [paymentMethods, isLocalPickup, isCdek]);
 
   const handleQuantityChangeWrapper = useCallback(
     async (itemKey, newQuantity) => {
@@ -149,36 +157,63 @@ const Cart = () => {
     }
   }, [setSelectedShipping, setupShippingRate]);
 
-  useEffect(() => {
-    if (paymentMethods?.length > 0 && !selectedPayment) {
-      setSelectedPayment(paymentMethods[0].id);
-      console.log('selected payment', setSelectedPayment);
-    }
-  }, [paymentMethods, selectedPayment, setSelectedPayment]);
+  const onPaymentMethodChange = useCallback(
+    async (paymentId, options = {}) => {
+      const { force = false } = options;
+      if (!paymentId || (!force && paymentId === selectedPayment)) return;
+      if (paymentSyncInFlightRef.current && lastRequestedPaymentRef.current === paymentId) return;
 
-  useEffect(() => {
-    const shippingMethod = selectedShippingMethod?.method || "";
-    const isLocalPickup = shippingMethod.includes("pickup");
-    const isCdek = shippingMethod.includes("cdek");
-
-    const visibleMethods = paymentMethods.filter((method) => {
-      if (isLocalPickup && method.id === "yookassa_epl") {
-        return false;
+      paymentSyncInFlightRef.current = true;
+      lastRequestedPaymentRef.current = paymentId;
+      setPaymentMethodUpdating(true);
+      try {
+        if (typeof syncSelectedPayment === "function") {
+          await syncSelectedPayment(paymentId);
+        } else {
+          // Backward-safe fallback for stale runtime state during HMR.
+          await restApi.setCartPaymentMethod(paymentId);
+          await fetchCart();
+        }
+      } catch (err) {
+        // Keep local selected payment in sync even if backend update failed.
+        setSelectedPayment(paymentId);
+        handleCartError(err, "❌ Ошибка при выборе способа оплаты");
+      } finally {
+        setPaymentMethodUpdating(false);
+        paymentSyncInFlightRef.current = false;
       }
-      if (isCdek && method.id === "cod") {
-        return false;
-      }
-      return true;
-    });
+    },
+    [selectedPayment, syncSelectedPayment, setSelectedPayment, fetchCart]
+  );
 
-    if (visibleMethods.length > 0 && !visibleMethods.find(m => m.id === selectedPayment)) {
-      setSelectedPayment(visibleMethods[0].id);
+  useEffect(() => {
+    if (cartLoading) return;
+    if (!paymentMethods.length) return;
+    if (!shippingMethods.length) return;
+    if (!visiblePaymentMethods.length) return;
+
+    const hasSelectedVisibleMethod = visiblePaymentMethods.some((method) => method.id === selectedPayment);
+    const targetPaymentId = hasSelectedVisibleMethod
+      ? selectedPayment
+      : visiblePaymentMethods[0]?.id;
+    if (!targetPaymentId) return;
+
+    // First sync after page load: always align backend totals with current/default payment.
+    if (!hasInitialPaymentSyncRef.current) {
+      hasInitialPaymentSyncRef.current = true;
+      onPaymentMethodChange(targetPaymentId, { force: true });
+      return;
     }
-  }, [selectedShippingMethod, paymentMethods, selectedPayment, setSelectedPayment]);
+
+    // Subsequent syncs only when current selection became invalid (e.g. shipping changed).
+    if (!hasSelectedVisibleMethod) {
+      onPaymentMethodChange(targetPaymentId);
+    }
+  }, [cartLoading, paymentMethods.length, shippingMethods.length, visiblePaymentMethods, selectedPayment, onPaymentMethodChange]);
 
   const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
   const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
-  const isDisabled = cartLoading;
+  const isDisabled = cartLoading || paymentMethodUpdating;
 
   // --- Debounce logic for quantity changes ---
   const [localQuantities, setLocalQuantities] = useState({});
@@ -489,24 +524,9 @@ const Cart = () => {
                 <div className="cart__price-shipping">
                   <span className="cart__price-name">Способы оплаты:</span>
                   <div className="cart__checkbox-wrapper">
-                    {paymentMethods?.length > 0 ? (
+                    {visiblePaymentMethods.length > 0 ? (
                       (() => {
-                        const shippingMethod = selectedShippingMethod?.method || "";
-                        const isLocalPickup = shippingMethod.includes("pickup");
-                        const isCdek = shippingMethod.includes("cdek");
-
-                        console.log(paymentMethods);
-                        const visibleMethods = paymentMethods.filter((method) => {
-                          if (isLocalPickup && method.id === "yookassa_epl") {
-                            return false;
-                          }
-                          if (isCdek && method.id === "cod") {
-                            return false;
-                          }
-                          return true;
-                        });
-
-                        return visibleMethods.map((method) => (
+                        return visiblePaymentMethods.map((method) => (
                           <div key={method.id} className="cart__checkbox-main">
                             <input
                               type="radio"
@@ -514,8 +534,9 @@ const Cart = () => {
                               name="payment"
                               value={method.id}
                               checked={selectedPayment === method.id}
-                              onChange={() => setSelectedPayment(method.id)}
+                              onChange={() => onPaymentMethodChange(method.id)}
                               className="cart__payment-checkbox cart__shipping-checkbox"
+                              disabled={isDisabled}
                             />
                             <label htmlFor={`payment-${method.id}`} style={{ cursor: "pointer" }}>
                               {method.title}

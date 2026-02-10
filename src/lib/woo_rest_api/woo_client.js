@@ -23,6 +23,17 @@ class WooClient {
     return response.json();
   }
 
+  async put(path, data) {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: this.prepareHeaders(),
+      body: JSON.stringify(data),
+    });
+    this.onEveryResponse(response);
+    return response.json();
+  }
+
   async delete(path) {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: "DELETE",
