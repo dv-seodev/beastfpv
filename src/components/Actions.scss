@@ -59,11 +59,11 @@
     &__text {
         position: absolute;
         max-width: 60%;
-        top: 40px;
-        left: 40px;
+        top: 25px;
+        left: 25px;
         color: var(--white);
         font-weight: 400;
-        font-size: 22px;
+        font-size: 18px;
         line-height: 130%;
 
         @include mx.respond-between('small', 'medium') {
@@ -71,6 +71,12 @@
             left: 25px;
             font-size: 16px;
 
+        }
+
+        @include mx.respond-to('phone') {
+            top: 22px;
+            left: 22px;
+            font-size: 16px;
         }
 
         b {

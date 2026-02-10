@@ -96,7 +96,7 @@ const Actions = () => {
                                     alt={item.title || "action"}
                                 />
 
-                                {/* <div className="actions__text">{item.title}</div> */}
+                                <div className="actions__text">{item.title}</div>
                             </Link>
                         </div>
                     ))}

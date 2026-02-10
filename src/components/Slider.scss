@@ -63,29 +63,30 @@
 
     &__header {
         color: var(--white);
-        font-size: 16px;
+        font-size: 22px;
         line-height: 140%;
+        font-weight: 500;
 
         @include mx.respond-to('large') {
-            font-size: 12px;
+            font-size: 15px;
         }
 
         @include mx.respond-to('ipad') {
-            font-size: 10px;
+            font-size: 12px;
         }
     }
 
     &__promo-after {
         color: var(--white);
-        font-size: 16px;
+        font-size: 18px;
         line-height: 140%;
 
         @include mx.respond-to('large') {
-            font-size: 12px;
+            font-size: 14px;
         }
 
         @include mx.respond-to('ipad') {
-            font-size: 10px;
+            font-size: 12px;
         }
 
     }
@@ -94,6 +95,7 @@
         color: var(--white);
         font-size: 64px;
         line-height: 110%;
+        font-weight: 500;
 
         @include mx.respond-to('large') {
             font-size: 50px;
@@ -161,5 +163,21 @@
 
     .swiper-pagination-bullet-active {
         background-color: var(--white);
+    }
+}
+
+.banner-link {
+    padding: 14px 28px;
+    border: 1px white solid;
+    border-radius: 5px;
+    color: white;
+    margin-top: 5px;
+    width: fit-content;
+    text-align: center;
+    display: block;
+
+    @include mx.respond-to('ipad') {
+        font-size: 11px;
+        padding: 4px 10px;
     }
 }

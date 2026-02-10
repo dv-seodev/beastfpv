@@ -131,9 +131,7 @@ export default async function ActionsPage() {
                                     src={item.featuredImage?.node?.sourceUrl || "/images/actions/action_1.png"}
                                     alt={item.title || "action"}
                                 />
-                                {/* <Link href={`/actions/${item.slug}`}>
                                 <div className="actions__text">{item.title}</div>
-                            </Link> */}
                             </Link>
                         </div>
                     ))}
