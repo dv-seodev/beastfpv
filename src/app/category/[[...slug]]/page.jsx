@@ -5,8 +5,8 @@ import YoastJsonLd from "../../../components/YoastJsonLd";
 import { buildMetadataFromYoast } from "../../../lib/yoastMetadata";
 
 export const dynamic = 'force-static';
-export const dynamicParams = false;
-export const revalidate = false;
+export const dynamicParams = true;
+export const revalidate = 60;
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || process.env.NEXT_PUBLIC_GRAPHQL_URL;
 const PAGE_SIZE = 18;
@@ -100,32 +100,50 @@ const CATEGORIES_QUERY = `
     }
 `;
 
-async function fetchGraphQL(query, variables) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchGraphQL(query, variables, fetchOptions = {}) {
     if (!GRAPHQL_URL) {
         throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
     }
 
-    const response = await fetch(GRAPHQL_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query, variables }),
-        cache: 'force-cache',
-    });
+    const maxAttempts = fetchOptions.retries ?? 2;
+    let lastError = null;
 
-    if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.status}`);
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            const response = await fetch(GRAPHQL_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query, variables }),
+                cache: 'force-cache',
+                ...fetchOptions,
+            });
+
+            if (!response.ok) {
+                throw new Error(`GraphQL request failed: ${response.status}`);
+            }
+
+            const json = await response.json();
+
+            if (json.errors && json.errors.length > 0) {
+                const message = json.errors[0]?.message || 'GraphQL error';
+                throw new Error(message);
+            }
+
+            return json.data;
+        } catch (err) {
+            lastError = err;
+            if (attempt < maxAttempts) {
+                await sleep(300 * attempt);
+                continue;
+            }
+        }
     }
 
-    const json = await response.json();
-
-    if (json.errors && json.errors.length > 0) {
-        const message = json.errors[0]?.message || 'GraphQL error';
-        throw new Error(message);
-    }
-
-    return json.data;
+    throw lastError;
 }
 
 const isExcludedCategory = (cat) => {
@@ -192,21 +210,25 @@ async function fetchAllCategoriesRaw() {
     let hasNextPage = true;
     let after = null;
 
-    while (hasNextPage) {
-        const data = await fetchGraphQL(CATEGORIES_QUERY, { after });
-        const connection = data?.productCategories;
-        const nodes = connection?.nodes || [];
-        const pageInfo = connection?.pageInfo;
+    try {
+        while (hasNextPage) {
+            const data = await fetchGraphQL(CATEGORIES_QUERY, { after });
+            const connection = data?.productCategories;
+            const nodes = connection?.nodes || [];
+            const pageInfo = connection?.pageInfo;
 
-        all.push(...nodes);
+            all.push(...nodes);
 
-        hasNextPage = Boolean(pageInfo?.hasNextPage);
-        after = pageInfo?.endCursor || null;
+            hasNextPage = Boolean(pageInfo?.hasNextPage);
+            after = pageInfo?.endCursor || null;
 
-        if (hasNextPage && !after) {
-            // защита от бесконечного цикла
-            hasNextPage = false;
+            if (hasNextPage && !after) {
+                // защита от бесконечного цикла
+                hasNextPage = false;
+            }
         }
+    } catch (_) {
+        return [];
     }
 
     return all;
@@ -218,11 +240,16 @@ async function fetchCategories() {
 }
 
 async function fetchCategoryData(slug) {
-    const data = await fetchGraphQL(CATEGORY_QUERY, {
-        slugId: slug,
-        slugStr: slug,
-        first: CATEGORY_PRODUCTS_LIMIT,
-    });
+    let data = null;
+    try {
+        data = await fetchGraphQL(CATEGORY_QUERY, {
+            slugId: slug,
+            slugStr: slug,
+            first: CATEGORY_PRODUCTS_LIMIT,
+        });
+    } catch (_) {
+        return null;
+    }
 
     const category = data?.productCategory || null;
     const allProducts = data?.products?.nodes || [];
@@ -307,7 +334,7 @@ export default async function Page({ params }) {
     const currentSlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : null;
 
     const [categories, data, categorySeo] = await Promise.all([
-        fetchCategories(),
+        fetchCategories().catch(() => []),
         currentSlug ? fetchCategoryData(currentSlug) : null,
         currentSlug ? fetchCategorySeo(currentSlug) : null,
     ]);

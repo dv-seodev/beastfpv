@@ -7,7 +7,7 @@ import ProductPageClient from "./ProductPageClient";
 import YoastJsonLd from "../../../components/YoastJsonLd";
 import { buildMetadataFromYoast } from "../../../lib/yoastMetadata";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const dynamic = "force-static";
 export const revalidate = 60;
 
@@ -322,33 +322,49 @@ const PRODUCT_SLUGS_QUERY = `
     }
 `;
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function fetchGraphQL(query, variables, fetchOptions = {}) {
     if (!GRAPHQL_URL) {
         throw new Error('Missing GraphQL endpoint. Set NEXT_PUBLIC_GRAPHQL_URL.');
     }
+    const maxAttempts = fetchOptions.retries ?? 2;
+    let lastError = null;
 
-    const response = await fetch(GRAPHQL_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query, variables }),
-        cache: 'force-cache',
-        ...fetchOptions,
-    });
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            const response = await fetch(GRAPHQL_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query, variables }),
+                cache: 'force-cache',
+                ...fetchOptions,
+            });
 
-    if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`GraphQL request failed: ${response.status}`);
+            }
+
+            const json = await response.json();
+
+            if (json.errors && json.errors.length > 0) {
+                const message = json.errors[0]?.message || 'GraphQL error';
+                throw new Error(message);
+            }
+
+            return json.data;
+        } catch (err) {
+            lastError = err;
+            if (attempt < maxAttempts) {
+                await sleep(300 * attempt);
+                continue;
+            }
+        }
     }
 
-    const json = await response.json();
-
-    if (json.errors && json.errors.length > 0) {
-        const message = json.errors[0]?.message || 'GraphQL error';
-        throw new Error(message);
-    }
-
-    return json.data;
+    throw lastError;
 }
 
 const parsePriceToNumber = (priceString) => {
@@ -672,7 +688,12 @@ const formatProductData = (rawData, manualFiles = [], relatedProducts = []) => {
 };
 
 async function fetchProductBySlug(slug) {
-    const data = await fetchGraphQL(PRODUCT_QUERY, { slug });
+    let data = null;
+    try {
+        data = await fetchGraphQL(PRODUCT_QUERY, { slug });
+    } catch (_) {
+        return null;
+    }
     const manualIds = extractManualIds(data?.product?.metaData || []);
     const manualFiles = await fetchManualFilesByIds(manualIds);
     const relatedProductIds = extractRelatedProductIds(data?.product?.metaData || []);
@@ -692,17 +713,25 @@ async function fetchProductBySlug(slug) {
 }
 
 async function fetchHomeData() {
-    const data = await fetchGraphQL(HOME_QUERY, {
-        newSlug: '10-inch',
-        popSlug: 'akkumulyatory',
-        parentId: 20,
-    });
+    try {
+        const data = await fetchGraphQL(HOME_QUERY, {
+            newSlug: '10-inch',
+            popSlug: 'akkumulyatory',
+            parentId: 20,
+        });
 
-    return {
-        new_products: data?.newProducts?.nodes || [],
-        pop_products: data?.popProducts?.nodes || [],
-        cats_list: data?.categories?.nodes || [],
-    };
+        return {
+            new_products: data?.newProducts?.nodes || [],
+            pop_products: data?.popProducts?.nodes || [],
+            cats_list: data?.categories?.nodes || [],
+        };
+    } catch (_) {
+        return {
+            new_products: [],
+            pop_products: [],
+            cats_list: [],
+        };
+    }
 }
 
 async function fetchAllProductSlugs() {
@@ -711,21 +740,23 @@ async function fetchAllProductSlugs() {
     let after = null;
     let page = 0;
 
-    while (hasNextPage) {
-        page += 1;
-        const data = await fetchGraphQL(PRODUCT_SLUGS_QUERY, { after }, { cache: 'no-store' });
-        const connection = data?.products;
-        const nodes = connection?.nodes || [];
-        const pageInfo = connection?.pageInfo;
-        const found = connection?.found;
+    try {
+        while (hasNextPage) {
+            page += 1;
+            const data = await fetchGraphQL(PRODUCT_SLUGS_QUERY, { after }, { cache: 'no-store' });
+            const connection = data?.products;
+            const nodes = connection?.nodes || [];
+            const pageInfo = connection?.pageInfo;
 
-        const pageSlugs = nodes.map((node) => node?.slug).filter(Boolean);
-        nodes.forEach((node) => {
-            if (node?.slug) slugs.push(node.slug);
-        });
+            nodes.forEach((node) => {
+                if (node?.slug) slugs.push(node.slug);
+            });
 
-        hasNextPage = Boolean(pageInfo?.hasNextPage);
-        after = pageInfo?.endCursor || null;
+            hasNextPage = Boolean(pageInfo?.hasNextPage);
+            after = pageInfo?.endCursor || null;
+        }
+    } catch (_) {
+        return [];
     }
 
     const uniqueCount = new Set(slugs).size;
