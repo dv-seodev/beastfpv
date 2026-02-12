@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatPhoneNumber } from '../lib/phoneMask'; // ✨ ДОБАВЛЯЕМ ИМПОРТ
+import { formatPhoneNumber } from '../lib/phoneMask';
+import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
 
 const getProductNameForForm = (product, isPreorder) => {
     const name = product?.name || '';
@@ -15,8 +16,16 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
         name: '',
         phone: '',
         agree: false,
+        website: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitState, setSubmitState] = useState('idle');
+    const isFormReady = !validateLeadForm({
+        name: formData.name,
+        phone: formData.phone,
+        agree: formData.agree,
+    });
+    const isButtonDisabled = isSubmitting || !isFormReady;
 
     useEffect(() => {
         setFormData((prev) => ({
@@ -27,12 +36,10 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
 
     if (!isOpen) return null;
 
-    // ✨ ОБНОВЛЁННЫЙ ОБРАБОТЧИК: с маской для телефона
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         let newValue = value;
 
-        // ✨ Применяем маску для телефона
         if (name === 'phone') {
             newValue = formatPhoneNumber(value);
         }
@@ -41,62 +48,74 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
             ...prev,
             [name]: type === 'checkbox' ? checked : newValue,
         }));
+
+        if (submitState !== 'idle') {
+            setSubmitState('idle');
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const validationError = validateLeadForm({
+            name: formData.name,
+            phone: formData.phone,
+            agree: formData.agree,
+        });
+
+        if (validationError) {
+            setSubmitState('error');
+            return;
+        }
+
+        setSubmitState('sending');
         setIsSubmitting(true);
 
         try {
-            if (!formData.name.trim()) {
-                alert('Заполните имя');
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!formData.phone.trim()) {
-                alert('Заполните телефон');
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!formData.agree) {
-                alert('Согласитесь на обработку данных');
-                setIsSubmitting(false);
-                return;
-            }
-
-            // Отправляем заказ
-            const response = await fetch('/api/one-click-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            await submitLeadForm({
+                formType: isPreorder ? 'preorder' : 'one_click',
+                name: formData.name,
+                phone: formData.phone,
+                agree: formData.agree,
+                honeypot: formData.website,
+                extra: {
+                    product_name: formData.product_name || '',
+                    product_id: product?.databaseId || product?.id || '',
+                    product_price: product?.price || '',
                 },
-                body: JSON.stringify({
-                    product_id: product.id,
-                    product_name: formData.product_name,
-                    product_price: product.price,
-                    customer_name: formData.name,
-                    customer_phone: formData.phone,
-                }),
             });
 
-            if (!response.ok) throw new Error('Ошибка при отправке');
-
-            alert('✅ Спасибо! Мы свяжемся с вами в ближайшее время');
+            setSubmitState('success');
             setFormData({
                 product_name: getProductNameForForm(product, isPreorder),
                 name: '',
                 phone: '',
                 agree: false,
+                website: '',
             });
             setTimeout(onClose, 1500);
         } catch (err) {
-            console.error('Ошибка:', err);
-            alert(`❌ ${err.message}`);
+            console.error('Ошибка отправки формы:', err);
+            setSubmitState('error');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const buttonTextByState = {
+        idle: 'Заказать',
+        sending: 'Отправка...',
+        success: 'Ваша заявка успешно отправлена',
+        error: 'Не удалось отправить заявку',
+    };
+
+    const buttonStyleByState = {
+        success: {
+            backgroundColor: 'var(--green)',
+        },
+        error: {
+            backgroundColor: 'var(--red)',
+        },
     };
 
     return (
@@ -149,6 +168,24 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
                         />
                     </div>
 
+                    <input
+                        type="text"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        autoComplete="off"
+                        tabIndex="-1"
+                        aria-hidden="true"
+                        style={{
+                            position: 'absolute',
+                            left: '-9999px',
+                            width: 0,
+                            height: 0,
+                            opacity: 0,
+                            pointerEvents: 'none',
+                        }}
+                    />
+
                     {/* Согласие */}
                     <div className="contact-us-modal__form-group contact-us-modal__checkbox-group">
                         <label className="contact-us-modal__checkbox-label">
@@ -167,9 +204,13 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
                     <button
                         type="submit"
                         className="contact-us-modal__button contact-us__form-button-submit contact-us-modal__button--submit"
-                        disabled={isSubmitting}
+                        disabled={isButtonDisabled}
+                        style={{
+                            ...(buttonStyleByState[submitState] || {}),
+                            ...(isButtonDisabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+                        }}
                     >
-                        {isSubmitting ? 'Отправка...' : 'Заказать'}
+                        {buttonTextByState[submitState] || buttonTextByState.idle}
                     </button>
                 </form>
             </div>

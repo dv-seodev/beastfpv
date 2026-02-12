@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatPhoneNumber } from '../lib/phoneMask';
+import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
 import './Contact_us.scss';
 
 const contact_us = () => {
@@ -9,28 +10,95 @@ const contact_us = () => {
         name: '',
         phone: '',
         message: '',
+        agree: false,
+        website: '',
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitState, setSubmitState] = useState('idle');
+    const isFormReady = !validateLeadForm({
+        name: formData.name,
+        phone: formData.phone,
+        agree: formData.agree,
+    });
+    const isButtonDisabled = isSubmitting || !isFormReady;
 
-    // ✨ НОВАЯ ФУНКЦИЯ: обработчик изменения инпута
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         let newValue = value;
 
-        // ✨ Если это поле телефона - применяем маску
         if (name === 'phone') {
             newValue = formatPhoneNumber(value);
         }
 
         setFormData(prev => ({
             ...prev,
-            [name]: newValue,
+            [name]: type === 'checkbox' ? checked : newValue,
         }));
+
+        if (submitState !== 'idle') {
+            setSubmitState('idle');
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Отправка формы:', formData);
-        // Здесь отправляешь данные на бэк
+
+        const validationError = validateLeadForm({
+            name: formData.name,
+            phone: formData.phone,
+            agree: formData.agree,
+        });
+
+        if (validationError) {
+            setSubmitState('error');
+            return;
+        }
+
+        setSubmitState('sending');
+        setIsSubmitting(true);
+
+        try {
+            await submitLeadForm({
+                formType: 'callback',
+                name: formData.name,
+                phone: formData.phone,
+                agree: formData.agree,
+                honeypot: formData.website,
+                extra: {
+                    message: formData.message?.trim() || '',
+                },
+            });
+
+            setSubmitState('success');
+            setFormData({
+                name: '',
+                phone: '',
+                message: '',
+                agree: false,
+                website: '',
+            });
+        } catch (error) {
+            console.error('Ошибка отправки формы:', error);
+            setSubmitState('error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const buttonTextByState = {
+        idle: 'Заказать звонок',
+        sending: 'Отправка...',
+        success: 'Ваша заявка успешно отправлена',
+        error: 'Не удалось отправить заявку',
+    };
+
+    const buttonStyleByState = {
+        success: {
+            backgroundColor: 'var(--green)',
+        },
+        error: {
+            backgroundColor: 'var(--red)',
+        },
     };
 
     return (
@@ -68,11 +136,45 @@ const contact_us = () => {
                         onChange={handleInputChange}
                     />
 
+                    <input
+                        type="text"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        autoComplete="off"
+                        tabIndex="-1"
+                        aria-hidden="true"
+                        style={{
+                            position: 'absolute',
+                            left: '-9999px',
+                            width: 0,
+                            height: 0,
+                            opacity: 0,
+                            pointerEvents: 'none',
+                        }}
+                    />
+
                     <div className="contact-us__checkbox-wrapper">
-                        <input type="checkbox" className="contact-us__form-checkbox" />
+                        <input
+                            type="checkbox"
+                            className="contact-us__form-checkbox"
+                            name="agree"
+                            checked={formData.agree}
+                            onChange={handleInputChange}
+                        />
                         <span>Я даю свое согласие на обработку своих персональных данных</span>
                     </div>
-                    <button type="submit" className="contact-us__form-button-submit">Заказать звонок</button>
+                    <button
+                        type="submit"
+                        className="contact-us__form-button-submit"
+                        disabled={isButtonDisabled}
+                        style={{
+                            ...(buttonStyleByState[submitState] || {}),
+                            ...(isButtonDisabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+                        }}
+                    >
+                        {buttonTextByState[submitState] || buttonTextByState.idle}
+                    </button>
                 </form>
             </div>
         </section>
