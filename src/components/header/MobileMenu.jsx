@@ -81,21 +81,21 @@ const MobileMenu = ({ isOpen, onClose }) => {
                 <div className="mobile-menu__service-links">
                     <Link
                         className="mobile-menu__links-item mobile-heading"
-                        href="/"
+                        href="/o-magazine/"
                         onClick={onClose}
                     >
-                        Бонусы и скидки
+                        О магазине
                     </Link>
                     <Link
                         className="mobile-menu__links-item mobile-heading"
-                        href="/"
+                        href="/dostavka-i-oplata/"
                         onClick={onClose}
                     >
                         Доставка и оплата
                     </Link>
                     <Link
                         className="mobile-menu__links-item mobile-heading"
-                        href="/garantijnye-obyazatelstva/"
+                        href="/garantiya-i-vozvrat/"
                         onClick={onClose}
                     >
                         Гарантия и возврат

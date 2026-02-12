@@ -59,9 +59,9 @@ const Header = () => {
             <div className="header__upper">
                 <div className="container header__container">
                     <nav className="header__about-links">
-                        <Link className="header__links-item" href="/">Бонусы и скидки</Link>
-                        <Link className="header__links-item" href="/">Доставка и оплата</Link>
-                        <Link className="header__links-item" href="/garantijnye-obyazatelstva/">Гарантия и возврат</Link>
+                        <Link className="header__links-item" href="/o-magazine/">О магазине</Link>
+                        <Link className="header__links-item" href="/dostavka-i-oplata/">Доставка и оплата</Link>
+                        <Link className="header__links-item" href="/garantiya-i-vozvrat/">Гарантия и возврат</Link>
                         <Link className="header__links-item" href="/contacts/">Контакты</Link>
                     </nav>
                     <div className="header__contacts_info">
