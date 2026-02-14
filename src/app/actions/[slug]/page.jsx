@@ -6,7 +6,7 @@ import Breadcrumbs from "../../category/[[...slug]]/Breadcrumbs";
 
 export const revalidate = 60;
 
-const GRAPHQL_URL = "https://beastfpv.ru/graphql";
+const GRAPHQL_URL = "https://api.beastfpv.ru/graphql";
 const ACTIONS_CATEGORY_SLUG = "actions";
 
 const HOME_QUERY = `

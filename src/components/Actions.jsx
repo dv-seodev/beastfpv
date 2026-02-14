@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import "./Actions.scss";
 
-const GRAPHQL_URL = "https://beastfpv.ru/graphql";
+const GRAPHQL_URL = "https://api.beastfpv.ru/graphql";
 const ACTIONS_CATEGORY_SLUG = "actions";
 
 const ACTIONS_QUERY = `

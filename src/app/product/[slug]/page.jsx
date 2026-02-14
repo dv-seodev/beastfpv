@@ -14,7 +14,7 @@ export const revalidate = 60;
 
 const GRAPHQL_URL =
     process.env.NEXT_PUBLIC_PRODUCT_PAGE_GRAPHQL_URL ||
-    'https://beastfpv.ru/graphql';
+    'https://api.beastfpv.ru/graphql';
 
 const PRODUCT_QUERY = `
     query GetProductBySlug($slug: ID!) {
