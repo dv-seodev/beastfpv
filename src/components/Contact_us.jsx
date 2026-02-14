@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { formatPhoneNumber } from '../lib/phoneMask';
 import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
 import './Contact_us.scss';
+import Link from 'next/link';
 
 const contact_us = () => {
     const [formData, setFormData] = useState({
@@ -162,7 +163,7 @@ const contact_us = () => {
                             checked={formData.agree}
                             onChange={handleInputChange}
                         />
-                        <span>Я даю свое согласие на обработку своих персональных данных</span>
+                        <span>Я даю свое согласие на <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
                     </div>
                     <button
                         type="submit"

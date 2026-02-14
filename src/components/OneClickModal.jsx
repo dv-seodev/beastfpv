@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatPhoneNumber } from '../lib/phoneMask';
 import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
+import Link from 'next/link';
 
 const getProductNameForForm = (product, isPreorder) => {
     const name = product?.name || '';
@@ -196,7 +197,7 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
                                 onChange={handleInputChange}
                                 className="contact-us-modal__checkbox"
                             />
-                            <span>Я даю согласие на обработку персональных данных <span className="contact-us-modal__required">*</span></span>
+                            <span>Я даю свое согласие на <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
                         </label>
                     </div>
 

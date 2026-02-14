@@ -25,7 +25,10 @@ const Footer = () => {
                         <div className="footer__links-item">
                             ИНН 024200325133<br /><br />
                             ОГРНИП 324508100570973<br /><br />
-                            Все права защищены © 2026
+                            Все права защищены © 2026<br /><br />
+                            <b><Link href="/politika-konfidencialnosti.pdf" target="_blank">
+                                Политика конфиденциальности
+                            </Link></b>
                         </div>
                     </nav>
                     <div className="footer__social-links footer__links_navy">
