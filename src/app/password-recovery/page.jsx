@@ -20,6 +20,7 @@ const ForgotPassword = () => {
             'email_required': 'Email адрес обязателен.',
             'validation_error': 'Ошибка валидации: ' + errorText,
             'config_error': 'Ошибка конфигурации сервера.',
+            'rest_no_route': 'Маршрут восстановления пароля недоступен на сервере.',
             'reset_error': 'Ошибка при восстановлении пароля. ' + errorText,
             'server_error': 'Ошибка сервера. Попробуйте позже.',
         };
@@ -79,28 +80,10 @@ const ForgotPassword = () => {
             }
 
             if (data.success) {
-                console.log('✅ Новый пароль создан');
-
-                // ✅ ИЗМЕНЕНИЕ: Отправляем письмо через mail сервис (Resend, SendGrid и т.д.)
-                // Если есть переменные окружения
-                if (process.env.NEXT_PUBLIC_SEND_EMAIL_SERVICE) {
-                    try {
-                        await fetch('/api/send-email', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: data.user.email,
-                                username: data.user.username,
-                                password: data.password,
-                            }),
-                        });
-                    } catch (emailErr) {
-                        console.warn('⚠️ Ошибка при отправке письма:', emailErr);
-                    }
-                }
-
+                console.log('✅ Запрос на восстановление пароля выполнен');
                 setSuccessMessage(
-                    '✅ Новый пароль создан! Проверьте вашу почту - письмо отправлено. Если письма нет, проверьте папку спам. Используйте новый пароль для входа.'
+                    data.message ||
+                    '✅ Письмо для восстановления пароля отправлено. Проверьте вашу почту и папку спам.'
                 );
                 setEmail('');
 

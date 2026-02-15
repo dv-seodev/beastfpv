@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
 
 const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL;
+const WP_REST_USER = process.env.WP_REST_USER;
+const WP_REST_PASSWORD = process.env.WP_REST_PASSWORD || process.env.WOOCOMMERCE_APP_PASSWORD;
 
-// ✅ ИЗМЕНЕНИЕ: Функция для расшифровки ошибок восстановления пароля
 const translateForgotPasswordError = (errorMessage) => {
     const errorMap = {
-        'user not found': 'Пользователь с таким email не найден в системе.',
         'invalid email': 'Введите корректный email адрес.',
-        'email already registered': 'Этот email уже зарегистрирован.',
-        'invalid token': 'Ссылка для восстановления пароля истекла или невалидна.',
-        'password too short': 'Пароль должен содержать минимум 6 символов.',
-        'password weak': 'Пароль слишком простой. Используйте буквы, цифры и символы.',
+        'email address is unknown': 'Пользователь с таким email не найден в системе.',
+        'user not found': 'Пользователь с таким email не найден в системе.',
+        'invalid parameter': 'Невалидные параметры запроса.',
+        'rest_no_route': 'На сервере недоступен маршрут восстановления пароля.',
+        'rest_forbidden': 'Доступ запрещен. Проверьте учетные данные для WordPress REST API.',
+        'rate_limited': 'Слишком много попыток. Попробуйте позже.',
     };
 
     const lowerError = errorMessage?.toLowerCase() || '';
     for (const [key, value] of Object.entries(errorMap)) {
-        if (lowerError.includes(key.toLowerCase())) {
+        if (lowerError.includes(key)) {
             return value;
         }
     }
@@ -23,39 +25,43 @@ const translateForgotPasswordError = (errorMessage) => {
     return errorMessage || 'Ошибка при восстановлении пароля. Попробуйте позже.';
 };
 
-// ✅ ИЗМЕНЕНИЕ: Функция валидации email
 const validateEmail = (email) => {
     if (!email || typeof email !== 'string') {
         return { valid: false, error: 'Email адрес обязателен' };
     }
 
+    const trimmedEmail = email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
+    if (!emailRegex.test(trimmedEmail)) {
         return { valid: false, error: 'Введите корректный email адрес' };
     }
 
-    return { valid: true };
+    return { valid: true, email: trimmedEmail };
 };
 
-// ✅ ИЗМЕНЕНИЕ: Функция для генерации случайного пароля
-const generateTemporaryPassword = (length = 12) => {
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    const symbols = '!@#$%^&*';
-    const allChars = uppercase + lowercase + numbers + symbols;
-
-    let password = '';
-    password += uppercase[Math.floor(Math.random() * uppercase.length)];
-    password += lowercase[Math.floor(Math.random() * lowercase.length)];
-    password += numbers[Math.floor(Math.random() * numbers.length)];
-    password += symbols[Math.floor(Math.random() * symbols.length)];
-
-    for (let i = password.length; i < length; i++) {
-        password += allChars[Math.floor(Math.random() * allChars.length)];
+const safeJson = async (response) => {
+    try {
+        return await response.json();
+    } catch {
+        return null;
     }
+};
 
-    return password.split('').sort(() => Math.random() - 0.5).join('');
+const resetPasswordViaWordPress = async (email) => {
+    const endpoint = `${WORDPRESS_URL}/wp-json/beastfpv/v1/password/reset`;
+    const credentials = Buffer.from(`${WP_REST_USER}:${WP_REST_PASSWORD}`).toString('base64');
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Basic ${credentials}`,
+        },
+        body: JSON.stringify({ email }),
+    });
+
+    const data = await safeJson(response);
+    return { response, data };
 };
 
 export async function POST(request) {
@@ -63,12 +69,10 @@ export async function POST(request) {
         const body = await request.json();
         const { email } = body;
 
-        console.log('📧 Запрос на восстановление пароля для:', email);
+        console.log('📧 Запрос на восстановление пароля (авто-выдача нового пароля)');
 
-        // ✅ ИЗМЕНЕНИЕ: Валидация email
         const validation = validateEmail(email);
         if (!validation.valid) {
-            console.log('❌ Ошибка валидации:', validation.error);
             return NextResponse.json(
                 {
                     success: false,
@@ -91,112 +95,53 @@ export async function POST(request) {
             );
         }
 
-        // ✅ ИЗМЕНЕНИЕ: Генерируем новый временный пароль
-        const newPassword = generateTemporaryPassword();
-        console.log('🔑 Новый пароль сгенерирован');
-
-        // ✅ ИЗМЕНЕНИЕ: GraphQL мутация для поиска пользователя по email и смены пароля
-        const graphqlQuery = `
-            mutation {
-                updateUserPasswordByEmail(
-                    input: {
-                        email: "${email.trim()}"
-                        password: "${newPassword}"
-                    }
-                ) {
-                    user {
-                        databaseId
-                        username
-                        email
-                        firstName
-                        lastName
-                    }
-                    success
-                    message
-                }
-            }
-        `;
-
-        console.log('🔄 Отправляем GraphQL запрос на смену пароля...');
-
-        const response = await fetch(`${WORDPRESS_URL}/graphql`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: graphqlQuery,
-            }),
-        });
-
-        const data = await response.json();
-
-        console.log('📥 Ответ от WordPress:', data.errors ? 'Ошибка' : 'Успех');
-
-        // ✅ ИЗМЕНЕНИЕ: Обработка GraphQL ошибок
-        if (data.errors && data.errors.length > 0) {
-            console.error('❌ GraphQL ошибки:', data.errors);
-
-            const errorMessage = data.errors[0]?.message || 'Ошибка при восстановлении пароля';
-            const translatedError = translateForgotPasswordError(errorMessage);
-
-            let errorCode = 'reset_error';
-            if (errorMessage.toLowerCase().includes('not found')) {
-                errorCode = 'user_not_found';
-            } else if (errorMessage.toLowerCase().includes('invalid')) {
-                errorCode = 'invalid_email';
-            }
-
+        if (!WP_REST_USER || !WP_REST_PASSWORD) {
+            console.error('🔴 WP_REST_USER/WP_REST_PASSWORD не установлены (или WOOCOMMERCE_APP_PASSWORD)');
             return NextResponse.json(
                 {
                     success: false,
-                    message: translatedError,
-                    code: errorCode,
-                },
-                { status: 400 }
-            );
-        }
-
-        if (!data.data || !data.data.updateUserPasswordByEmail) {
-            console.error('❌ Неожиданный ответ от WordPress:', data);
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: 'Ошибка при смене пароля. Попробуйте позже.',
-                    code: 'unexpected_response',
+                    message: 'Ошибка конфигурации сервера',
+                    code: 'config_error',
                 },
                 { status: 500 }
             );
         }
 
-        const userData = data.data.updateUserPasswordByEmail.user;
-        const success = data.data.updateUserPasswordByEmail.success;
+        const normalizedEmail = validation.email;
 
-        if (!success) {
-            console.error('❌ Ошибка от WordPress:', data.data.updateUserPasswordByEmail.message);
+        const { response, data } = await resetPasswordViaWordPress(normalizedEmail);
+
+        // Не раскрываем существование email, но если WP вернул rate limit/forbidden - покажем ошибку.
+        if (response.status === 429 || data?.code === 'rate_limited') {
             return NextResponse.json(
                 {
                     success: false,
-                    message: translateForgotPasswordError(data.data.updateUserPasswordByEmail.message),
-                    code: 'reset_error',
+                    message: translateForgotPasswordError('rate_limited'),
+                    code: 'rate_limited',
                 },
-                { status: 400 }
+                { status: 429 }
             );
         }
 
-        console.log('✅ Пароль успешно изменен для пользователя:', userData.username);
+        if (response.status === 403 || response.status === 401) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: translateForgotPasswordError('rest_forbidden'),
+                    code: 'rest_forbidden',
+                },
+                { status: 403 }
+            );
+        }
 
-        // ✅ ИЗМЕНЕНИЕ: Возвращаем пароль фронтенду для отправки (фронтенд сам отправит письмо или покажет пароль)
+        if (!response.ok) {
+            console.warn('⚠️ WordPress reset endpoint returned non-OK:', response.status, data?.code || data);
+        }
+
         return NextResponse.json(
             {
                 success: true,
-                message: 'Новый пароль создан. Вам будет отправлено письмо на почту.',
-                password: newPassword,
-                user: {
-                    username: userData.username,
-                    email: userData.email,
-                    firstName: userData.firstName || '',
-                },
+                message: 'Если такой email существует, на него будет отправлен новый пароль. Проверьте почту и папку спам.',
             },
             { status: 200 }
         );
