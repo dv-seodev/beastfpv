@@ -103,7 +103,7 @@ const contact_us = () => {
     };
 
     return (
-        <section className="contact-us">
+        <section className="contact-us" id='contact-us'>
             <div className="container contact-us__container">
                 <div className="contact-us__header">
                     <h2>Ответим на все ваши вопросы</h2>

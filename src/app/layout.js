@@ -25,6 +25,7 @@ import { useRestCart } from "../lib/hooks/useRestCart";
 import { useEffect } from "react";
 import YandexMetrika from "../components/YandexMetrika";
 import { Suspense } from "react";
+import DesignUpdateNotice from "../components/DesignUpdateNotice";
 
 export default function RootLayout({ children }) {
   const { fetchCart, cartInitialized } = useRestCart();
@@ -71,6 +72,7 @@ export default function RootLayout({ children }) {
               <Footer />
             </div>
             <ScrollToTop />
+            <DesignUpdateNotice />
           </div>
         </ApolloProviderWrapper>
       </body>
