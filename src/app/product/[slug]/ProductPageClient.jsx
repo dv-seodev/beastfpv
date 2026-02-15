@@ -9,12 +9,13 @@ import { useProductsList } from '../../../lib/ProductsListController';
 import { useFavoriteStore } from '../../../stores/favoriteStore';
 // ✅ ИЗМЕНЕНИЕ: Заменяем старый useCartStore на новый useRestCart
 import { useRestCart } from '../../../lib/hooks/useRestCart';
+import { useHomeData } from '../../../lib/HomePageDataContoller';
 import ProductGallery from "./ProductGallery";
 import restApi from "../../../lib/woo_rest_api/rest_api";
 import OneClickModal from "../../../components/OneClickModal";
 
 
-const Product_cart = ({ product, homeData }) => {
+const Product_cart = ({ product, homeData: homeDataProp }) => {
     const [quantity, setQuantity] = useState(1);
     const [isMounted, setIsMounted] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
@@ -141,10 +142,14 @@ const Product_cart = ({ product, homeData }) => {
         }
     }, [isMounted, product?.databaseId, isInFavorites]);
 
-    if (!product) return <div>Товар не найден</div>;
-    if (!homeData) return <div>Данные не найдены</div>;
+    const { data: homeDataFromHook } = useHomeData();
 
-    const { new_products } = homeData;
+    if (!product) return <div>Товар не найден</div>;
+
+    const new_products =
+        homeDataFromHook?.new_products?.length
+            ? homeDataFromHook.new_products
+            : (homeDataProp?.new_products || []);
 
     const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK' || product.stockQuantity === 0;
 
@@ -564,7 +569,9 @@ const Product_cart = ({ product, homeData }) => {
                 onClose={() => setIsPreorderModalOpen(false)}
                 isPreorder
             />
-            <NewItems products={new_products} />
+            {Array.isArray(new_products) && new_products.length > 0 ? (
+                <NewItems products={new_products} />
+            ) : null}
         </section>
     );
 };

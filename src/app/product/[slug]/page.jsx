@@ -715,8 +715,8 @@ async function fetchProductBySlug(slug) {
 async function fetchHomeData() {
     try {
         const data = await fetchGraphQL(HOME_QUERY, {
-            newSlug: '10-inch',
-            popSlug: 'akkumulyatory',
+            newSlug: 'new',
+            popSlug: 'popular',
             parentId: 20,
         });
 
