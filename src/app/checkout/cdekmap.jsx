@@ -15,7 +15,7 @@ const CdekMap = ({ onPVZselect }) => {
       root: "cdek-map",
       apiKey: "c390b32a-a818-4842-b71f-262d4ff04489",
       canChoose: true,
-      servicePath: "https://test.beastfpv.ru/wp-json/cdek/v1/webhook",
+      servicePath: "https://api.beastfpv.ru/wp-json/cdek/v1/webhook",
       hideDeliveryOptions: { office: false, door: true },
       onReady() {
         console.log("✅ CDEK загружен");

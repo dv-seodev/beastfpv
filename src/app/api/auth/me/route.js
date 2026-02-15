@@ -20,7 +20,7 @@ export async function GET(request) {
             process.env.JWT_SECRET || 'your-secret-key'
         );
 
-        const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://test.beastfpv.ru';
+        const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://api.beastfpv.ru';
         const WC_KEY = process.env.WC_CONSUMER_KEY;
         const WC_SECRET = process.env.WC_CONSUMER_SECRET;
 
