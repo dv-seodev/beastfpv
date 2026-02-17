@@ -34,13 +34,11 @@ const MobileMenu = ({ isOpen, onClose }) => {
 
 
                 <div className="mobile-menu__catalog">
-                    <Link
+                    <div
                         className="mobile-menu__links-item mobile-heading"
-                        href="/"
-                        onClick={onClose}
                     >
                         Каталог
-                    </Link>
+                    </div>
                     <Link
                         className="mobile-menu__links-item"
                         href="/category/fpv/"
@@ -50,14 +48,14 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/category/accessory/"
+                        href="/category/dji/"
                         onClick={onClose}
                     >
                         DJI
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/category/dji/"
+                        href="/category/accessory/"
                         onClick={onClose}
                     >
                         Комплектующие
