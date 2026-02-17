@@ -85,14 +85,51 @@ const Cart = () => {
   const isLocalPickup = shippingMethodCode.includes("pickup");
   const isCdek = shippingMethodCode.includes("cdek");
 
+  const availablePaymentMethods = useMemo(() => {
+    const fallbackById = new Map((paymentMethods || []).map((method) => [method.id, method]));
+    const rawCartMethods = cart?.payment_methods;
+
+    if (!Array.isArray(rawCartMethods) || rawCartMethods.length === 0) {
+      return paymentMethods;
+    }
+
+    const normalized = rawCartMethods
+      .map((method) => {
+        if (typeof method === "string") {
+          const fallback = fallbackById.get(method);
+          return {
+            id: method,
+            title: fallback?.title || method,
+            description: fallback?.description || "",
+          };
+        }
+
+        if (method && typeof method === "object") {
+          const id = method.id || method.method_id || method.payment_method;
+          if (!id) return null;
+          const fallback = fallbackById.get(id);
+          return {
+            id,
+            title: method.title || method.label || fallback?.title || id,
+            description: method.description || fallback?.description || "",
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+
+    return normalized.length > 0 ? normalized : paymentMethods;
+  }, [cart?.payment_methods, paymentMethods]);
+
   const visiblePaymentMethods = useMemo(() => {
-    if (!Array.isArray(paymentMethods)) return [];
-    return paymentMethods.filter((method) => {
+    if (!Array.isArray(availablePaymentMethods)) return [];
+    return availablePaymentMethods.filter((method) => {
       if (isLocalPickup && method.id === "yookassa_epl") return false;
       if (isCdek && method.id === "cod") return false;
       return true;
     });
-  }, [paymentMethods, isLocalPickup, isCdek]);
+  }, [availablePaymentMethods, isLocalPickup, isCdek]);
 
   const handleQuantityChangeWrapper = useCallback(
     async (itemKey, newQuantity) => {
@@ -188,7 +225,7 @@ const Cart = () => {
 
   useEffect(() => {
     if (cartLoading) return;
-    if (!paymentMethods.length) return;
+    if (!availablePaymentMethods.length) return;
     if (!shippingMethods.length) return;
     if (!visiblePaymentMethods.length) return;
 
@@ -209,7 +246,7 @@ const Cart = () => {
     if (!hasSelectedVisibleMethod) {
       onPaymentMethodChange(targetPaymentId);
     }
-  }, [cartLoading, paymentMethods.length, shippingMethods.length, visiblePaymentMethods, selectedPayment, onPaymentMethodChange]);
+  }, [cartLoading, availablePaymentMethods.length, shippingMethods.length, visiblePaymentMethods, selectedPayment, onPaymentMethodChange]);
 
   const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
   const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
@@ -573,7 +610,7 @@ const Cart = () => {
                         </div>
                       ))
                     ) : (
-                      <p>Методы доставки недоступны</p>
+                      <p>Подгружаем доступные варианты оплаты...</p>
                     )}
                   </div>
                 </div>
