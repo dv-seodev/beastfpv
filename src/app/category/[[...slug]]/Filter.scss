@@ -138,4 +138,28 @@
 
 
     }
+
+    &__static-list {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    &__static-link {
+        border-radius: 5px;
+        padding: 10px 54px;
+        font-size: 21px;
+        line-height: 30px;
+        font-weight: 400;
+        transition: .3s;
+
+        &:hover {
+            background: #EBEBEB;
+        }
+
+        @include respond-to('ipad') {
+            font-size: 18px;
+        }
+    }
 }

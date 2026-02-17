@@ -3,6 +3,13 @@
 import Link from 'next/link';
 import './Filter.scss';
 
+const staticCategories = [
+    { id: 'static-actions', name: 'DJI', href: '/category/dji/' },
+    { id: 'static-popular', name: 'Хиты продаж', href: '/category/popular/' },
+    { id: 'static-new', name: 'Новинки', href: '/category/new/' },
+
+];
+
 const Filter = ({ categories = [] }) => {
     if (!categories || categories.length === 0) {
         return (
@@ -52,6 +59,18 @@ const Filter = ({ categories = [] }) => {
                         </div>
                     </details>
                 ))}
+
+                <div className="filter__static-list">
+                    {staticCategories.map((category) => (
+                        <Link
+                            key={category.id}
+                            href={category.href}
+                            className="filter__static-link"
+                        >
+                            {category.name}
+                        </Link>
+                    ))}
+                </div>
             </div>
         </div>
     );

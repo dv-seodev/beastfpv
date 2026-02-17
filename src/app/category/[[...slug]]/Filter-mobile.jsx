@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import './Filter-mobile.scss';
 
+const staticCategories = [
+    { id: 'static-actions', name: 'DJI', href: '/category/dji/' },
+    { id: 'static-popular', name: 'Хиты продаж', href: '/category/popular/' },
+    { id: 'static-new', name: 'Новинки', href: '/category/new/' },
+];
+
 const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
     if (!categories || categories.length === 0) {
         return (
@@ -97,6 +103,17 @@ const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
                             </details>
                         );
                     })}
+
+                    {staticCategories.map((category) => (
+                        <Link
+                            key={category.id}
+                            href={category.href}
+                            className="filter-mobile__categories-link"
+                            onClick={handleCategoryClick}
+                        >
+                            {category.name}
+                        </Link>
+                    ))}
                 </div>
             </div>
         </div>
