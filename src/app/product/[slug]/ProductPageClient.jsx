@@ -411,7 +411,7 @@ const Product_cart = ({ product, homeData: homeDataProp }) => {
                         productImage={product.image?.sourceUrl}
                     />
                     <div className="product-card__descr">
-                        <div className="product-card__descr-art">Артикул: {product.sku || '123124'}</div>
+                        {/*<div className="product-card__descr-art">Артикул: {product.sku || '123124'}</div> */}
                         <div className="product-card__descr-main">{product.name}</div>
 
                         <div className="product-card__descr-price">
