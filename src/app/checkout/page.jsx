@@ -50,6 +50,16 @@ const Checkout = () => {
 
   // Computed Values & State
   const isPickup = useMemo(() => selectedShipping?.includes("pickup") || false, [selectedShipping]);
+  const isCdekShipping = useMemo(() => selectedShipping?.includes("cdek") || false, [selectedShipping]);
+  const isBacsPayment = useMemo(() => selectedPayment === "bacs", [selectedPayment]);
+  const shouldShowFullAddressFields = useMemo(
+    () => isCdekShipping || isBacsPayment,
+    [isCdekShipping, isBacsPayment]
+  );
+  const shouldUsePickupDefaults = useMemo(
+    () => isPickup && !isBacsPayment,
+    [isPickup, isBacsPayment]
+  );
   const isLoading = useMemo(() => newProductsLoading || !cartInitialized);
   const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
 
@@ -78,11 +88,11 @@ const Checkout = () => {
         first_name: values.name.split(" ")[0] || "",
         last_name: values.surname.split(" ")[0] || "",
         company: "",
-        address_1: isPickup ? "САМОВЫВОЗ" : `${values.street} ${values.house}`,
+        address_1: shouldUsePickupDefaults ? "САМОВЫВОЗ" : `${values.street} ${values.house}`,
         address_2: "",
         city: values.city || "Москва",
         state: values.state || "Москва",
-        postcode: isPickup ? "119991" : values.postcode,
+        postcode: shouldUsePickupDefaults ? "119991" : values.postcode,
         country: "RU",
         email: values.email || "",
         phone: values.phone || "",
@@ -201,7 +211,7 @@ const Checkout = () => {
                   required
                 />
               </div>
-              {selectedShipping.includes('cdek') && (
+              {shouldShowFullAddressFields && (
                 <div className="ship-met">
                   <b>Адрес доставки</b>
                   <br /><br />
@@ -254,7 +264,7 @@ const Checkout = () => {
               )}
 
               {isPickup && <CheckoutPickupNotice />}
-              {selectedShipping.includes('cdek') && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
+              {isCdekShipping && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
 
               <br />
               <br />
