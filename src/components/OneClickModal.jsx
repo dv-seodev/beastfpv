@@ -5,6 +5,12 @@ import { formatPhoneNumber } from '../lib/phoneMask';
 import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
 import Link from 'next/link';
 
+const trackYandexLeadGoal = () => {
+    if (typeof window !== 'undefined' && typeof window.ym === 'function') {
+        window.ym(96745068, 'reachGoal', 'zayavka');
+    }
+};
+
 const getProductNameForForm = (product, isPreorder) => {
     const name = product?.name || '';
     if (!name) return '';
@@ -85,6 +91,7 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
                     product_price: product?.price || '',
                 },
             });
+            trackYandexLeadGoal();
 
             setSubmitState('success');
             setFormData({

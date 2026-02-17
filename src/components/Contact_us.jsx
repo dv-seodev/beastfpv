@@ -6,6 +6,12 @@ import { submitLeadForm, validateLeadForm } from '../lib/formLeads';
 import './Contact_us.scss';
 import Link from 'next/link';
 
+const trackYandexLeadGoal = () => {
+    if (typeof window !== 'undefined' && typeof window.ym === 'function') {
+        window.ym(96745068, 'reachGoal', 'zayavka');
+    }
+};
+
 const contact_us = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -69,6 +75,7 @@ const contact_us = () => {
                     message: formData.message?.trim() || '',
                 },
             });
+            trackYandexLeadGoal();
 
             setSubmitState('success');
             setFormData({
