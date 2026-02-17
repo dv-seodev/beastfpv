@@ -19,6 +19,11 @@ const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
         if (onClose) onClose();
     };
 
+    const visibleCategories = categories.filter((category) => {
+        const slug = (category.slug || '').toLowerCase();
+        return category.id !== 19 && slug !== 'new' && slug !== 'popular';
+    });
+
 
     return (
         <div className={`filter-mobile ${isOpen ? 'filter-mobile--open' : ''}`}>
@@ -52,7 +57,7 @@ const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
                     </div>
 
                     {/* ДИНАМИЧЕСКИЕ КАТЕГОРИИ */}
-                    {categories.map((category) => {
+                    {visibleCategories.map((category) => {
                         const hasSubcategories = category.subcategories && category.subcategories.length > 0;
 
                         // Если нет подкатегорий - просто ссылка
