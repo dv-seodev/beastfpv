@@ -48,6 +48,8 @@
         @include mx.respond-to('ipad') {
             font-size: 10px;
             padding: 2px 4px;
+            min-height: 37px;
+            padding: 4px 4px;
         }
     }
 
@@ -160,6 +162,10 @@
         @include mx.respond-to('laptop-mdpi') {
             font-size: 18px;
         }
+
+        @include mx.respond-to('phone') {
+            font-size: 14px;
+        }
     }
 
     &__cart-button {
@@ -178,7 +184,6 @@
         @include mx.respond-to('laptop-mdpi') {
             min-width: 39px;
             min-height: 33px;
-
             background-size: 15px 15px;
         }
 
