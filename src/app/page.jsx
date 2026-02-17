@@ -77,7 +77,7 @@ const HOME_QUERY = `
         }
       }
     }
-    categories: productCategories(first: 12, where: { parent: $parentId }) {
+    categories: productCategories(first: 100, where: { parent: $parentId }) {
       nodes {
         id
         link

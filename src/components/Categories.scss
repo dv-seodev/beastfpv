@@ -13,15 +13,19 @@
     &__items-grid {
         display: grid;
         grid-template-columns: auto auto auto auto;
+        column-gap: 10px;
 
 
 
         @include mx.respond-to('large') {
             grid-template-columns: auto auto auto;
+            column-gap: 8px;
+
         }
 
         @include mx.respond-to('medium') {
             grid-template-columns: auto auto;
+            column-gap: 5px;
         }
     }
 

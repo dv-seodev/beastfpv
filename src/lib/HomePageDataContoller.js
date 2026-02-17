@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client/react";
 export const useHomeData = () => {
     const newProductsQuery = useQuery(api.fetchProducts(10, 'new'));
     const popProductsQuery = useQuery(api.fetchProducts(8, 'popular'));
-    const categoriesQuery = useQuery(api.fetchCategories(12, 20));
+    const categoriesQuery = useQuery(api.fetchCategories(100, 20));
 
     const isLoading = newProductsQuery.loading || popProductsQuery.loading || categoriesQuery.loading;
     const error = newProductsQuery.error || popProductsQuery.error || categoriesQuery.error;

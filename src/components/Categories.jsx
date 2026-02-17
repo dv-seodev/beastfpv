@@ -17,14 +17,14 @@ const Categories = ({ categories }) => {
     return (
         <section className="categories">
             <div className="container categories__container">
-                <h2>Категории товаров</h2>
+                <h2>Комплектующие</h2>
                 <div className="categories__items-grid">
                     {categories.map((category) => (
                         <div key={category.id} className="categories__item">
                             <Link href={getRelativePath(category.link)}>
                                 <img src={category.image?.sourceUrl || "/images/categories/new.png"} />
                             </Link>
-                            <Link href={getRelativePath(category.link)}><span className="categories__name">{category.name}</span></Link>
+                            <Link href={getRelativePath(category.link)}><span className="categories__items__name">{category.name}</span></Link>
                         </div>
                     ))}
                 </div >
