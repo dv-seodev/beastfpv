@@ -33,7 +33,8 @@ export async function GET(request, { params }) {
 
 
         const credentials = Buffer.from(`${wooUsername}:${wooPassword}`).toString('base64');
-        const wooApiUrl = `${wooUrl}/wp-json/wc/v3/orders/${orderId}`;
+        const normalizedWooUrl = wooUrl.replace(/\/+$/, '');
+        const wooApiUrl = `${normalizedWooUrl}/wp-json/wc/v3/orders/${orderId}`;
 
 
         console.log('📡 Fetching order from:', wooApiUrl);
@@ -73,7 +74,7 @@ export async function GET(request, { params }) {
 
 
             try {
-                const productsUrl = `${wooUrl}/wp-json/wc/v3/products?include=${productIds.join(',')}&per_page=${productIds.length}`;
+                const productsUrl = `${normalizedWooUrl}/wp-json/wc/v3/products?include=${productIds.join(',')}&per_page=${productIds.length}`;
 
 
                 const productsResponse = await fetch(productsUrl, {
@@ -112,13 +113,72 @@ export async function GET(request, { params }) {
         }
 
 
-        // Получаем URL счёта для BACS
-        const invoice_url = data.meta_data?.find(m => m.key === '_bacs_invoice_url')?.value;
+        // Получаем URL счёта для BACS (с fallback)
+        const metaData = Array.isArray(data.meta_data) ? data.meta_data : [];
+        const invoiceMetaKeys = [
+            '_bacs_invoice_url',
+            'bacs_invoice_url',
+            '_invoice_url',
+            'invoice_url',
+        ];
+
+        let invoice_url = '';
+        for (const key of invoiceMetaKeys) {
+            const found = metaData.find((m) => m?.key === key && m?.value);
+            if (found?.value) {
+                invoice_url = String(found.value).trim();
+                break;
+            }
+        }
+
+        if (!invoice_url && data?.invoice_url) {
+            invoice_url = String(data.invoice_url).trim();
+        }
+
+        const paymentMethod = String(data?.payment_method || '').toLowerCase();
+        const paymentMethodTitle = String(data?.payment_method_title || '').toLowerCase();
+        const isBankTransfer =
+            paymentMethod === 'bacs' ||
+            paymentMethod === 'bank_transfer' ||
+            paymentMethodTitle.includes('расчетн');
+
+        if (!invoice_url && isBankTransfer) {
+            const dateFromOrder = String(data?.date_created || '');
+            const dateMatch = dateFromOrder.match(/^(\d{4})-(\d{2})-/);
+            const now = new Date();
+            const year = dateMatch?.[1] || String(now.getFullYear());
+            const month = dateMatch?.[2] || String(now.getMonth() + 1).padStart(2, '0');
+            const orderNumber = data?.number || orderId;
+            const fallbackInvoiceUrl = `${normalizedWooUrl}/wp-content/uploads/${year}/${month}/invoice-${orderNumber}.pdf`;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const headResponse = await fetch(fallbackInvoiceUrl, {
+                    method: 'HEAD',
+                    signal: controller.signal,
+                });
+                if (headResponse.ok) {
+                    invoice_url = fallbackInvoiceUrl;
+                    console.log('📄 Invoice URL fallback found:', invoice_url);
+                } else {
+                    console.warn('⚠️ Invoice fallback not found:', fallbackInvoiceUrl, 'status:', headResponse.status);
+                }
+            } catch (headError) {
+                console.warn('⚠️ Invoice fallback HEAD failed:', headError.message);
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
         if (invoice_url) {
             console.log('📄 Invoice URL found:', invoice_url);
             data.invoice_url = invoice_url;
+        } else {
+            console.warn('⚠️ Invoice URL not found for order:', data?.number || orderId);
         }
-        console.log('asdasd')
+
         return Response.json(data);
 
 

@@ -6,6 +6,43 @@ import Link from 'next/link';
 import '../../../account/page.scss';
 import { useAuth } from '../../../../lib/useAuth';
 
+const INVOICE_META_KEYS = [
+    '_bacs_invoice_url',
+    'bacs_invoice_url',
+    '_invoice_url',
+    'invoice_url',
+];
+
+const resolveInvoiceUrl = (orderData) => {
+    if (orderData?.invoice_url) {
+        return String(orderData.invoice_url).trim();
+    }
+
+    if (Array.isArray(orderData?.meta_data)) {
+        for (const key of INVOICE_META_KEYS) {
+            const invoiceMeta = orderData.meta_data.find(
+                (meta) => meta?.key === key && meta?.value
+            );
+            if (invoiceMeta?.value) {
+                return String(invoiceMeta.value).trim();
+            }
+        }
+    }
+
+    return null;
+};
+
+const isBankTransferOrder = (orderData) => {
+    const methodId = String(orderData?.payment_method || '').toLowerCase();
+    const methodTitle = String(orderData?.payment_method_title || '').toLowerCase();
+
+    if (methodId === 'bacs' || methodId === 'bank_transfer') {
+        return true;
+    }
+
+    return methodTitle.includes('расчетн');
+};
+
 const OrderSuccessPage = () => {
     const router = useRouter();
     const params = useParams();
@@ -61,8 +98,10 @@ const OrderSuccessPage = () => {
             const order = await response.json();
             setOrder(order);
 
-            if (order.payment_method === 'bacs' && order.invoice_url) {
-                setInvoiceUrl(order.invoice_url);
+            if (isBankTransferOrder(order)) {
+                setInvoiceUrl(resolveInvoiceUrl(order));
+            } else {
+                setInvoiceUrl(null);
             }
         } catch (err) {
             setError(err.message);
@@ -164,7 +203,7 @@ const OrderSuccessPage = () => {
                                 Благодарим за оказанное доверие! Номер вашего заказа: <strong>#{order.number}</strong>
                             </p>
                             <br />
-                            {order.payment_method === 'bacs' && invoiceUrl && (
+                            {isBankTransferOrder(order) && invoiceUrl && (
                                 <h3>
                                     <Link href={invoiceUrl} download>
                                         📄 Скачать счёт на оплату
