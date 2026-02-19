@@ -10,6 +10,7 @@ import { useRestCart } from "../../lib/hooks/useRestCart";
 import { Formik } from "formik";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Loader from "../../components/Loader";
 
 import {
@@ -69,6 +70,9 @@ const Checkout = () => {
     surname: profileData?.lastName || "",
     email: profileData?.email || "",
     phone: profileData?.billing?.phone || "",
+    billing_company: profileData?.billing?.company || "",
+    billing_inn: "",
+    billing_kpp: "",
     city: profileData?.shipping?.city || "",
     street: profileData?.shipping?.address1 || "",
     house: profileData?.shipping?.address2 || "",
@@ -76,18 +80,20 @@ const Checkout = () => {
     state: profileData?.shipping?.state || "",
     postcode: profileData?.shipping?.postcode || "",
     comments: "",
+    agree: false,
   };
 
   //Methods
   const handleSubmitForm = async (values) => {
     if (submitting) return;          // защита от двойных кликов
+    if (!values.agree) return;
     setSubmitting(true);
 
     try {
       const billingAddress = {
         first_name: values.name.split(" ")[0] || "",
         last_name: values.surname.split(" ")[0] || "",
-        company: "",
+        company: isBacsPayment ? (values.billing_company || "") : "",
         address_1: shouldUsePickupDefaults ? "САМОВЫВОЗ" : `${values.street} ${values.house}`,
         address_2: "",
         city: values.city || "Москва",
@@ -107,6 +113,12 @@ const Checkout = () => {
         shipping_lines: [],
         extensions: {},
       };
+
+      if (isBacsPayment) {
+        checkoutData.billing_company = values.billing_company || "";
+        checkoutData.billing_inn = values.billing_inn || "";
+        checkoutData.billing_kpp = values.billing_kpp || "";
+      }
 
       if (selectedShippingMethod?.method === "official_cdek") {
         checkoutData.shipping_lines.push({
@@ -263,16 +275,69 @@ const Checkout = () => {
                 </div>
               )}
 
+              {isBacsPayment && (
+                <div className="ship-met">
+                  <b>Юр. данные</b>
+                  <br /><br />
+                  <input
+                    type="text"
+                    name="billing_company"
+                    value={values.billing_company || ""}
+                    onChange={handleChange}
+                    className="checkout__form-input"
+                    placeholder="Название компании"
+                  />
+                  <input
+                    type="text"
+                    name="billing_inn"
+                    value={values.billing_inn || ""}
+                    onChange={handleChange}
+                    className="checkout__form-input"
+                    placeholder="ИНН"
+                    required={isBacsPayment}
+                  />
+                  <input
+                    type="text"
+                    name="billing_kpp"
+                    value={values.billing_kpp || ""}
+                    onChange={handleChange}
+                    className="checkout__form-input"
+                    placeholder="КПП"
+                    required={isBacsPayment}
+                  />
+                </div>
+              )}
+              <br />
               {isPickup && <CheckoutPickupNotice />}
               {isCdekShipping && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
 
+
+
               <br />
               <br />
+
+              <div className="checkout__checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  className="checkout__form-checkbox"
+                  name="agree"
+                  checked={Boolean(values.agree)}
+                  onChange={handleChange}
+                  required
+                />
+                <span>
+                  Я даю свое согласие на{" "}
+                  <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>
+                    обработку своих персональных данных
+                  </Link>
+                </span>
+              </div>
 
               <button
                 type="submit"
                 className={`checkout__form-button-submit${submitting ? " checkout__form-button-submit--loading" : ""}`}
-                disabled={submitting}
+                disabled={submitting || !Boolean(values.agree)}
+                style={submitting || !Boolean(values.agree) ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
               >
                 {submitting ? "Заказ оформляется..." : "Оформить заказ"}
               </button>
