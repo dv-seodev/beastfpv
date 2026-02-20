@@ -1,13 +1,13 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const CdekMap = ({ onPVZselect }) => {
-  let mapCdek;
+  const mapRef = useRef(null);
 
   useEffect(() => {
-    if (mapCdek) return;
+    if (mapRef.current || typeof window === "undefined" || !window.CDEKWidget) return;
 
-    mapCdek = new window.CDEKWidget({
+    mapRef.current = new window.CDEKWidget({
       from: "Москва",
       defaultLocation: [37.6176, 55.7558],
       lang: "rus",
@@ -28,10 +28,10 @@ const CdekMap = ({ onPVZselect }) => {
       },
       onChoose(delivery, rate, address) {
         console.log("Доставка выбрана", delivery, address.code);
-        onPVZselect(address);
+        onPVZselect?.(address);
       },
     });
-  }, []);
+  }, [onPVZselect]);
 
   return (
     <div className="cdek-map-wrapper">

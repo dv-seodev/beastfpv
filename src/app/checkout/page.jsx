@@ -4,11 +4,10 @@
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CdekMap from "./cdekmap";
 import { useRestCart } from "../../lib/hooks/useRestCart";
 import { Formik } from "formik";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Loader from "../../components/Loader";
@@ -63,6 +62,13 @@ const Checkout = () => {
   );
   const isLoading = useMemo(() => newProductsLoading || !cartInitialized);
   const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
+  const [cdekSelectionError, setCdekSelectionError] = useState("");
+  const isCdekPointRequired = useMemo(() => isCdekShipping, [isCdekShipping]);
+
+  useEffect(() => {
+    setCdekSelectedPoint(null);
+    setCdekSelectionError("");
+  }, [selectedShipping]);
 
   // 🔽 ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ initialValues ИЗ ПРОФИЛЯ
   const formInitialValues = {
@@ -87,6 +93,10 @@ const Checkout = () => {
   const handleSubmitForm = async (values) => {
     if (submitting) return;          // защита от двойных кликов
     if (!values.agree) return;
+    if (isCdekPointRequired && !cdekSelectedPoint?.code) {
+      setCdekSelectionError("Выберите пункт выдачи СДЭК, чтобы оформить заказ.");
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -125,7 +135,7 @@ const Checkout = () => {
           method_id: selectedShippingMethod.id,
           method_title: selectedShippingMethod.title,
         });
-        if (cdekSelectedPoint) {
+        if (cdekSelectedPoint?.code) {
           checkoutData.extensions.official_cdek = {
             office_code: cdekSelectedPoint?.code || "",
           };
@@ -160,6 +170,7 @@ const Checkout = () => {
 
   const onCdekSelectedPVZ = (data) => {
     setCdekSelectedPoint(data);
+    setCdekSelectionError("");
   };
 
   /* 
@@ -310,6 +321,16 @@ const Checkout = () => {
               <br />
               {isPickup && <CheckoutPickupNotice />}
               {isCdekShipping && <CdekMap onPVZselect={onCdekSelectedPVZ} />}
+              {isCdekShipping && cdekSelectedPoint?.code && (
+                <p style={{ color: "#1f7a1f", marginTop: "12px" }}>
+                  Выбран ПВЗ: {cdekSelectedPoint?.code}
+                </p>
+              )}
+              {isCdekShipping && cdekSelectionError && (
+                <p style={{ color: "#d93025", marginTop: "12px" }}>
+                  {cdekSelectionError}
+                </p>
+              )}
 
 
 
@@ -336,8 +357,12 @@ const Checkout = () => {
               <button
                 type="submit"
                 className={`checkout__form-button-submit${submitting ? " checkout__form-button-submit--loading" : ""}`}
-                disabled={submitting || !Boolean(values.agree)}
-                style={submitting || !Boolean(values.agree) ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
+                disabled={submitting || !Boolean(values.agree) || (isCdekPointRequired && !cdekSelectedPoint?.code)}
+                style={
+                  submitting || !Boolean(values.agree) || (isCdekPointRequired && !cdekSelectedPoint?.code)
+                    ? { opacity: 0.6, cursor: "not-allowed" }
+                    : undefined
+                }
               >
                 {submitting ? "Заказ оформляется..." : "Оформить заказ"}
               </button>
