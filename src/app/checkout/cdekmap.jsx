@@ -13,7 +13,7 @@ const CdekMap = ({ onPVZselect }) => {
       lang: "rus",
       currency: "RUB",
       root: "cdek-map",
-      apiKey: "c390b32a-a818-4842-b71f-262d4ff04489",
+      apiKey: "bf092e70-98de-4d12-b3bb-7ed56f9a855e",
       canChoose: true,
       servicePath: "https://api.beastfpv.ru/wp-json/cdek/v1/webhook",
       hideDeliveryOptions: { office: false, door: true },
