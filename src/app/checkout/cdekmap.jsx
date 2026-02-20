@@ -8,8 +8,8 @@ const CdekMap = ({ onPVZselect }) => {
     if (mapCdek) return;
 
     mapCdek = new window.CDEKWidget({
-      from: "Новосибирск",
-      defaultLocation: [82.9346, 55.0415],
+      from: "Москва",
+      defaultLocation: [37.6176, 55.7558],
       lang: "rus",
       currency: "RUB",
       root: "cdek-map",
