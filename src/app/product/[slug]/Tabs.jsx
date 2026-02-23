@@ -5,6 +5,18 @@ const Tabs = ({ product = {} }) => {
     const manualFiles = Array.isArray(product.manualFiles) ? product.manualFiles : [];
     const relatedProducts = Array.isArray(product.relatedProducts) ? product.relatedProducts : [];
 
+    // Функция для исправления URL инструкций
+    const getInstructionUrl = (file) => {
+        const rawUrl = file?.url?.trim() || '';
+        // Если URL оканчивается на "-pdf.jpg", меняем на ".pdf"
+        if (rawUrl.endsWith('-pdf.jpg')) {
+            return rawUrl.replace(/-pdf\.jpg$/, '.pdf');
+        }
+        // Если есть source_url (стандартное поле медиафайлов WordPress) — приоритет
+        if (file.source_url) return file.source_url;
+        return rawUrl; // иначе возвращаем как есть
+    };
+
     const renderHTML = (htmlString) => {
         return (
             <div
@@ -28,7 +40,9 @@ const Tabs = ({ product = {} }) => {
                 <p className="tabs-manuals__hint">Файлы инструкций доступны для скачивания.</p>
                 <ul className="tabs-manuals__list">
                     {manualFiles.map((file, index) => {
-                        const url = typeof file?.url === 'string' ? file.url.trim() : '';
+
+                        //const url = typeof file?.url === 'string' ? file.url.trim() : '';
+                        const url = getInstructionUrl(file);
                         const canDownload = Boolean(url);
                         const title = file?.title || `Инструкция ${index + 1}`;
 
