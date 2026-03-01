@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import './Filter-mobile.scss';
+import { useEffect } from 'react';
 
 const staticCategories = [
     { id: 'static-actions', name: 'DJI', href: '/category/dji/' },
@@ -10,6 +11,17 @@ const staticCategories = [
 ];
 
 const Filter_mobile = ({ categories = [], isOpen, onClose }) => {
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     if (!categories || categories.length === 0) {
         return (
             <div className="filter-mobile">
