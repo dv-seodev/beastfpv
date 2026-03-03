@@ -348,7 +348,7 @@ const Checkout = () => {
                 />
                 <span>
                   Я даю свое согласие на{" "}
-                  <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>
+                  <Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank" style={{ textDecoration: "underline" }}>
                     обработку своих персональных данных
                   </Link>
                 </span>

@@ -170,7 +170,7 @@ const contact_us = () => {
                             checked={formData.agree}
                             onChange={handleInputChange}
                         />
-                        <span>Я даю свое согласие на <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
+                        <span>Я даю свое согласие на <Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
                     </div>
                     <button
                         type="submit"

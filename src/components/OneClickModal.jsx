@@ -204,7 +204,7 @@ export default function OneClickModal({ product, isOpen, onClose, isPreorder = f
                                 onChange={handleInputChange}
                                 className="contact-us-modal__checkbox"
                             />
-                            <span>Я даю свое согласие на <Link href="/politika-konfidencialnosti.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
+                            <span>Я даю свое согласие на <Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
                         </label>
                     </div>
 

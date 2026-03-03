@@ -29,6 +29,9 @@ const Footer = () => {
                             <b><Link href="/politika-konfidencialnosti.pdf" target="_blank">
                                 Политика конфиденциальности
                             </Link></b>
+                            <b><Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank">
+                                Обработка персональных данных
+                            </Link></b>
                         </div>
                     </nav>
                     <div className="footer__social-links footer__links_navy">

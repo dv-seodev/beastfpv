@@ -47,8 +47,7 @@ export default function DesignUpdateNotice() {
     <div className="design-notice" role="status" aria-live="polite">
       <div className="design-notice__inner container">
         <p className="design-notice__text">
-          Уважаемые друзья, для вашего удобства мы полностью переработали дизайн нашего сайта. Если вы будете испытывать какие-либо проблемы с оформлением заказа, обязательно
-          напишите нам на почту <a href="mailto:order@beastfpv.ru" className="design-notice__link">order@beastfpv.ru</a>, или свяжитесь с нами через <a href="/#contact-us" className="design-notice__link">форму обратной связи</a> на главной странице. Надеемся на ваше понимание.
+          Мы используем файлы cookie и сервисы веб-аналитики для обеспечения работы сайта, улучшения качества обслуживания и анализа посещаемости. Продолжая пользоваться сайтом, вы соглашаетесь с использованием cookie в соответствии с нашей <a href="/politika-konfidencialnosti.pdf" className="design-notice__link">Политикой обработки персональных данных</a>.
         </p>
         <button type="button" className="design-notice__button" onClick={handleDismiss}>
           Понятно
