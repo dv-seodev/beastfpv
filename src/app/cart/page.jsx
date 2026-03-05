@@ -82,7 +82,6 @@ const Cart = () => {
 
   const selectedShippingMethod = shippingMethods.find((method) => method.id === selectedShipping);
   const shippingMethodCode = selectedShippingMethod?.method || "";
-  const isLocalPickup = shippingMethodCode.includes("pickup");
   const isCdek = shippingMethodCode.includes("cdek");
 
   const availablePaymentMethods = useMemo(() => {
@@ -125,11 +124,10 @@ const Cart = () => {
   const visiblePaymentMethods = useMemo(() => {
     if (!Array.isArray(availablePaymentMethods)) return [];
     return availablePaymentMethods.filter((method) => {
-      if (isLocalPickup && method.id === "yookassa_epl") return false;
       if (isCdek && method.id === "cod") return false;
       return true;
     });
-  }, [availablePaymentMethods, isLocalPickup, isCdek]);
+  }, [availablePaymentMethods, isCdek]);
 
   const handleQuantityChangeWrapper = useCallback(
     async (itemKey, newQuantity) => {
