@@ -15,7 +15,10 @@ const Footer = () => {
                     <div className="footer__logo">
                         <Link href="/">
                             <img src="/icons-footer/footer_logo.svg" className="footer__image-logo" />
-                        </Link>
+                        </Link><br /><br />
+                        <b><Link href="/svidetelsvtvo-beastfpv-tm.jpg" target="_blank">
+                            Свидетельство на товарный знак BEASTFPV
+                        </Link></b><br />
                     </div>
 
                 </div>
@@ -28,7 +31,7 @@ const Footer = () => {
                             Все права защищены © 2026<br /><br />
                             <b><Link href="/politika-konfidencialnosti.pdf" target="_blank">
                                 Политика конфиденциальности
-                            </Link></b>
+                            </Link></b><br /><br />
                             <b><Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank">
                                 Обработка персональных данных
                             </Link></b>
