@@ -7,7 +7,7 @@ const Advantages = () => {
                 <h2>Наши преимущества</h2>
                 <div className="advantages__wrapper">
                     <div className="advantages__element">
-                        <div className="advantages__number">01</div>
+                        <div className="advantages__number">1</div>
                         <div className="advantages__item">
                             <div className="advantages__header">Широкий ассортимент
                             </div>
@@ -18,7 +18,7 @@ const Advantages = () => {
                         </div>
                     </div>
                     <div className="advantages__element">
-                        <div className="advantages__number">02</div>
+                        <div className="advantages__number">2</div>
                         <div className="advantages__item">
                             <div className="advantages__header">Гарантия и сервис
                             </div>
@@ -28,7 +28,7 @@ const Advantages = () => {
                         </div>
                     </div>
                     <div className="advantages__element">
-                        <div className="advantages__number">03</div>
+                        <div className="advantages__number">3</div>
                         <div className="advantages__item">
                             <div className="advantages__header">Быстрая доставка
                             </div>
@@ -38,7 +38,7 @@ const Advantages = () => {
                         </div>
                     </div>
                     <div className="advantages__element">
-                        <div className="advantages__number">04</div>
+                        <div className="advantages__number">4</div>
                         <div className="advantages__item">
                             <div className="advantages__header">Экспертная консультация
                             </div>

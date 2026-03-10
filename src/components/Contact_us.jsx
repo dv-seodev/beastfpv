@@ -113,8 +113,8 @@ const contact_us = () => {
         <section className="contact-us" id='contact-us'>
             <div className="container contact-us__container">
                 <div className="contact-us__header">
-                    <h2>Ответим на все ваши вопросы</h2>
-                    <p>Оставьте ваши контактные данные и мы вам перезвоним</p>
+                    <h2>Ответим на Ваши вопросы</h2>
+                    <p>Оставьте вконтактные данные и мы Вам перезвоним</p>
                 </div>
                 <form className="contact-us__form" onSubmit={handleSubmit}>
                     <p>Как к вам можно обращаться?</p>
@@ -170,7 +170,7 @@ const contact_us = () => {
                             checked={formData.agree}
                             onChange={handleInputChange}
                         />
-                        <span>Я даю свое согласие на <Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
+                        <span>Я даю согласие на <Link href="/soglasie-obrabotka-pers-dannyh.pdf" target="_blank" style={{ textDecoration: "underline" }}>обработку своих персональных данных</Link></span>
                     </div>
                     <button
                         type="submit"
