@@ -14,7 +14,7 @@ const Footer = () => {
                     </nav>
                     <div className="footer__logo">
                         <Link href="/">
-                            <img src="/icons-footer/footer_logo.svg" className="footer__image-logo" />
+                            <img src="/icons-footer/footer_logo.png" className="footer__image-logo" />
                         </Link><br /><br />
                         <b><Link href="/svidetelsvtvo-beastfpv-tm.jpg" target="_blank">
                             Свидетельство на товарный знак BEASTFPV
