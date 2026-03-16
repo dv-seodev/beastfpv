@@ -281,3 +281,9 @@ b {
     align-self: flex-end;
   }
 }
+
+.wp-block-image>figure>img {
+  max-width: 100%;
+  max-height: fit-content;
+
+}

@@ -60,6 +60,7 @@ const Header = () => {
                 <div className="container header__container">
                     <nav className="header__about-links">
                         <Link className="header__links-item" href="/o-magazine/">О магазине</Link>
+                        <Link className="header__links-item" href="/proizvodstvo/">Производство</Link>
                         <Link className="header__links-item" href="/oplata-i-dostavka/">Доставка и оплата</Link>
                         <Link className="header__links-item" href="/garantiya-i-vozvrat/">Гарантия и возврат</Link>
                         <Link className="header__links-item" href="/contacts/">Контакты</Link>

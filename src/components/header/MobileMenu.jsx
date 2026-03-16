@@ -86,6 +86,13 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item mobile-heading"
+                        href="/proizvodstvo/"
+                        onClick={onClose}
+                    >
+                        Наше производство
+                    </Link>
+                    <Link
+                        className="mobile-menu__links-item mobile-heading"
                         href="/oplata-i-dostavka/"
                         onClick={onClose}
                     >
