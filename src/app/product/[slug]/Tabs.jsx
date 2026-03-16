@@ -4,6 +4,7 @@ import NewItems from "../../../components/New_items";
 const Tabs = ({ product = {} }) => {
     const manualFiles = Array.isArray(product.manualFiles) ? product.manualFiles : [];
     const relatedProducts = Array.isArray(product.relatedProducts) ? product.relatedProducts : [];
+    const directDownloadExtensions = new Set([".hex", ".json"]);
 
     // Функция для исправления URL инструкций
     const getInstructionUrl = (file) => {
@@ -26,6 +27,22 @@ const Tabs = ({ product = {} }) => {
         );
     };
 
+    const getFileExtension = (value) => {
+        if (typeof value !== "string") return "";
+        const cleanValue = value.trim().split(/[?#]/)[0].toLowerCase();
+        const match = cleanValue.match(/\.([a-z0-9]+)$/);
+        return match ? `.${match[1]}` : "";
+    };
+
+    const buildManualDownloadHref = (url, fileName) => {
+        if (!url) return "";
+        const params = new URLSearchParams({ url });
+        if (typeof fileName === "string" && fileName.trim()) {
+            params.set("filename", fileName.trim());
+        }
+        return `/api/manual-download?${params.toString()}`;
+    };
+
     const renderInstructions = () => {
         if (!manualFiles.length) {
             return (
@@ -45,6 +62,11 @@ const Tabs = ({ product = {} }) => {
                         const url = getInstructionUrl(file);
                         const canDownload = Boolean(url);
                         const title = file?.title || `Инструкция ${index + 1}`;
+                        const extension = getFileExtension(file?.fileName) || getFileExtension(url);
+                        const shouldForceDownload = directDownloadExtensions.has(extension);
+                        const href = shouldForceDownload
+                            ? buildManualDownloadHref(url, file?.fileName || title)
+                            : url;
 
                         return (
                             <li key={file.id || `${title}-${index}`} className="tabs-manuals__item">
@@ -58,10 +80,10 @@ const Tabs = ({ product = {} }) => {
                                     {canDownload ? (
                                         <a
                                             className="tabs-manuals__download button"
-                                            href={url}
+                                            href={href}
                                             download={file?.fileName || true}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            target={shouldForceDownload ? undefined : "_blank"}
+                                            rel={shouldForceDownload ? undefined : "noopener noreferrer"}
                                         >
                                             Скачать
                                         </a>
