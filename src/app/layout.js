@@ -58,6 +58,12 @@ export default function RootLayout({ children }) {
           (window, document,'script','https://mc.yandex.ru/metrika/tag.js', 'ym');      ym(96745068, 'init', {webvisor:true, trackHash:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
         `}
         </Script>
+        <Script id="bitrix24-site-button" strategy="afterInteractive">
+          {`(function(w,d,u){
+                var s=d.createElement('script');s.async=true;s.src=u+'?'+(Date.now()/60000|0);
+                var h=d.getElementsByTagName('script')[0];h.parentNode.insertBefore(s,h);
+        })(window,document,'https://cdn-ru.bitrix24.ru/b26010968/crm/site_button/loader_3_731ygu.js');`}
+        </Script>
         <Suspense fallback={<></>}>
           <YandexMetrika />
         </Suspense>
