@@ -93,7 +93,7 @@ const Header = () => {
                                         <Link className="header__links-item-submenu" href="/category/fpv/9-inch/">9 дюймов</Link>
                                         <Link className="header__links-item-submenu" href="/category/fpv/10-inch/">10 дюймов</Link>
                                         <Link className="header__links-item-submenu" href="/category/fpv/13-inch/">13 дюймов</Link>
-                                        <Link className="header__links-item-submenu" href="/category/fpv/15-inch/">13 дюймов</Link>
+                                        <Link className="header__links-item-submenu" href="/category/fpv/15-inch/">15 дюймов</Link>
                                     </div>
                                 </div>
                                 <Link className="header__links-item-nav" href="/category/dji/">DJI</Link>
