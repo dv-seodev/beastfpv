@@ -4,7 +4,7 @@
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CdekMap from "./cdekmap";
 import { useRestCart } from "../../lib/hooks/useRestCart";
 import { Formik } from "formik";
@@ -39,33 +39,6 @@ function getHawkIntegrationId(token) {
     return "";
   }
 }
-
-const hawkIntegrationId = getHawkIntegrationId(HAWK_TOKEN);
-const hawkHttpEndpoint = hawkIntegrationId ? `https://${hawkIntegrationId}.k1.hawk.so:433` : "";
-
-const hawkTransport = hawkHttpEndpoint
-  ? {
-      async send(message) {
-        const response = await fetch(hawkHttpEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(message),
-          keepalive: true,
-        });
-        if (!response.ok) {
-          throw new Error(`Hawk transport failed: ${response.status}`);
-        }
-      },
-    }
-  : undefined;
-
-const hawk = HAWK_TOKEN
-  ? new HawkCatcher({
-      token: HAWK_TOKEN,
-      debug: true,
-      transport: hawkTransport,
-    })
-  : null;
 
 function isWpErrorResponse(response) {
   return Boolean(
@@ -122,6 +95,35 @@ const Checkout = () => {
   const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
   const [cdekSelectionError, setCdekSelectionError] = useState("");
   const isCdekPointRequired = useMemo(() => isCdekShipping, [isCdekShipping]);
+  const hawkRef = useRef(null);
+
+  useEffect(() => {
+    if (!HAWK_TOKEN || typeof window === "undefined" || hawkRef.current) return;
+
+    const hawkIntegrationId = getHawkIntegrationId(HAWK_TOKEN);
+    const hawkHttpEndpoint = hawkIntegrationId ? `https://${hawkIntegrationId}.k1.hawk.so:433` : "";
+    const hawkTransport = hawkHttpEndpoint
+      ? {
+          async send(message) {
+            const response = await fetch(hawkHttpEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(message),
+              keepalive: true,
+            });
+            if (!response.ok) {
+              throw new Error(`Hawk transport failed: ${response.status}`);
+            }
+          },
+        }
+      : undefined;
+
+    hawkRef.current = new HawkCatcher({
+      token: HAWK_TOKEN,
+      debug: true,
+      transport: hawkTransport,
+    });
+  }, []);
 
   useEffect(() => {
     setCdekSelectedPoint(null);
@@ -207,8 +209,8 @@ const Checkout = () => {
 
       if (isWpErrorResponse(result)) {
         console.error("[Checkout WP Error]", result);
-        if (hawk) {
-          hawk.send(new Error(result.message), {
+        if (hawkRef.current) {
+          hawkRef.current.send(new Error(result.message), {
             scope: "checkout",
             stage: "create_order",
             error_code: result.code,
@@ -236,8 +238,8 @@ const Checkout = () => {
       }
     } catch (error) {
       console.error("[Checkout Error]", error);
-      if (hawk) {
-        hawk.send(normalizeCheckoutError(error), {
+      if (hawkRef.current) {
+        hawkRef.current.send(normalizeCheckoutError(error), {
           scope: "checkout",
           stage: "create_order",
           payment_method: selectedPayment || "",
