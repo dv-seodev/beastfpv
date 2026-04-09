@@ -1,16 +1,17 @@
 "use client";
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 import "./page.scss";
 import NewItems from "../../components/New_items";
 import { useHomeData } from "../../lib/HomePageDataContoller";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CdekMap from "./cdekmap";
 import { useRestCart } from "../../lib/hooks/useRestCart";
 import { Formik } from "formik";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Loader from "../../components/Loader";
+import HawkCatcher from "@hawk.so/javascript";
 
 import {
   EmptyCheckoutState,
@@ -28,12 +29,42 @@ import wooRestApi from "../../lib/woo_rest_api/rest_api";
 import { useAuth } from "../../lib/useAuth";
 import { useAccountController } from "../../lib/AccountController";
 
+const HAWK_TOKEN = process.env.NEXT_PUBLIC_HAWK_TOKEN || "";
+
+function isWpErrorResponse(response) {
+  return Boolean(
+    response &&
+    typeof response === "object" &&
+    typeof response.code === "string" &&
+    typeof response.message === "string"
+  );
+}
+
+function normalizeCheckoutError(error) {
+  if (error instanceof Error) return error;
+  if (typeof error === "string") return new Error(error);
+  try {
+    return new Error(JSON.stringify(error));
+  } catch {
+    return new Error(String(error));
+  }
+}
+
+function normalizePhone(rawPhone) {
+  const digits = String(rawPhone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length === 11 && digits.startsWith("8")) return `7${digits.slice(1)}`;
+  if (digits.length === 10) return `7${digits}`;
+  return digits;
+}
+
 const Checkout = () => {
   const router = useRouter();
   const { data: homeData, loading: newProductsLoading } = useHomeData();
   const { selectedPayment, selectedShipping, getShippingMethods, cartInitialized } = useRestCart();
   const cart = useRestCart((state) => state.cart);
   const [submitting, setSubmitting] = useState(false);
+  const hawkRef = useRef(null);
 
   // 🔽 АВТОРИЗАЦИЯ + ПРОФИЛЬ 
   const { token } = useAuth();
@@ -64,6 +95,18 @@ const Checkout = () => {
   const [cdekSelectedPoint, setCdekSelectedPoint] = useState(null);
   const [cdekSelectionError, setCdekSelectionError] = useState("");
   const isCdekPointRequired = useMemo(() => isCdekShipping, [isCdekShipping]);
+
+  useEffect(() => {
+    if (!HAWK_TOKEN || typeof window === "undefined" || hawkRef.current) return;
+    try {
+      hawkRef.current = new HawkCatcher({
+        token: HAWK_TOKEN,
+        debug: false,
+      });
+    } catch (initError) {
+      console.warn("[Hawk Init Error]", initError);
+    }
+  }, []);
 
   useEffect(() => {
     setCdekSelectedPoint(null);
@@ -100,6 +143,7 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
+      const normalizedPhone = normalizePhone(values.phone);
       const billingAddress = {
         first_name: values.name.split(" ")[0] || "",
         last_name: values.surname.split(" ")[0] || "",
@@ -111,7 +155,7 @@ const Checkout = () => {
         postcode: shouldUsePickupDefaults ? "119991" : values.postcode,
         country: "RU",
         email: values.email || "",
-        phone: values.phone || "",
+        phone: normalizedPhone || "",
       };
 
       const checkoutData = {
@@ -147,6 +191,25 @@ const Checkout = () => {
       const result = await wooRestApi.createOrder(checkoutData);
       console.log(result);
 
+      if (isWpErrorResponse(result)) {
+        console.error("[Checkout WP Error]", result);
+        try {
+          hawkRef.current?.send(new Error(result.message), {
+            scope: "checkout",
+            stage: "create_order",
+            error_code: result.code,
+            error_status: result?.data?.status || null,
+            payment_method: selectedPayment || "",
+            shipping_method: selectedShipping || "",
+            has_phone: Boolean(normalizedPhone),
+            phone_length: normalizedPhone.length,
+          });
+        } catch (hawkSendError) {
+          console.warn("[Hawk Send Error]", hawkSendError);
+        }
+        return;
+      }
+
       const orderId = result.order_id;
       const redirectUrl = result.payment_result?.redirect_url;
       const orderKey = result.order_key;
@@ -163,6 +226,16 @@ const Checkout = () => {
       }
     } catch (error) {
       console.error("[Checkout Error]", error);
+      try {
+        hawkRef.current?.send(normalizeCheckoutError(error), {
+          scope: "checkout",
+          stage: "create_order",
+          payment_method: selectedPayment || "",
+          shipping_method: selectedShipping || "",
+        });
+      } catch (hawkSendError) {
+        console.warn("[Hawk Send Error]", hawkSendError);
+      }
       // тут можно показать тост/alert
     } finally {
       setSubmitting(false);          // вернём кнопку в нормальное состояние
