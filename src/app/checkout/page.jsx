@@ -102,17 +102,39 @@ const Checkout = () => {
 
     const hawkIntegrationId = getHawkIntegrationId(HAWK_TOKEN);
     const hawkHttpEndpoint = hawkIntegrationId ? `https://${hawkIntegrationId}.k1.hawk.so:433` : "";
+    const hawkProxyEndpoint = "/api/hawk-event";
     const hawkTransport = hawkHttpEndpoint
       ? {
           async send(message) {
-            const response = await fetch(hawkHttpEndpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(message),
-              keepalive: true,
-            });
+            let response;
+            try {
+              response = await fetch(hawkHttpEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(message),
+                keepalive: true,
+              });
+            } catch {
+              // Fallback: some client networks block direct access to Hawk collector port.
+              response = await fetch(hawkProxyEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(message),
+                keepalive: true,
+              });
+            }
+
             if (!response.ok) {
-              throw new Error(`Hawk transport failed: ${response.status}`);
+              // Try proxy as a second chance when direct collector returns non-2xx.
+              const proxyResponse = await fetch(hawkProxyEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(message),
+                keepalive: true,
+              });
+              if (!proxyResponse.ok) {
+                throw new Error(`Hawk transport failed: direct=${response.status}, proxy=${proxyResponse.status}`);
+              }
             }
           },
         }
