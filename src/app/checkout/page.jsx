@@ -24,9 +24,67 @@ import {
 } from "../../components/checkout";
 import { usePaymentMethods } from "../../lib/usePaymentMethods";
 import wooRestApi from "../../lib/woo_rest_api/rest_api";
+import HawkCatcher from "@hawk.so/javascript";
 
 import { useAuth } from "../../lib/useAuth";
 import { useAccountController } from "../../lib/AccountController";
+
+const HAWK_TOKEN = process.env.NEXT_PUBLIC_HAWK_TOKEN || "";
+
+function getHawkIntegrationId(token) {
+  try {
+    const decoded = JSON.parse(atob(token));
+    return decoded?.integrationId || "";
+  } catch {
+    return "";
+  }
+}
+
+const hawkIntegrationId = getHawkIntegrationId(HAWK_TOKEN);
+const hawkHttpEndpoint = hawkIntegrationId ? `https://${hawkIntegrationId}.k1.hawk.so:433` : "";
+
+const hawkTransport = hawkHttpEndpoint
+  ? {
+      async send(message) {
+        const response = await fetch(hawkHttpEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(message),
+          keepalive: true,
+        });
+        if (!response.ok) {
+          throw new Error(`Hawk transport failed: ${response.status}`);
+        }
+      },
+    }
+  : undefined;
+
+const hawk = HAWK_TOKEN
+  ? new HawkCatcher({
+      token: HAWK_TOKEN,
+      debug: true,
+      transport: hawkTransport,
+    })
+  : null;
+
+function isWpErrorResponse(response) {
+  return Boolean(
+    response &&
+      typeof response === "object" &&
+      typeof response.code === "string" &&
+      typeof response.message === "string"
+  );
+}
+
+function normalizeCheckoutError(error) {
+  if (error instanceof Error) return error;
+  if (typeof error === "string") return new Error(error);
+  try {
+    return new Error(JSON.stringify(error));
+  } catch {
+    return new Error(String(error));
+  }
+}
 
 const Checkout = () => {
   const router = useRouter();
@@ -146,6 +204,22 @@ const Checkout = () => {
 
       const result = await wooRestApi.createOrder(checkoutData);
       console.log(result);
+
+      if (isWpErrorResponse(result)) {
+        console.error("[Checkout WP Error]", result);
+        if (hawk) {
+          hawk.send(new Error(result.message), {
+            scope: "checkout",
+            stage: "create_order",
+            error_code: result.code,
+            error_status: result?.data?.status || null,
+            payment_method: selectedPayment || "",
+            shipping_method: selectedShipping || "",
+          });
+        }
+        return;
+      }
+
       const orderId = result.order_id;
       const redirectUrl = result.payment_result?.redirect_url;
       const orderKey = result.order_key;
@@ -162,6 +236,14 @@ const Checkout = () => {
       }
     } catch (error) {
       console.error("[Checkout Error]", error);
+      if (hawk) {
+        hawk.send(normalizeCheckoutError(error), {
+          scope: "checkout",
+          stage: "create_order",
+          payment_method: selectedPayment || "",
+          shipping_method: selectedShipping || "",
+        });
+      }
       // тут можно показать тост/alert
     } finally {
       setSubmitting(false);          // вернём кнопку в нормальное состояние
