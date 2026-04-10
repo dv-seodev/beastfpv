@@ -65,6 +65,10 @@ const PAGES_QUERY = `
 `;
 
 async function fetchGraphQL(query, variables) {
+  if (!GRAPHQL_URL) {
+    throw new Error("GraphQL endpoint is not configured");
+  }
+
   const res = await fetch(GRAPHQL_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -77,6 +81,10 @@ async function fetchGraphQL(query, variables) {
   }
 
   const json = await res.json();
+  if (Array.isArray(json?.errors) && json.errors.length > 0) {
+    const firstError = json.errors[0]?.message || 'Unknown GraphQL error';
+    throw new Error(`GraphQL response error: ${firstError}`);
+  }
   return json?.data || null;
 }
 
@@ -117,8 +125,14 @@ async function fetchAllPageSlugs() {
 }
 
 export async function generateStaticParams() {
-  const slugs = await fetchAllPageSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await fetchAllPageSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch (error) {
+    // Do not fail the whole build because of temporary GraphQL/network issues.
+    console.error('[slug]/generateStaticParams failed:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }) {
