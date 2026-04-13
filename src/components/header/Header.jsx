@@ -67,7 +67,7 @@ const Header = () => {
                     </nav>
                     <div className="header__contacts_info">
                         <div><span className="header__adress-links">Пн-Пт: 9.00 - 21.00, Cб: 11.00 - 16.00, Вс: выходной</span></div>
-                        <div><span className="header__adress-links">Адрес: Москва, пр-т. Мира, 102, стр. 31</span></div>
+                        {/* <div><span className="header__adress-links">Адрес: Москва, пр-т. Мира, 102, стр. 31</span></div> */}
                     </div>
                 </div>
             </div>

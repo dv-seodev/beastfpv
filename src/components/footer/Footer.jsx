@@ -50,8 +50,8 @@ const Footer = () => {
                         <Link className="footer__links-item" href="tel:+74954878782">+7 (495) 487-87-82</Link>
                     </div>
                     <div className="footer__adress-contacts">
-                        <p>Адрес: Москва, пр-т. Мира, 102, стр. 31</p>
-                        <br />
+                        {/* <p>Адрес: Москва, пр-т. Мира, 102, стр. 31</p>
+                        <br /> */}
                         <p>Мы работаем: <br />
                             Пн-Пт: 9.00 - 21.00<br />
                             Cб: 11.00 - 16.00<br />
