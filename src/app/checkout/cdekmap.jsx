@@ -35,6 +35,7 @@ const CdekMap = ({ onPVZselect }) => {
 
   return (
     <div className="cdek-map-wrapper">
+      <div className="ship-met"><b>Выберите ПВЗ СДЭК для доставки</b></div>
       <div
         id="cdek-map"
         style={{
