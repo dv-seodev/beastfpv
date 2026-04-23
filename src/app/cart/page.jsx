@@ -249,6 +249,15 @@ const Cart = () => {
   const isLoading = useMemo(() => loading || cartLoading || !items, [loading, cartLoading, items]);
   const displayItems = useMemo(() => (cartItems.length > 0 ? cartItems : items), [cartItems, items]);
   const isDisabled = cartLoading || paymentMethodUpdating;
+  const hasSelectedShippingMethod = useMemo(
+    () => shippingMethods.some((method) => method.id === selectedShipping),
+    [shippingMethods, selectedShipping]
+  );
+  const hasSelectedPaymentMethod = useMemo(
+    () => visiblePaymentMethods.some((method) => method.id === selectedPayment),
+    [visiblePaymentMethods, selectedPayment]
+  );
+  const canProceedToCheckout = !isDisabled && hasSelectedShippingMethod && hasSelectedPaymentMethod;
 
   // --- Debounce logic for quantity changes ---
   const [localQuantities, setLocalQuantities] = useState({});
@@ -649,11 +658,18 @@ const Cart = () => {
               <Link
                 href="/checkout"
                 className="cart__form-button-submit"
+                aria-disabled={!canProceedToCheckout}
+                tabIndex={canProceedToCheckout ? 0 : -1}
+                onClick={(e) => {
+                  if (!canProceedToCheckout) {
+                    e.preventDefault();
+                  }
+                }}
                 style={{
                   display: "block",
                   textAlign: "center",
-                  pointerEvents: isDisabled ? "none" : "auto",
-                  opacity: isDisabled ? 0.6 : 1,
+                  pointerEvents: canProceedToCheckout ? "auto" : "none",
+                  opacity: canProceedToCheckout ? 1 : 0.6,
                 }}
               >
                 Перейти к оформлению
