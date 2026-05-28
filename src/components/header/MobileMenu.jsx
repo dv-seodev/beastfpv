@@ -112,6 +112,13 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     >
                         Контакты
                     </Link>
+                    <Link
+                        className="mobile-menu__links-item mobile-heading"
+                        href="/news/"
+                        onClick={onClose}
+                    >
+                        Новости
+                    </Link>
                 </div>
             </div>
         </>

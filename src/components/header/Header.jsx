@@ -64,6 +64,7 @@ const Header = () => {
                         <Link className="header__links-item" href="/oplata-i-dostavka/">Доставка и оплата</Link>
                         <Link className="header__links-item" href="/garantiya-i-vozvrat/">Гарантия и возврат</Link>
                         <Link className="header__links-item" href="/contacts/">Контакты</Link>
+                        <Link className="header__links-item" href="/news/">Новости</Link>
                     </nav>
                     <div className="header__contacts_info">
                         <div><span className="header__adress-links">Пн-Пт: 9.00 - 21.00, Cб: 11.00 - 16.00, Вс: выходной</span></div>
