@@ -310,7 +310,7 @@ const Checkout = () => {
               </div>
               {shouldShowFullAddressFields && (
                 <div className="ship-met">
-                  <b>Адрес доставки</b>
+                  <b>{isBacsPayment ? "Юридический адрес" : "Адрес доставки"}</b>
                   <br /><br />
                   <input
                     type="text"
