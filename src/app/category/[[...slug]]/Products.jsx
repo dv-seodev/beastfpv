@@ -35,11 +35,38 @@ const Products = ({ categoryName, products, slug }) => {
         setIsModalOpen(true);
     };
 
+    const sortedProducts = [...products].sort((a, b) => {
+        const getPriority = (product) => {
+            switch (product.stockStatus) {
+                case 'IN_STOCK':
+                    return 0;
+                case 'ON_BACKORDER':
+                    return 1;
+                case 'OUT_OF_STOCK':
+                default:
+                    return 2;
+            }
+        };
+
+        return getPriority(a) - getPriority(b);
+    });
+
     return (
         <div className="products">
             <h1>{categoryName || "Название категории"}</h1>
-            <div className="products__items-grid">
+            {/* <div className="products__items-grid">
                 {products.map((product, index) => (
+                    <ProductListItem
+                        key={`${product.databaseId || product.id}-${index}`}
+                        product={product}
+                        isInCart={cartProductIds.has(product.databaseId)}
+                        onOneClick={handleOneClick}
+                    />
+                ))}
+            </div> */}
+
+            <div className="products__items-grid">
+                {sortedProducts.map((product, index) => (
                     <ProductListItem
                         key={`${product.databaseId || product.id}-${index}`}
                         product={product}
