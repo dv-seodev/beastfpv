@@ -65,7 +65,7 @@ const Products = ({ categoryName, products, slug }) => {
                 ))}
             </div> */}
 
-            <div className="products__items-grid">
+            {/* <div className="products__items-grid">
                 {sortedProducts.map((product, index) => (
                     <ProductListItem
                         key={`${product.databaseId || product.id}-${index}`}
@@ -74,7 +74,19 @@ const Products = ({ categoryName, products, slug }) => {
                         onOneClick={handleOneClick}
                     />
                 ))}
+            </div> */}
+
+            <div className="products__items-grid">
+                {products.map((product, index) => (
+                    <ProductListItem
+                        key={`${product.databaseId || product.id}-${index}`}
+                        product={product}
+                        isInCart={cartProductIds.has(product.databaseId)}
+                        onOneClick={handleOneClick}
+                    />
+                ))}
             </div>
+
             {/* <LoadMore /> */}
             {selectedProduct && (
                 <OneClickModal

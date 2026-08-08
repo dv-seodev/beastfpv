@@ -34,15 +34,32 @@ const CategoryPageClient = ({ data, categories, pageSize }) => {
     const totalCount = data.totalCount;
     const allProducts = data.allProducts;
 
+    // Сначала сортируем весь список
+    const sortedAllProducts = [...allProducts].sort((a, b) => {
+        const getPriority = (product) => {
+            switch (product.stockStatus) {
+                case 'IN_STOCK':
+                    return 0;
+                case 'ON_BACKORDER':
+                    return 1;
+                case 'OUT_OF_STOCK':
+                default:
+                    return 2;
+            }
+        };
+
+        return getPriority(a) - getPriority(b);
+    });
+
     const totalPages = Math.ceil(totalCount / pageSize);
 
-    // обычная порционная выборка (для режима без showAll)
+    // Пагинация уже по отсортированному массиву
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const pageProducts = allProducts.slice(startIndex, endIndex);
+    const pageProducts = sortedAllProducts.slice(startIndex, endIndex);
 
-    // что рендерим: либо текущую страницу, либо все
-    const productsToRender = showAll ? allProducts : pageProducts;
+    // Что рендерим
+    const productsToRender = showAll ? sortedAllProducts : pageProducts;
 
     // показывать ли блок LoadMore (кнопка + пагинация)
     const shouldShowLoadMoreBlock =
