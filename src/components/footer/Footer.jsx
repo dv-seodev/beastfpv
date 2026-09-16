@@ -9,6 +9,7 @@ const Footer = () => {
                     <span className="footer__links-header">Наша техника</span>
                     <nav className="footer__popular-links footer__links_navy">
                         <Link className="footer__links-item" href="/category/fpv/">FPV</Link>
+                        <Link className="footer__links-item" href="/category/accessory/reaktivnye-dvigateli-dlya-dronov/">Реактивные двигатели</Link>
                         <Link className="footer__links-item" href="/category/dji/">DJI</Link>
                         <Link className="footer__links-item" href="/category/accessory/">Комплектующие</Link>
                     </nav>

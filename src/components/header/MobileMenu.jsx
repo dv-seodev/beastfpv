@@ -48,6 +48,13 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
+                        href="/category/accessory/reaktivnye-dvigateli-dlya-dronov/"
+                        onClick={onClose}
+                    >
+                        Реактивные двигатели
+                    </Link>
+                    <Link
+                        className="mobile-menu__links-item"
                         href="/category/dji/"
                         onClick={onClose}
                     >

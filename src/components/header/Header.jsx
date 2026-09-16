@@ -97,6 +97,7 @@ const Header = () => {
                                         <Link className="header__links-item-submenu" href="/category/fpv/15-inch/">15 дюймов</Link>
                                     </div>
                                 </div>
+                                <Link className="header__links-item-nav" href="/category/accessory/reaktivnye-dvigateli-dlya-dronov/">Реактивные двигатели</Link>
                                 <Link className="header__links-item-nav" href="/category/dji/">DJI</Link>
                                 <div className="header__links-item-nav rel-menu">
                                     <Link href="/category/accessory/">Комплектующие</Link>
