@@ -63,7 +63,7 @@ const Categories = ({
             </div>
 
             <div className="container categories__container">
-                <h2>FPV</h2>
+                <h2>FPV-дроны</h2>
                 <div className="categories__items-grid">
                     {catsfpv_list.map((category) => (
                         <div key={category.id} className="categories__item">
