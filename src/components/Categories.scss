@@ -55,4 +55,44 @@
         }
     }
 
+    &__items-grid-main {
+        display: grid;
+        grid-template-columns: auto auto auto auto;
+        column-gap: 10px;
+        row-gap: 15px;
+
+        @include mx.respond-to('laptop-mdpi') {
+            grid-template-columns: auto auto auto;
+            column-gap: 8px;
+
+        }
+
+        @include mx.respond-to('large') {
+            grid-template-columns: auto auto;
+            column-gap: 5px;
+        }
+    }
+
+    &__main-item {
+        flex-direction: column;
+        gap: 7px;
+
+        a img {
+            width: 100%;
+            height: 100%;
+            min-height: 360px;
+            max-height: 360px;
+            min-width: 360px;
+            max-width: 360px;
+        }
+
+        &__name {
+            font-size: 26px;
+            font-weight: 300;
+
+            @include mx.respond-to('ipad') {
+                font-size: 14px;
+            }
+        }
+    }
 }

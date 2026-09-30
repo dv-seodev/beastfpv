@@ -48,24 +48,31 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/category/accessory/reaktivnye-dvigateli-dlya-dronov/"
+                        href="/category/komplektuyushchie/reaktivnye-dvigateli-dlya-dronov/"
                         onClick={onClose}
                     >
                         Реактивные двигатели
                     </Link>
                     <Link
                         className="mobile-menu__links-item"
-                        href="/category/dji/"
-                        onClick={onClose}
-                    >
-                        DJI
-                    </Link>
-                    <Link
-                        className="mobile-menu__links-item"
-                        href="/category/accessory/"
+                        href="/category/komplektuyushchie/"
                         onClick={onClose}
                     >
                         Комплектующие
+                    </Link>
+                    <Link
+                        className="mobile-menu__links-item"
+                        href="/category/apparatura-fpv/"
+                        onClick={onClose}
+                    >
+                        Аппаратура
+                    </Link>
+                    <Link
+                        className="mobile-menu__links-item"
+                        href="/category/pitanie-i-obsluzhivanie-fpv/"
+                        onClick={onClose}
+                    >
+                        Питание и обслуживание
                     </Link>
                     <Link
                         className="mobile-menu__links-item"

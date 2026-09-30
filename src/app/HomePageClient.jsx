@@ -17,12 +17,17 @@ import Categories from "../components/Categories";
 export default function HomePageClient({ data }) {
   if (!data) return <div>Нет данных</div>;
 
-  const { new_products, pop_products, cats_list } = data;
+  const { new_products, pop_products, cats_list, catsfpv_list, catsapp_list, catspit_list } = data;
 
   return (
     <div>
       <SwipeSlider />
-      <Categories categories={cats_list} />
+      <Categories
+        categories={cats_list}
+        catsfpv_list={catsfpv_list}
+        catsapp_list={catsapp_list}
+        catspit_list={catspit_list}
+      />
       <PopularProducts products={pop_products} />
       <Actions />
       <NewItems products={new_products} />

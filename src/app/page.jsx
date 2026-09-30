@@ -78,17 +78,53 @@ const HOME_QUERY = `
       }
     }
     categories: productCategories(first: 100, where: { parent: $parentId }) {
-      nodes {
-        id
-        link
-        name
-        slug
-        image {
-          sourceUrl
-        }
-      }
+  nodes {
+    id
+    link
+    name
+    slug
+    image {
+      sourceUrl
     }
   }
+}
+
+fpvCategories: productCategories(first: 100, where: { parent: 18 }) {
+  nodes {
+    id
+    link
+    name
+    slug
+    image {
+      sourceUrl
+    }
+  }
+}
+
+appCategories: productCategories(first: 100, where: { parent: 92 }) {
+  nodes {
+    id
+    link
+    name
+    slug
+    image {
+      sourceUrl
+    }
+  }
+}
+
+pitCategories: productCategories(first: 100, where: { parent: 93 }) {
+  nodes {
+    id
+    link
+    name
+    slug
+    image {
+      sourceUrl
+    }
+  }
+}
+}
 `;
 
 const HOME_SEO_QUERY = `
@@ -148,6 +184,9 @@ async function fetchHomeData() {
     new_products: data?.newProducts?.nodes || [],
     pop_products: data?.popProducts?.nodes || [],
     cats_list: data?.categories?.nodes || [],
+    catsfpv_list: data?.fpvCategories?.nodes || [],
+    catsapp_list: data?.appCategories?.nodes || [],
+    catspit_list: data?.pitCategories?.nodes || [],
   };
 }
 

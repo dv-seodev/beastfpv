@@ -4,7 +4,6 @@ import Link from 'next/link';
 import './Filter.scss';
 
 const staticCategories = [
-    { id: 'static-actions', name: 'DJI', href: '/category/dji/' },
     { id: 'static-popular', name: 'Хиты продаж', href: '/category/popular/' },
     { id: 'static-new', name: 'Новинки', href: '/category/new/' },
 

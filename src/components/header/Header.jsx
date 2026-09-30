@@ -97,29 +97,44 @@ const Header = () => {
                                         <Link className="header__links-item-submenu" href="/category/fpv/15-inch/">15 дюймов</Link>
                                     </div>
                                 </div>
-                                <Link className="header__links-item-nav" href="/category/accessory/reaktivnye-dvigateli-dlya-dronov/">Реактивные двигатели</Link>
-                                <Link className="header__links-item-nav" href="/category/dji/">DJI</Link>
+                                <Link className="header__links-item-nav" href="/category/komplektuyushchie/reaktivnye-dvigateli-dlya-dronov/">Реактивные двигатели</Link>
                                 <div className="header__links-item-nav rel-menu">
-                                    <Link href="/category/accessory/">Комплектующие</Link>
+                                    <Link href="/category/komplektuyushchie/">Комплектующие</Link>
                                     <div className="header__links-submenu" style={{ right: -240 }}>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/akkumulyatory/">Аккумуляторы</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/antenny-dlya-fpv-dronov/">Антенны</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/videoperedatchiki-dlya-fpv-dronov/">Видеопередатчики</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/videopriemniki-dlya-fpv-dronov/">Видеоприемники</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/zaryadnye-ustrojstva-dlya-fpv-dronov/">Зарядные устройства</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/kamery-dlya-fpv-dronov/">Камеры</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/kontrollery-poleta-dlya-fpv/">Контроллеры полета</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/moduli-dlya-fpv-dronov/">Модули-передатчики для FPV</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/motory-dlya-fpv-dronov/">Моторы</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/nabory-instrumentov-dlya-fpv/">Наборы инструментов для FPV</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/ochki-dlya-fpv-dronov/">Очки</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/priemniki-dlya-fpv/">Приемники</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/propellery-dlya-fpv-dronov/">Пропеллеры</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/prochie-tovary-dlya-fpv/">Прочие товары для FPV</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/pulty-upravleniya-fpv-dronami/">Пульты управления FPV дронами</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/ramy-dlya-fpv-dronov/">Рамы</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/retranslyatory-dlya-fpv-dronov/">Ретрансляторы</Link>
-                                        <Link className="header__links-item-submenu" href="/category/accessory/usiliteli-signala-dlya-fpv-dronov/">Усилители сигнала</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/kamery-dlya-fpv-dronov/">Камеры</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/videoperedatchiki-dlya-fpv-dronov/">Видеопередатчики</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/kontrollery-poleta-dlya-fpv/">Контроллеры полёта</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/motory-dlya-fpv-dronov/">Моторы</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/propellery-dlya-fpv-dronov/">Пропеллеры</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/ramy-dlya-fpv-dronov/">Рамы</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/priemniki-dlya-fpv/">Приёмники</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/antenny-dlya-fpv-dronov/">Антенны</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/mikrokompyutery/">Микрокомпьютеры</Link>
+                                        <Link className="header__links-item-submenu" href="/category/komplektuyushchie/reaktivnye-dvigateli-dlya-dronov/">Реактивные двигатели</Link>
+                                    </div>
+                                </div>
+                                <div className="header__links-item-nav rel-menu">
+                                    <Link href="/category/apparatura-fpv/">Аппаратура</Link>
+                                    <div className="header__links-submenu" style={{ right: -240 }}>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/pulty-upravleniya-fpv-dronami/">Пульты управления</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/ochki-dlya-fpv-dronov/">FPV-очки</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/fpv-monitory/">FPV-мониторы</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/videopriemniki-dlya-fpv-dronov/">Видеоприёмники</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/moduli-dlya-fpv-dronov/">Модули-передатчики</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/retranslyatory-dlya-fpv-dronov/">Ретрансляторы</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/usiliteli-signala-dlya-fpv-dronov/">Усилители сигнала</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/optovolokno-dlya-dronov/">Оптоволокно</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/obnarujiteli-fpv-dronov/">Обнаружители FPV-дронов</Link>
+                                        <Link className="header__links-item-submenu" href="/category/apparatura-fpv/podaviteli-fpv-dronov/">Подавители FPV-дронов</Link>
+                                    </div>
+                                </div>
+                                <div className="header__links-item-nav rel-menu">
+                                    <Link href="/category/pitanie-i-obsluzhivanie-fpv/">Питание и обслуживание</Link>
+                                    <div className="header__links-submenu" style={{ right: -240 }}>
+                                        <Link className="header__links-item-submenu" href="/category/pitanie-i-obsluzhivanie-fpv/akkumulyatory/">Аккумуляторы</Link>
+                                        <Link className="header__links-item-submenu" href="/category/pitanie-i-obsluzhivanie-fpv/zaryadnye-ustrojstva-dlya-fpv-dronov/">Зарядные устройства</Link>
+                                        <Link className="header__links-item-submenu" href="/category/pitanie-i-obsluzhivanie-fpv/nabory-instrumentov-dlya-fpv/">Наборы инструментов</Link>
+                                        <Link className="header__links-item-submenu" href="/category/pitanie-i-obsluzhivanie-fpv/prochie-tovary-dlya-fpv/">Прочие товары для FPV</Link>
                                     </div>
                                 </div>
                                 <Link className="header__links-item-nav" href="/category/popular/">Хиты продаж</Link>
