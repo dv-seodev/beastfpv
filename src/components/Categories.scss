@@ -57,18 +57,18 @@
 
     &__items-grid-main {
         display: grid;
-        grid-template-columns: auto auto auto auto;
+        grid-template-columns: 25% 25% 25% 25%;
         column-gap: 10px;
         row-gap: 15px;
 
         @include mx.respond-to('laptop-hdpi') {
-            grid-template-columns: auto auto auto;
+            grid-template-columns: 33% 33% 33%;
             column-gap: 8px;
 
         }
 
         @include mx.respond-to('small') {
-            grid-template-columns: auto auto;
+            grid-template-columns: 50% 50%;
             column-gap: 5px;
         }
 
