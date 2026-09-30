@@ -63,7 +63,23 @@ const Categories = ({
             </div>
 
             <div className="container categories__container">
-                <h2>Комплектующие</h2>
+                <h2>FPV</h2>
+                <div className="categories__items-grid">
+                    {catsfpv_list.map((category) => (
+                        <div key={category.id} className="categories__item">
+                            <Link href={getRelativePath(category.link)}>
+                                <img src={category.image?.sourceUrl || '/images/categories/new.png'} alt={category.name} />
+                            </Link>
+                            <Link href={getRelativePath(category.link)}>
+                                <span className="categories__items__name">{category.name}</span>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="container categories__container">
+                <h2>Комплектующие для сборки</h2>
                 <div className="categories__items-grid">
                     {categories.map((category) => (
                         <div key={category.id} className="categories__item">
